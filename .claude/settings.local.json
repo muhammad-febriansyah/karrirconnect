@@ -1,0 +1,25 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(php artisan make:migration:*)",
+      "Bash(mv:*)",
+      "Bash(php artisan make:model:*)",
+      "Bash(php artisan make:controller:*)",
+      "Bash(php artisan make:middleware:*)",
+      "Bash(php artisan:*)",
+      "Bash(npm install:*)",
+      "Bash(npm run build:*)",
+      "mcp__ide__getDiagnostics",
+      "Bash(rm:*)",
+      "Bash(php:*)",
+      "Bash(npm run dev:*)",
+      "Bash(pkill:*)",
+      "Bash(mkdir:*)",
+      "Bash(find:*)",
+      "WebFetch(domain:glints.com)",
+      "Bash(npx shadcn@latest add:*)",
+      "Bash(git checkout:*)"
+    ],
+    "deny": []
+  }
+}
