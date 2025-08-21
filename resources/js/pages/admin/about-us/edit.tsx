@@ -191,7 +191,7 @@ export default function EditAboutUs({ aboutUs }: Props) {
                                 <CardTitle>Informasi Dasar</CardTitle>
                             </CardHeader>
                             <CardContent className="space-y-4">
-                                <div className="space-y-2">
+                                <div className="grid gap-2">
                                     <Label htmlFor="title">Judul/Nama Perusahaan</Label>
                                     <Input
                                         id="title"
@@ -202,7 +202,7 @@ export default function EditAboutUs({ aboutUs }: Props) {
                                     <InputError message={errors.title} />
                                 </div>
 
-                                <div className="space-y-2">
+                                <div className="grid gap-2">
                                     <Label htmlFor="description">Deskripsi</Label>
                                     <Textarea
                                         id="description"
@@ -214,7 +214,7 @@ export default function EditAboutUs({ aboutUs }: Props) {
                                     <InputError message={errors.description} />
                                 </div>
 
-                                <div className="space-y-2">
+                                <div className="grid gap-2">
                                     <Label htmlFor="vision">Visi</Label>
                                     <Textarea
                                         id="vision"
@@ -226,7 +226,7 @@ export default function EditAboutUs({ aboutUs }: Props) {
                                     <InputError message={errors.vision} />
                                 </div>
 
-                                <div className="space-y-2">
+                                <div className="grid gap-2">
                                     <Label htmlFor="mission">Misi</Label>
                                     <Textarea
                                         id="mission"
@@ -277,7 +277,7 @@ export default function EditAboutUs({ aboutUs }: Props) {
                                             </Button>
                                         </div>
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                            <div className="space-y-2">
+                                            <div className="grid gap-2">
                                                 <Label>Judul Nilai</Label>
                                                 <Input
                                                     value={value.title}
@@ -285,7 +285,7 @@ export default function EditAboutUs({ aboutUs }: Props) {
                                                     placeholder="Contoh: Kepedulian"
                                                 />
                                             </div>
-                                            <div className="space-y-2">
+                                            <div className="grid gap-2">
                                                 <Label>Icon</Label>
                                                 <Input
                                                     value={value.icon}
@@ -294,7 +294,7 @@ export default function EditAboutUs({ aboutUs }: Props) {
                                                 />
                                             </div>
                                         </div>
-                                        <div className="space-y-2">
+                                        <div className="grid gap-2">
                                             <Label>Deskripsi</Label>
                                             <Textarea
                                                 value={value.description}
@@ -371,7 +371,7 @@ export default function EditAboutUs({ aboutUs }: Props) {
                                             </Button>
                                         </div>
                                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                            <div className="space-y-2">
+                                            <div className="grid gap-2">
                                                 <Label>Angka</Label>
                                                 <Input
                                                     value={stat.number}
@@ -379,7 +379,7 @@ export default function EditAboutUs({ aboutUs }: Props) {
                                                     placeholder="1000+"
                                                 />
                                             </div>
-                                            <div className="space-y-2">
+                                            <div className="grid gap-2">
                                                 <Label>Label</Label>
                                                 <Input
                                                     value={stat.label}
@@ -387,7 +387,7 @@ export default function EditAboutUs({ aboutUs }: Props) {
                                                     placeholder="Perusahaan Terdaftar"
                                                 />
                                             </div>
-                                            <div className="space-y-2">
+                                            <div className="grid gap-2">
                                                 <Label>Icon</Label>
                                                 <Input
                                                     value={stat.icon}
@@ -429,7 +429,7 @@ export default function EditAboutUs({ aboutUs }: Props) {
                                             </Button>
                                         </div>
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                            <div className="space-y-2">
+                                            <div className="grid gap-2">
                                                 <Label>Nama</Label>
                                                 <Input
                                                     value={member.name}
@@ -437,7 +437,7 @@ export default function EditAboutUs({ aboutUs }: Props) {
                                                     placeholder="Nama lengkap"
                                                 />
                                             </div>
-                                            <div className="space-y-2">
+                                            <div className="grid gap-2">
                                                 <Label>Posisi</Label>
                                                 <Input
                                                     value={member.position}
@@ -446,7 +446,7 @@ export default function EditAboutUs({ aboutUs }: Props) {
                                                 />
                                             </div>
                                         </div>
-                                        <div className="space-y-2">
+                                        <div className="grid gap-2">
                                             <Label>Bio</Label>
                                             <Textarea
                                                 value={member.bio}
@@ -455,7 +455,7 @@ export default function EditAboutUs({ aboutUs }: Props) {
                                                 rows={2}
                                             />
                                         </div>
-                                        <div className="space-y-2">
+                                        <div className="grid gap-2">
                                             <Label>URL Gambar</Label>
                                             <Input
                                                 value={member.image}
@@ -600,7 +600,7 @@ export default function EditAboutUs({ aboutUs }: Props) {
                                 <CardTitle>Call to Action</CardTitle>
                             </CardHeader>
                             <CardContent className="space-y-4">
-                                <div className="space-y-2">
+                                <div className="grid gap-2">
                                     <Label htmlFor="cta_title">Judul CTA</Label>
                                     <Input
                                         id="cta_title"
@@ -611,7 +611,7 @@ export default function EditAboutUs({ aboutUs }: Props) {
                                     <InputError message={errors.cta_title} />
                                 </div>
 
-                                <div className="space-y-2">
+                                <div className="grid gap-2">
                                     <Label htmlFor="cta_description">Deskripsi CTA</Label>
                                     <Textarea
                                         id="cta_description"

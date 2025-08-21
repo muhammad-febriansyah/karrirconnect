@@ -89,8 +89,8 @@ export default function CreateUser({ roles }: Props) {
                                 </CardTitle>
                             </CardHeader>
                             <CardContent className="space-y-4">
-                                <div>
-                                    <Label className="mb-3" htmlFor="name">
+                                <div className="grid gap-2">
+                                    <Label htmlFor="name">
                                         Nama Lengkap *
                                     </Label>
                                     <Input
@@ -104,7 +104,7 @@ export default function CreateUser({ roles }: Props) {
                                     {errors.name && <p className="mt-1 text-sm text-red-600">{errors.name}</p>}
                                 </div>
 
-                                <div>
+                                <div className="grid gap-2">
                                     <Label htmlFor="email">Alamat Email *</Label>
                                     <Input
                                         id="email"
@@ -117,7 +117,7 @@ export default function CreateUser({ roles }: Props) {
                                     {errors.email && <p className="mt-1 text-sm text-red-600">{errors.email}</p>}
                                 </div>
 
-                                <div>
+                                <div className="grid gap-2">
                                     <Label htmlFor="password">Kata Sandi *</Label>
                                     <Input
                                         id="password"
@@ -130,7 +130,7 @@ export default function CreateUser({ roles }: Props) {
                                     {errors.password && <p className="mt-1 text-sm text-red-600">{errors.password}</p>}
                                 </div>
 
-                                <div>
+                                <div className="grid gap-2">
                                     <Label htmlFor="password_confirmation">Konfirmasi Kata Sandi *</Label>
                                     <Input
                                         id="password_confirmation"
@@ -143,7 +143,7 @@ export default function CreateUser({ roles }: Props) {
                                     {errors.password_confirmation && <p className="mt-1 text-sm text-red-600">{errors.password_confirmation}</p>}
                                 </div>
 
-                                <div>
+                                <div className="grid gap-2">
                                     <Label htmlFor="role">Peran *</Label>
                                     <Select value={data.role} onValueChange={(value) => setData('role', value)}>
                                         <SelectTrigger>
@@ -180,7 +180,7 @@ export default function CreateUser({ roles }: Props) {
                             </CardHeader>
                             <CardContent className="space-y-4">
                                 <div className="grid grid-cols-2 gap-4">
-                                    <div>
+                                    <div className="grid gap-2">
                                         <Label htmlFor="first_name">Nama Depan</Label>
                                         <Input
                                             id="first_name"
@@ -192,7 +192,7 @@ export default function CreateUser({ roles }: Props) {
                                         {errors.first_name && <p className="mt-1 text-sm text-red-600">{errors.first_name}</p>}
                                     </div>
 
-                                    <div>
+                                    <div className="grid gap-2">
                                         <Label htmlFor="last_name">Nama Belakang</Label>
                                         <Input
                                             id="last_name"
@@ -205,7 +205,7 @@ export default function CreateUser({ roles }: Props) {
                                     </div>
                                 </div>
 
-                                <div>
+                                <div className="grid gap-2">
                                     <Label htmlFor="phone">Nomor Telepon</Label>
                                     <Input
                                         id="phone"
@@ -218,7 +218,7 @@ export default function CreateUser({ roles }: Props) {
                                     {errors.phone && <p className="mt-1 text-sm text-red-600">{errors.phone}</p>}
                                 </div>
 
-                                <div>
+                                <div className="grid gap-2">
                                     <Label htmlFor="location">Lokasi</Label>
                                     <Input
                                         id="location"
@@ -231,7 +231,7 @@ export default function CreateUser({ roles }: Props) {
                                     {errors.location && <p className="mt-1 text-sm text-red-600">{errors.location}</p>}
                                 </div>
 
-                                <div>
+                                <div className="grid gap-2">
                                     <Label htmlFor="current_position">Posisi Saat Ini</Label>
                                     <Input
                                         id="current_position"
@@ -244,7 +244,7 @@ export default function CreateUser({ roles }: Props) {
                                     {errors.current_position && <p className="mt-1 text-sm text-red-600">{errors.current_position}</p>}
                                 </div>
 
-                                <div>
+                                <div className="grid gap-2">
                                     <Label htmlFor="bio">Bio</Label>
                                     <Textarea
                                         id="bio"

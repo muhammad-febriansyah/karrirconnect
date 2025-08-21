@@ -36,10 +36,23 @@ export default function CreateJobCategory() {
     const [dragActive, setDragActive] = useState<boolean>(false);
 
     const validateFile = (file: File): boolean => {
-        const allowedTypes = ['image/png', 'image/jpg', 'image/jpeg', 'image/svg+xml'];
+        // Allow multiple SVG MIME types as different browsers may report different types
+        const allowedTypes = [
+            'image/png', 
+            'image/jpg', 
+            'image/jpeg', 
+            'image/svg+xml',
+            'image/svg',  // Some browsers report this
+            'text/xml',   // SVG files might be reported as this
+            'application/xml' // Or this
+        ];
         const maxSize = 2 * 1024 * 1024; // 2MB
 
-        if (!allowedTypes.includes(file.type)) {
+        // Check file extension as backup for SVG files
+        const fileName = file.name.toLowerCase();
+        const isValidType = allowedTypes.includes(file.type) || fileName.endsWith('.svg');
+
+        if (!isValidType) {
             alert('Hanya file PNG, JPG, JPEG, atau SVG yang diperbolehkan');
             return false;
         }
@@ -204,7 +217,7 @@ export default function CreateJobCategory() {
                                     <Input
                                         id="image"
                                         type="file"
-                                        accept="image/png,image/jpg,image/jpeg,image/svg+xml"
+                                        accept="image/png,image/jpg,image/jpeg,image/svg+xml,.svg"
                                         onChange={handleImageChange}
                                         className="hidden"
                                     />

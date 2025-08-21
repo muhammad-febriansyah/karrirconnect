@@ -78,6 +78,16 @@ class JobListing extends Model
             ->withTimestamps();
     }
 
+    public function moderator()
+    {
+        return $this->belongsTo(User::class, 'moderated_by');
+    }
+
+    public function reports()
+    {
+        return $this->hasMany(JobReport::class);
+    }
+
     public function scopePublished(Builder $query)
     {
         return $query->where('status', 'published');
@@ -111,5 +121,22 @@ class JobListing extends Model
     {
         return $this->status === 'published' && 
                ($this->application_deadline === null || $this->application_deadline >= now());
+    }
+
+    public function canAcceptApplications()
+    {
+        return $this->isActive() && 
+               $this->applications()->where('status', '!=', 'rejected')->count() < $this->positions_available;
+    }
+
+    public function getRemainingPositionsAttribute()
+    {
+        $acceptedApplications = $this->applications()->where('status', '!=', 'rejected')->count();
+        return max(0, $this->positions_available - $acceptedApplications);
+    }
+
+    public function getIsFullyBookedAttribute()
+    {
+        return $this->applications()->where('status', '!=', 'rejected')->count() >= $this->positions_available;
     }
 }

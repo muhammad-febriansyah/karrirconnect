@@ -67,7 +67,7 @@ class CompanyManagementController extends Controller
 
     public function show(Company $company)
     {
-        $company->load(['user', 'jobListings']);
+        $company->load(['users', 'jobListings']);
 
         return Inertia::render('admin/companies/show', [
             'company' => $company,

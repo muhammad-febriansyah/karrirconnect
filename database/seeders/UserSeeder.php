@@ -29,12 +29,26 @@ class UserSeeder extends Seeder
             'bio' => 'System Administrator',
         ]);
 
+        // Get first company or create one for testing
+        $testCompany = \App\Models\Company::first() ?? \App\Models\Company::create([
+            'name' => 'Test Company',
+            'email' => 'test@company.com',
+            'description' => 'Test company for company admin',
+            'website' => 'https://testcompany.com',
+            'industry' => 'Technology',
+            'size' => '50-100',
+            'location' => 'Jakarta, Indonesia',
+            'is_verified' => true,
+            'is_active' => true,
+        ]);
+
         // Create Company Admin
         $companyAdmin = \App\Models\User::create([
             'name' => 'Company Admin',
             'email' => 'company@karirconnect.com',
             'password' => bcrypt('password'),
             'role' => 'company_admin',
+            'company_id' => $testCompany->id,
             'email_verified_at' => now(),
             'is_active' => true,
         ]);

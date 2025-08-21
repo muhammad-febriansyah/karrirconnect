@@ -26,6 +26,11 @@ class User extends Authenticatable
         'company_id',
         'is_active',
         'last_login_at',
+        'verification_status',
+        'verification_documents',
+        'verification_notes',
+        'verified_by',
+        'verified_at',
     ];
 
     /**
@@ -50,6 +55,8 @@ class User extends Authenticatable
             'password' => 'hashed',
             'last_login_at' => 'datetime',
             'is_active' => 'boolean',
+            'verification_documents' => 'array',
+            'verified_at' => 'datetime',
         ];
     }
 
@@ -75,6 +82,11 @@ class User extends Authenticatable
         return $this->hasMany(JobApplication::class);
     }
 
+    public function applications()
+    {
+        return $this->jobApplications();
+    }
+
     public function savedJobs()
     {
         return $this->belongsToMany(JobListing::class, 'saved_jobs')
@@ -89,6 +101,26 @@ class User extends Authenticatable
     public function reviewedApplications()
     {
         return $this->hasMany(JobApplication::class, 'reviewed_by');
+    }
+
+    public function activityLogs()
+    {
+        return $this->hasMany(UserActivityLog::class);
+    }
+
+    public function verifier()
+    {
+        return $this->belongsTo(User::class, 'verified_by');
+    }
+
+    public function verifiedUsers()
+    {
+        return $this->hasMany(User::class, 'verified_by');
+    }
+
+    public function userProfile()
+    {
+        return $this->hasOne(UserProfile::class);
     }
 
     public function isAdmin()

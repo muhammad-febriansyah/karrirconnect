@@ -1,7 +1,8 @@
-import { BarChart3, Briefcase, Building2, FileText, FolderOpen, Users, Settings, Info, Newspaper, Shield, UserCheck, User } from 'lucide-react';
+import { BarChart3, Briefcase, Building2, FileText, FolderOpen, Users, Settings, Info, Newspaper, Shield, UserCheck, User, Mail, AlertTriangle, ShieldCheck, Flag, Coins, CreditCard, History } from 'lucide-react';
 import { type NavItem } from '@/types';
 
 export function useMenuItems() {
+    // Super admin menu items (full platform access)
     const superAdminMenuGroups = [
         {
             label: 'Dashboard',
@@ -32,6 +33,11 @@ export function useMenuItems() {
                     icon: FolderOpen,
                 },
                 {
+                    title: 'Lowongan',
+                    href: '/admin/job-listings',
+                    icon: Briefcase,
+                },
+                {
                     title: 'Lamaran',
                     href: '/admin/applications',
                     icon: FileText,
@@ -50,6 +56,36 @@ export function useMenuItems() {
                     title: 'Tentang Kami',
                     href: '/admin/about-us',
                     icon: Info,
+                }
+            ]
+        },
+        {
+            label: 'Moderasi Konten',
+            items: [
+                {
+                    title: 'Laporan & Report',
+                    href: '/admin/moderation/reports',
+                    icon: Flag,
+                }
+            ]
+        },
+        {
+            label: 'Email & Notifikasi',
+            items: [
+                {
+                    title: 'Template Email',
+                    href: '/admin/email/templates',
+                    icon: Mail,
+                },
+                {
+                    title: 'Email Massal',
+                    href: '/admin/email/campaigns',
+                    icon: Mail,
+                },
+                {
+                    title: 'Pengaturan Notifikasi',
+                    href: '/admin/email/notification-settings',
+                    icon: Settings,
                 }
             ]
         },
@@ -74,6 +110,21 @@ export function useMenuItems() {
             ]
         },
         {
+            label: 'Sistem & Billing',
+            items: [
+                {
+                    title: 'Paket Poin',
+                    href: '/admin/point-packages',
+                    icon: Coins,
+                },
+                {
+                    title: 'History Transaksi',
+                    href: '/admin/transactions',
+                    icon: History,
+                }
+            ]
+        },
+        {
             label: 'Pengaturan',
             items: [
                 {
@@ -90,7 +141,68 @@ export function useMenuItems() {
         }
     ];
 
+    // Company admin menu items (limited to recruitment operations)
     const companyAdminMenuGroups = [
+        {
+            label: 'Dashboard',
+            items: [
+                {
+                    title: 'Dashboard',
+                    href: '/admin/dashboard',
+                    icon: BarChart3,
+                }
+            ]
+        },
+        {
+            label: 'Recruitment',
+            items: [
+                {
+                    title: 'Lowongan',
+                    href: '/admin/job-listings',
+                    icon: Briefcase,
+                },
+                {
+                    title: 'Lamaran',
+                    href: '/admin/applications',
+                    icon: FileText,
+                }
+            ]
+        },
+        {
+            label: 'Billing & Poin',
+            items: [
+                {
+                    title: 'Poin Saya',
+                    href: '/company/points',
+                    icon: Coins,
+                },
+                {
+                    title: 'Beli Poin',
+                    href: '/company/points/packages',
+                    icon: CreditCard,
+                },
+                {
+                    title: 'History Transaksi',
+                    href: '/admin/transactions',
+                    icon: History,
+                }
+            ]
+        },
+        {
+            label: 'Pengaturan',
+            items: [
+                {
+                    title: 'Profil Admin',
+                    href: '/admin/profile',
+                    icon: User,
+                }
+            ]
+        }
+    ];
+
+
+    // Company admin accessing company panel - company specific routes
+    const companyMenuGroups = [
         {
             label: 'Dashboard',
             items: [
@@ -131,5 +243,6 @@ export function useMenuItems() {
     return {
         superAdminMenuGroups,
         companyAdminMenuGroups,
+        companyMenuGroups,
     };
 }

@@ -17,6 +17,12 @@ interface NewsItem {
     title: string;
     excerpt: string;
     content: string;
+    category?: string;
+    tags?: string[];
+    is_featured?: boolean;
+    views_count?: number;
+    reading_time?: number;
+    comments_count?: number;
     status: 'draft' | 'published';
     published_at?: string;
     created_at: string;

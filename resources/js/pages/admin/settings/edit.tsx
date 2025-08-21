@@ -291,7 +291,7 @@ export default function EditSettings({ setting, flash }: Props) {
                         </CardHeader>
                         <CardContent className="space-y-4">
                             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                                <div className="space-y-2">
+                                <div className="grid gap-2">
                                     <Label htmlFor="site_name">Nama Website</Label>
                                     <Input
                                         id="site_name"
@@ -302,7 +302,7 @@ export default function EditSettings({ setting, flash }: Props) {
                                     <InputError message={errors.site_name} />
                                 </div>
 
-                                <div className="space-y-2">
+                                <div className="grid gap-2">
                                     <Label htmlFor="keyword">Kata Kunci SEO</Label>
                                     <Input
                                         id="keyword"
@@ -314,7 +314,7 @@ export default function EditSettings({ setting, flash }: Props) {
                                 </div>
                             </div>
 
-                            <div className="space-y-2">
+                            <div className="grid gap-2">
                                 <Label htmlFor="description">Deskripsi Website</Label>
                                 <Textarea
                                     id="description"
@@ -338,7 +338,7 @@ export default function EditSettings({ setting, flash }: Props) {
                         </CardHeader>
                         <CardContent className="space-y-4">
                             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                                <div className="space-y-2">
+                                <div className="grid gap-2">
                                     <Label htmlFor="email">Email</Label>
                                     <Input
                                         id="email"
@@ -350,7 +350,7 @@ export default function EditSettings({ setting, flash }: Props) {
                                     <InputError message={errors.email} />
                                 </div>
 
-                                <div className="space-y-2">
+                                <div className="grid gap-2">
                                     <Label htmlFor="phone">Nomor Telepon</Label>
                                     <Input
                                         id="phone"
@@ -362,7 +362,7 @@ export default function EditSettings({ setting, flash }: Props) {
                                 </div>
                             </div>
 
-                            <div className="space-y-2">
+                            <div className="grid gap-2">
                                 <Label htmlFor="address">Alamat</Label>
                                 <Textarea
                                     id="address"
@@ -386,7 +386,7 @@ export default function EditSettings({ setting, flash }: Props) {
                         </CardHeader>
                         <CardContent className="space-y-4">
                             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                                <div className="space-y-2">
+                                <div className="grid gap-2">
                                     <Label htmlFor="yt" className="flex items-center gap-2">
                                         <Youtube className="h-4 w-4 text-red-500" />
                                         YouTube
@@ -400,7 +400,7 @@ export default function EditSettings({ setting, flash }: Props) {
                                     <InputError message={errors.yt} />
                                 </div>
 
-                                <div className="space-y-2">
+                                <div className="grid gap-2">
                                     <Label htmlFor="ig" className="flex items-center gap-2">
                                         <Instagram className="h-4 w-4 text-pink-500" />
                                         Instagram
@@ -414,7 +414,7 @@ export default function EditSettings({ setting, flash }: Props) {
                                     <InputError message={errors.ig} />
                                 </div>
 
-                                <div className="space-y-2">
+                                <div className="grid gap-2">
                                     <Label htmlFor="fb" className="flex items-center gap-2">
                                         <Facebook className="h-4 w-4 text-blue-600" />
                                         Facebook
@@ -428,7 +428,7 @@ export default function EditSettings({ setting, flash }: Props) {
                                     <InputError message={errors.fb} />
                                 </div>
 
-                                <div className="space-y-2">
+                                <div className="grid gap-2">
                                     <Label htmlFor="tiktok" className="flex items-center gap-2">
                                         <FaTiktok className="h-4 w-4 text-black" />
                                         TikTok
@@ -454,7 +454,7 @@ export default function EditSettings({ setting, flash }: Props) {
                             </CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-4">
-                            <div className="space-y-2">
+                            <div className="grid gap-2">
                                 <Label htmlFor="fee">Biaya Layanan</Label>
                                 <div className="relative">
                                     <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">

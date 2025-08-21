@@ -29,6 +29,7 @@ export interface JobCategory {
     slug: string;
     description?: string;
     icon?: string;
+    image?: string;
     is_active: boolean;
     created_at: string;
     updated_at: string;

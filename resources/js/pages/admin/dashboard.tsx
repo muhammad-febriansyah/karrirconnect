@@ -38,17 +38,17 @@ interface Application {
   id: number;
   status: string;
   created_at: string;
-  user: {
-    name: string;
+  user?: {
+    name?: string;
     profile?: {
       first_name?: string;
       last_name?: string;
     };
   };
-  jobListing: {
-    title: string;
-    company: {
-      name: string;
+  jobListing?: {
+    title?: string;
+    company?: {
+      name?: string;
     };
   };
 }
@@ -74,8 +74,10 @@ interface Props {
   stats: Stats;
   recentJobs: Job[];
   recentApplications: Application[];
-  recentCompanies: Company[];
+  recentCompanies?: Company[];
   monthlyStats: MonthlyData[];
+  userRole: string;
+  company?: Company;
 }
 
 const getStatusColor = (status: string) => {
@@ -91,7 +93,7 @@ const getStatusColor = (status: string) => {
   }
 };
 
-export default function AdminDashboard({ stats, recentJobs, recentApplications, recentCompanies, monthlyStats }: Props) {
+export default function AdminDashboard({ stats, recentJobs, recentApplications, recentCompanies, monthlyStats, userRole, company }: Props) {
   return (
     <AppLayout>
       <Head title="Dashboard Admin" />
@@ -99,62 +101,109 @@ export default function AdminDashboard({ stats, recentJobs, recentApplications, 
       <div className="p-6 space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold">Dashboard Admin</h1>
-            <p className="text-gray-600">Gambaran umum portal pekerjaan Anda</p>
+            <h1 className="text-2xl font-bold">
+              {userRole === 'company_admin' ? 'Dashboard Perusahaan' : 'Dashboard Admin'}
+            </h1>
+            <p className="text-gray-600">
+              {userRole === 'company_admin' 
+                ? `Kelola lowongan dan lamaran ${company?.name}` 
+                : 'Gambaran umum portal pekerjaan Anda'
+              }
+            </p>
           </div>
         </div>
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Pengguna</CardTitle>
-              <Users className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.total_users.toLocaleString()}</div>
-              <p className="text-xs text-muted-foreground">Pencari kerja aktif</p>
-            </CardContent>
-          </Card>
+          {userRole === 'super_admin' ? (
+            <>
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Total Pengguna</CardTitle>
+                  <Users className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{stats.total_users?.toLocaleString()}</div>
+                  <p className="text-xs text-muted-foreground">Pencari kerja aktif</p>
+                </CardContent>
+              </Card>
 
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Perusahaan</CardTitle>
-              <Building2 className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.total_companies.toLocaleString()}</div>
-              <p className="text-xs text-muted-foreground">
-                {stats.verified_companies} terverifikasi
-              </p>
-            </CardContent>
-          </Card>
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Perusahaan</CardTitle>
+                  <Building2 className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{stats.total_companies?.toLocaleString()}</div>
+                  <p className="text-xs text-muted-foreground">
+                    {stats.verified_companies} terverifikasi
+                  </p>
+                </CardContent>
+              </Card>
 
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Daftar Pekerjaan</CardTitle>
-              <Briefcase className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.total_jobs.toLocaleString()}</div>
-              <p className="text-xs text-muted-foreground">
-                {stats.active_jobs} aktif, {stats.featured_jobs} unggulan
-              </p>
-            </CardContent>
-          </Card>
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Lowongan</CardTitle>
+                  <Briefcase className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{stats.total_jobs?.toLocaleString()}</div>
+                  <p className="text-xs text-muted-foreground">
+                    {stats.active_jobs} aktif, {stats.featured_jobs} unggulan
+                  </p>
+                </CardContent>
+              </Card>
+            </>
+          ) : (
+            <>
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Lowongan Saya</CardTitle>
+                  <Briefcase className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{stats.total_jobs?.toLocaleString()}</div>
+                  <p className="text-xs text-muted-foreground">
+                    {stats.active_jobs} aktif, {stats.draft_jobs} draft
+                  </p>
+                </CardContent>
+              </Card>
 
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Lamaran</CardTitle>
-              <FileText className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.total_applications.toLocaleString()}</div>
-              <p className="text-xs text-muted-foreground">
-                {stats.pending_applications} menunggu
-              </p>
-            </CardContent>
-          </Card>
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Poin Tersisa</CardTitle>
+                  <TrendingUp className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{stats.company_points}</div>
+                  <p className="text-xs text-muted-foreground">Untuk posting lowongan</p>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Total Lamaran</CardTitle>
+                  <FileText className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{stats.total_applications?.toLocaleString()}</div>
+                  <p className="text-xs text-muted-foreground">
+                    {stats.pending_applications} menunggu review
+                  </p>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Terrekrut</CardTitle>
+                  <Users className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{stats.hired_applications?.toLocaleString()}</div>
+                  <p className="text-xs text-muted-foreground">Candidate berhasil direkrut</p>
+                </CardContent>
+              </Card>
+            </>
+          )}
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -200,11 +249,11 @@ export default function AdminDashboard({ stats, recentJobs, recentApplications, 
                 <div key={application.id} className="flex items-center justify-between p-3 border rounded-lg">
                   <div className="flex-1">
                     <h4 className="font-medium">
-                      {application.user.profile?.first_name} {application.user.profile?.last_name} 
-                      {!application.user.profile?.first_name && application.user.name}
+                      {application.user?.profile?.first_name} {application.user?.profile?.last_name} 
+                      {!application.user?.profile?.first_name && application.user?.name}
                     </h4>
                     <p className="text-sm text-gray-600">
-                      {application.jobListing.title} at {application.jobListing.company.name}
+                      {application.jobListing?.title || 'N/A'} at {application.jobListing?.company?.name || 'N/A'}
                     </p>
                     <p className="text-xs text-gray-500">
                       {formatDistanceToNow(new Date(application.created_at), { addSuffix: true })}
@@ -219,15 +268,16 @@ export default function AdminDashboard({ stats, recentJobs, recentApplications, 
           </Card>
         </div>
 
-        {/* Recent Companies */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Perusahaan Terbaru</CardTitle>
-            <CardDescription>Perusahaan terbaru yang bergabung dengan platform</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {recentCompanies.map((company) => (
+        {/* Recent Companies - Only for Super Admin */}
+        {userRole === 'super_admin' && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Perusahaan Terbaru</CardTitle>
+              <CardDescription>Perusahaan terbaru yang bergabung dengan platform</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {recentCompanies?.map((company) => (
                 <div key={company.id} className="p-4 border rounded-lg">
                   <div className="flex items-center justify-between mb-2">
                     <h4 className="font-medium">{company.name}</h4>
@@ -254,9 +304,10 @@ export default function AdminDashboard({ stats, recentJobs, recentApplications, 
                   )}
                 </div>
               ))}
-            </div>
-          </CardContent>
-        </Card>
+              </div>
+            </CardContent>
+          </Card>
+        )}
       </div>
     </AppLayout>
   );

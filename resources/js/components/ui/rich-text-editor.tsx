@@ -48,7 +48,7 @@ export function RichTextEditor({
         },
         editorProps: {
             attributes: {
-                class: 'focus:outline-none',
+                class: 'focus:outline-none prose-p:my-2 prose-ul:my-2 prose-ol:my-2 prose-li:my-0',
             },
         },
     });
@@ -163,7 +163,9 @@ export function RichTextEditor({
             </div>
 
             {/* Editor Content */}
-            <EditorContent editor={editor} />
+            <div className="p-4 min-h-[200px] prose prose-sm max-w-none focus-within:outline-none">
+                <EditorContent editor={editor} />
+            </div>
         </div>
     );
 }

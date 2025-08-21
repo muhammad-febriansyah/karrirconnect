@@ -100,7 +100,7 @@ export function NewsForm({ news, isEdit = false }: NewsFormProps) {
                             <CardTitle>Informasi Berita</CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-4">
-                            <div className="space-y-2">
+                            <div className="grid gap-2">
                                 <Label htmlFor="title">Judul Berita *</Label>
                                 <Input
                                     id="title"
@@ -111,7 +111,7 @@ export function NewsForm({ news, isEdit = false }: NewsFormProps) {
                                 {errors.title && <p className="text-sm text-red-600">{errors.title}</p>}
                             </div>
 
-                            <div className="space-y-2">
+                            <div className="grid gap-2">
                                 <Label htmlFor="excerpt">Ringkasan *</Label>
                                 <Textarea
                                     id="excerpt"
@@ -123,7 +123,7 @@ export function NewsForm({ news, isEdit = false }: NewsFormProps) {
                                 {errors.excerpt && <p className="text-sm text-red-600">{errors.excerpt}</p>}
                             </div>
 
-                            <div className="space-y-2">
+                            <div className="grid gap-2">
                                 <Label htmlFor="content">Konten *</Label>
                                 <Textarea
                                     id="content"
@@ -178,7 +178,7 @@ export function NewsForm({ news, isEdit = false }: NewsFormProps) {
                             <CardTitle>Pengaturan Publikasi</CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-4">
-                            <div className="space-y-2">
+                            <div className="grid gap-2">
                                 <Label htmlFor="status">Status *</Label>
                                 <Select value={data.status} onValueChange={(value: 'draft' | 'published') => setData('status', value)}>
                                     <SelectTrigger>

@@ -20,6 +20,12 @@ interface NewsItem {
     id: number;
     title: string;
     excerpt: string;
+    category?: string;
+    tags?: string[];
+    is_featured?: boolean;
+    views_count?: number;
+    reading_time?: number;
+    comments_count?: number;
     status: 'draft' | 'published';
     published_at?: string;
     created_at: string;
@@ -158,7 +164,7 @@ export default function NewsIndex({ news, filters }: NewsIndexProps) {
                     <div className="space-y-6">
                         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                             {news.data.map((item) => (
-                                <div className="group overflow-hidden rounded-2xl border-0 bg-gradient-to-br from-white to-gray-50/50 shadow-md transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
+                                <div key={item.id} className="group overflow-hidden rounded-2xl border-0 bg-gradient-to-br from-white to-gray-50/50 shadow-md transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
                                     <div className="relative">
                                         {item.featured_image ? (
                                             <div className="relative h-52 overflow-hidden rounded-t-2xl">

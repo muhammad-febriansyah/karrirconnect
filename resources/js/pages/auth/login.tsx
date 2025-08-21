@@ -1,7 +1,7 @@
 import { type SharedData } from '@/types';
 import { Head, useForm, usePage } from '@inertiajs/react';
 import { GalleryVerticalEnd, LoaderCircle } from 'lucide-react';
-import { FormEventHandler } from 'react';
+import { FormEventHandler, useEffect, useRef } from 'react';
 import { toast } from 'sonner';
 
 import InputError from '@/components/input-error';
@@ -14,6 +14,7 @@ type LoginForm = {
     email: string;
     password: string;
     remember: boolean;
+    'g-recaptcha-response': string;
 };
 
 interface LoginProps {
@@ -27,12 +28,46 @@ export default function Login({ status, canResetPassword }: LoginProps) {
         email: '',
         password: '',
         remember: false,
+        'g-recaptcha-response': '',
     });
+    const recaptchaRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        const script = document.createElement('script');
+        script.src = 'https://www.google.com/recaptcha/api.js?onload=onRecaptchaLoad&render=explicit';
+        script.async = true;
+        script.defer = true;
+        
+        // Define global callback function
+        (window as any).onRecaptchaLoad = () => {
+            if ((window as any).grecaptcha && (window as any).grecaptcha.render && recaptchaRef.current) {
+                (window as any).grecaptcha.render(recaptchaRef.current, {
+                    sitekey: '6LfIWR8rAAAAAP58_cs_prL0XLvoMjN_72liKq2-',
+                    callback: (response: string) => {
+                        setData('g-recaptcha-response', response);
+                    },
+                });
+            }
+        };
+        
+        document.head.appendChild(script);
+
+        return () => {
+            document.head.removeChild(script);
+            delete (window as any).onRecaptchaLoad;
+        };
+    }, []);
 
     const submit: FormEventHandler = (e) => {
         e.preventDefault();
         post(route('login'), {
-            onFinish: () => reset('password'),
+            onFinish: () => {
+                reset('password');
+                if ((window as any).grecaptcha) {
+                    (window as any).grecaptcha.reset();
+                    setData('g-recaptcha-response', '');
+                }
+            },
             onSuccess: () => {
                 toast.success('Berhasil Masuk!', {
                     description: `Anda berhasil masuk ke akun ${settings.site_name || 'KarirConnect'}.`,
@@ -81,7 +116,7 @@ export default function Login({ status, canResetPassword }: LoginProps) {
                                 {status && <div className="text-center text-sm font-medium text-green-600">{status}</div>}
 
                                 <div className="grid gap-6">
-                                    <div className="grid gap-3">
+                                    <div className="grid gap-2">
                                         <Label htmlFor="email">Email</Label>
                                         <Input
                                             id="email"
@@ -97,7 +132,7 @@ export default function Login({ status, canResetPassword }: LoginProps) {
                                         <InputError message={errors.email} />
                                     </div>
 
-                                    <div className="grid gap-3">
+                                    <div className="grid gap-2">
                                         <div className="flex items-center">
                                             <Label htmlFor="password">Kata Sandi</Label>
                                             {/* {canResetPassword && (
@@ -134,7 +169,41 @@ export default function Login({ status, canResetPassword }: LoginProps) {
                                         <Label htmlFor="remember">Ingat saya</Label>
                                     </div>
 
-                                    <Button type="submit" className="w-full" tabIndex={4} disabled={processing}>
+                                    <div className="grid gap-2">
+                                        <div ref={recaptchaRef} />
+                                        <InputError message={errors['g-recaptcha-response']} />
+                                    </div>
+
+                                    <Button 
+                                        type="submit" 
+                                        className="w-full" 
+                                        tabIndex={4} 
+                                        disabled={processing}
+                                        style={{
+                                            background: 'linear-gradient(135deg, #2347FA 0%, #3b56fc 100%)',
+                                            border: 'none',
+                                            color: 'white',
+                                            fontWeight: '600',
+                                            padding: '12px 24px',
+                                            borderRadius: '8px',
+                                            transition: 'all 0.3s ease',
+                                            boxShadow: '0 4px 15px rgba(35, 71, 250, 0.3)',
+                                            transform: processing ? 'scale(0.98)' : 'scale(1)',
+                                            opacity: processing ? 0.8 : 1
+                                        }}
+                                        onMouseEnter={(e) => {
+                                            if (!processing) {
+                                                e.currentTarget.style.transform = 'scale(1.02)';
+                                                e.currentTarget.style.boxShadow = '0 6px 20px rgba(35, 71, 250, 0.4)';
+                                            }
+                                        }}
+                                        onMouseLeave={(e) => {
+                                            if (!processing) {
+                                                e.currentTarget.style.transform = 'scale(1)';
+                                                e.currentTarget.style.boxShadow = '0 4px 15px rgba(35, 71, 250, 0.3)';
+                                            }
+                                        }}
+                                    >
                                         {processing && <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />}
                                         Masuk
                                     </Button>
@@ -164,7 +233,7 @@ export default function Login({ status, canResetPassword }: LoginProps) {
                     <img
                         src={`/storage/${settings.thumbnail || 'default-thumbnail.jpg'}`}
                         alt="Ilustrasi masuk"
-                        className="absolute inset-0 h-full w-full object-cover dark:brightness-[0.2] dark:grayscale"
+                        className="absolute inset-0 h-full w-full object-cover"
                     />
                 </div>
             </div>

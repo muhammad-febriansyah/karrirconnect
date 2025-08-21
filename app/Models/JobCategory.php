@@ -33,4 +33,9 @@ class JobCategory extends Model
     {
         return $this->jobListings()->where('status', 'published');
     }
+
+    public function getRouteKeyName()
+    {
+        return 'slug';
+    }
 }

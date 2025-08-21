@@ -66,7 +66,7 @@ export default function EditUserAgreement({ userAgreement }: Props) {
                             <CardTitle>Konten Perjanjian Pengguna</CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-4">
-                            <div className="space-y-2">
+                            <div className="grid gap-2">
                                 <Label htmlFor="body">Isi Perjanjian Pengguna</Label>
                                 <RichTextEditor
                                     content={data.body}

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\admin;
+namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\JobCategory;
@@ -49,7 +49,7 @@ class JobCategoryManagementController extends Controller
         $request->validate([
             'name' => 'required|string|max:255|unique:job_categories',
             'description' => 'nullable|string|max:1000',
-            'image' => 'nullable|image|mimes:png,jpg,jpeg,svg|max:2048', // 2MB max
+            'image' => 'nullable|file|mimes:png,jpg,jpeg,svg|max:2048', // 2MB max - use 'file' instead of 'image' for SVG
             'is_active' => 'boolean',
         ]);
 
@@ -66,7 +66,7 @@ class JobCategoryManagementController extends Controller
             'name' => $request->name,
             'description' => $request->description,
             'slug' => Str::slug($request->name),
-            'image' => $imagePath,
+            'icon' => $imagePath,
             'is_active' => $request->boolean('is_active', true),
         ]);
 
@@ -96,20 +96,24 @@ class JobCategoryManagementController extends Controller
 
     public function update(Request $request, JobCategory $jobCategory)
     {
+        // Debug logging (temporarily disabled)
+        // Log::info('Update request data:', $request->all());
+        // Log::info('Current category data:', $jobCategory->toArray());
+
         $request->validate([
             'name' => ['required', 'string', 'max:255', Rule::unique('job_categories')->ignore($jobCategory->id)],
             'description' => 'nullable|string|max:1000',
-            'image' => 'nullable|image|mimes:png,jpg,jpeg,svg|max:2048', // 2MB max
+            'image' => 'nullable|file|mimes:png,jpg,jpeg,svg|max:2048', // 2MB max - use 'file' instead of 'image' for SVG
             'is_active' => 'boolean',
         ]);
 
-        $imagePath = $jobCategory->image;
+        $imagePath = $jobCategory->icon;
 
         // Handle file upload
         if ($request->hasFile('image')) {
             // Delete old image if exists
-            if ($jobCategory->image && Storage::disk('public')->exists($jobCategory->image)) {
-                Storage::disk('public')->delete($jobCategory->image);
+            if ($jobCategory->icon && Storage::disk('public')->exists($jobCategory->icon)) {
+                Storage::disk('public')->delete($jobCategory->icon);
             }
 
             $image = $request->file('image');
@@ -117,13 +121,20 @@ class JobCategoryManagementController extends Controller
             $imagePath = $image->storeAs('job-categories', $imageName, 'public');
         }
 
-        $jobCategory->update([
-            'name' => $request->name,
-            'description' => $request->description,
-            'slug' => Str::slug($request->name),
-            'image' => $imagePath,
-            'is_active' => $request->boolean('is_active', true),
-        ]);
+        // Prepare update data - keep existing values if not provided
+        $updateData = [
+            'name' => $request->filled('name') ? $request->name : $jobCategory->name,
+            'description' => $request->has('description') ? $request->description : $jobCategory->description,
+            'is_active' => $request->has('is_active') ? $request->boolean('is_active') : $jobCategory->is_active,
+            'icon' => $imagePath,
+        ];
+
+        // Update slug only if name changed
+        if ($request->filled('name') && $request->name !== $jobCategory->name) {
+            $updateData['slug'] = Str::slug($request->name);
+        }
+
+        $jobCategory->update($updateData);
 
         return redirect()->route('admin.job-categories.index')
             ->with('success', 'Job category updated successfully.');
@@ -137,8 +148,8 @@ class JobCategoryManagementController extends Controller
         }
 
         // Delete associated image if exists
-        if ($jobCategory->image && Storage::disk('public')->exists($jobCategory->image)) {
-            Storage::disk('public')->delete($jobCategory->image);
+        if ($jobCategory->icon && Storage::disk('public')->exists($jobCategory->icon)) {
+            Storage::disk('public')->delete($jobCategory->icon);
         }
 
         $jobCategory->delete();

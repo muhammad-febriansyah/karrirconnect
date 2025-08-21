@@ -13,7 +13,13 @@ class News extends Model
         'slug',
         'excerpt',
         'content',
+        'category',
+        'tags',
         'featured_image',
+        'is_featured',
+        'views_count',
+        'reading_time',
+        'comments_count',
         'status',
         'published_at',
         'author_id',
@@ -21,6 +27,8 @@ class News extends Model
 
     protected $casts = [
         'published_at' => 'datetime',
+        'tags' => 'array',
+        'is_featured' => 'boolean',
     ];
 
     protected static function boot()
@@ -63,4 +71,5 @@ class News extends Model
                $this->published_at && 
                $this->published_at <= now();
     }
+
 }

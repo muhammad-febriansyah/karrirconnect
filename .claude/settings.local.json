@@ -18,8 +18,19 @@
       "Bash(find:*)",
       "WebFetch(domain:glints.com)",
       "Bash(npx shadcn@latest add:*)",
-      "Bash(git checkout:*)"
+      "Bash(git checkout:*)",
+      "Bash(composer require:*)",
+      "Bash(grep:*)",
+      "Bash(curl:*)",
+      "Bash(true)",
+      "Bash(composer show:*)",
+      "WebFetch(domain:employers.glints.id)",
+      "Bash(npm run types:*)",
+      "Bash(rg:*)",
+      "Bash(/dev/null)",
+      "Bash(cp:*)"
     ],
-    "deny": []
+    "deny": [],
+    "defaultMode": "acceptEdits"
   }
 }

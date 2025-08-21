@@ -66,7 +66,7 @@ export default function EditTermsOfService({ termsOfService }: Props) {
                             <CardTitle>Konten Syarat dan Ketentuan</CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-4">
-                            <div className="space-y-2">
+                            <div className="grid gap-2">
                                 <Label htmlFor="body">Isi Syarat dan Ketentuan</Label>
                                 <RichTextEditor
                                     content={data.body}

@@ -5,8 +5,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import AppLayout from '@/layouts/app-layout';
-import type { JobCategory } from '@/types';
+import type { JobCategory } from '@/types/job';
 import { Head, router, useForm } from '@inertiajs/react';
+import axios from 'axios';
 import { ArrowLeft, FileText, Folder, Hash, Image, Save, Upload, X } from 'lucide-react';
 import { ChangeEvent, DragEvent, FormEvent, useState } from 'react';
 import { toast } from 'sonner';
@@ -30,7 +31,7 @@ interface Props {
 }
 
 export default function EditJobCategory({ category }: Props) {
-    const { data, setData, post, processing, errors } = useForm<FormData>({
+    const { data, setData, patch, processing, errors } = useForm<FormData>({
         name: category.name,
         description: category.description || '',
         image: null,
@@ -38,15 +39,29 @@ export default function EditJobCategory({ category }: Props) {
     });
 
     const [imagePreview, setImagePreview] = useState<string | null>(
-        category.image ? `/storage/${category.image}` : null
+        category.icon ? `/storage/${category.icon}` : null
     );
     const [dragActive, setDragActive] = useState<boolean>(false);
+    const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
     const validateFile = (file: File): boolean => {
-        const allowedTypes = ['image/png', 'image/jpg', 'image/jpeg', 'image/svg+xml'];
+        // Allow multiple SVG MIME types as different browsers may report different types
+        const allowedTypes = [
+            'image/png', 
+            'image/jpg', 
+            'image/jpeg', 
+            'image/svg+xml',
+            'image/svg',  // Some browsers report this
+            'text/xml',   // SVG files might be reported as this
+            'application/xml' // Or this
+        ];
         const maxSize = 2 * 1024 * 1024; // 2MB
 
-        if (!allowedTypes.includes(file.type)) {
+        // Check file extension as backup for SVG files
+        const fileName = file.name.toLowerCase();
+        const isValidType = allowedTypes.includes(file.type) || fileName.endsWith('.svg');
+
+        if (!isValidType) {
             alert('Hanya file PNG, JPG, JPEG, atau SVG yang diperbolehkan');
             return false;
         }
@@ -117,24 +132,57 @@ export default function EditJobCategory({ category }: Props) {
         return (bytes / 1024).toFixed(1);
     };
 
-    const handleSubmit = (e: FormEvent<HTMLFormElement>): void => {
+    const handleSubmit = async (e: FormEvent<HTMLFormElement>): Promise<void> => {
         e.preventDefault();
-        post(`/admin/job-categories/${category.id}`, {
-            forceFormData: true,
-            _method: 'PUT',
-            onSuccess: () => {
-                toast.success('Kategori Pekerjaan Berhasil Diperbarui!', {
-                    description: 'Kategori pekerjaan telah berhasil diperbarui.',
-                    duration: 4000,
+        
+        setIsSubmitting(true);
+        
+        try {
+            // Create FormData for multipart/form-data
+            const formData = new FormData();
+            formData.append('name', data.name);
+            formData.append('description', data.description || '');
+            formData.append('is_active', data.is_active ? '1' : '0');
+            formData.append('_method', 'PUT');
+            
+            if (data.image) {
+                formData.append('image', data.image);
+            }
+
+            // Use axios for better control over multipart form data
+            await axios.post(`/admin/job-categories/${category.slug}`, formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+                },
+            });
+
+            toast.success('Kategori Pekerjaan Berhasil Diperbarui!', {
+                description: 'Kategori pekerjaan telah berhasil diperbarui.',
+                duration: 4000,
+            });
+
+            // Redirect back to index
+            router.visit('/admin/job-categories');
+
+        } catch (error: any) {
+            console.error('Update error:', error);
+            
+            if (error.response?.data?.errors) {
+                // Handle validation errors
+                const validationErrors = error.response.data.errors;
+                Object.keys(validationErrors).forEach(field => {
+                    toast.error(`${field}: ${validationErrors[field][0]}`);
                 });
-            },
-            onError: () => {
+            } else {
                 toast.error('Gagal Memperbarui Kategori', {
                     description: 'Terjadi kesalahan saat memperbarui kategori pekerjaan.',
                     duration: 4000,
                 });
-            },
-        });
+            }
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
     const typedErrors = errors as FormErrors;
@@ -212,7 +260,7 @@ export default function EditJobCategory({ category }: Props) {
                                     <Input
                                         id="image"
                                         type="file"
-                                        accept="image/png,image/jpg,image/jpeg,image/svg+xml"
+                                        accept="image/png,image/jpg,image/jpeg,image/svg+xml,.svg"
                                         onChange={handleImageChange}
                                         className="hidden"
                                     />
@@ -345,11 +393,11 @@ export default function EditJobCategory({ category }: Props) {
                     <div className="mt-8 flex items-center gap-4">
                         <Button
                             type="submit"
-                            disabled={processing}
+                            disabled={isSubmitting}
                             className="bg-blue-600 hover:bg-blue-700 focus:ring-blue-500 disabled:bg-blue-400"
                         >
                             <Save className="mr-2 h-4 w-4" />
-                            {processing ? 'Memperbarui...' : 'Perbarui Kategori'}
+                            {isSubmitting ? 'Memperbarui...' : 'Perbarui Kategori'}
                         </Button>
                         <Button
                             type="button"

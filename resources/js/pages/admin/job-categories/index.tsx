@@ -100,7 +100,7 @@ export default function JobCategoriesIndex({ categories, filters }: Props) {
 
     const toggleStatus = (category: JobCategory) => {
         router.post(
-            `/admin/job-categories/${category.id}/toggle-status`,
+            `/admin/job-categories/${category.slug}/toggle-status`,
             {},
             {
                 onSuccess: () => {
@@ -117,7 +117,7 @@ export default function JobCategoriesIndex({ categories, filters }: Props) {
         }
 
         if (confirm(`Apakah Anda yakin ingin menghapus kategori \"${category.name}\"?`)) {
-            router.delete(`/admin/job-categories/${category.id}`, {
+            router.delete(`/admin/job-categories/${category.slug}`, {
                 onSuccess: () => {
                     toast.success('Kategori pekerjaan berhasil dihapus.', {
                         position: 'top-right',
@@ -265,6 +265,9 @@ export default function JobCategoriesIndex({ categories, filters }: Props) {
                                                         src={`/storage/${category.icon}`}
                                                         alt={`${category.name} icon`}
                                                         className="h-20 w-20 object-contain"
+                                                        onError={(e) => {
+                                                            e.currentTarget.style.display = 'none';
+                                                        }}
                                                     />
                                                 )}
 
@@ -299,17 +302,7 @@ export default function JobCategoriesIndex({ categories, filters }: Props) {
                                         <Button
                                             size="sm"
                                             variant="outline"
-                                            onClick={() => router.visit(`/admin/job-categories/${category.id}`)}
-                                            className="flex-1"
-                                        >
-                                            <Eye className="mr-1 h-4 w-4" />
-                                            Lihat
-                                        </Button>
-
-                                        <Button
-                                            size="sm"
-                                            variant="outline"
-                                            onClick={() => router.visit(`/admin/job-categories/${category.id}/edit`)}
+                                            onClick={() => router.visit(`/admin/job-categories/${category.slug}/edit`)}
                                             className="flex-1"
                                         >
                                             <Edit className="mr-1 h-4 w-4" />
@@ -338,6 +331,10 @@ export default function JobCategoriesIndex({ categories, filters }: Props) {
                                             onClick={() => deleteCategory(category)}
                                             disabled={category.job_listings_count > 0}
                                             className="flex-1"
+                                            title={category.job_listings_count > 0 ? 
+                                                `Tidak dapat menghapus kategori yang memiliki ${category.job_listings_count} lowongan aktif` : 
+                                                'Hapus kategori'
+                                            }
                                         >
                                             <Trash2 className="mr-1 h-4 w-4" />
                                             Hapus

@@ -66,7 +66,7 @@ export default function EditPrivacyPolicy({ privacyPolicy }: Props) {
                             <CardTitle>Konten Kebijakan Privasi</CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-4">
-                            <div className="space-y-2">
+                            <div className="grid gap-2">
                                 <Label htmlFor="body">Isi Kebijakan Privasi</Label>
                                 <RichTextEditor
                                     content={data.body}

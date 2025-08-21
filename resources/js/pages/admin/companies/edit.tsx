@@ -96,7 +96,7 @@ export default function EditCompany({ company }: Props) {
                         </CardHeader>
                         <CardContent className="space-y-4">
                             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                                <div className="space-y-2">
+                                <div className="grid gap-2">
                                     <Label htmlFor="name">Nama Perusahaan *</Label>
                                     <Input
                                         id="name"
@@ -108,7 +108,7 @@ export default function EditCompany({ company }: Props) {
                                     <InputError message={errors.name} />
                                 </div>
 
-                                <div className="space-y-2">
+                                <div className="grid gap-2">
                                     <Label htmlFor="industry">Industri</Label>
                                     <Input
                                         id="industry"
@@ -120,7 +120,7 @@ export default function EditCompany({ company }: Props) {
                                 </div>
                             </div>
 
-                            <div className="space-y-2">
+                            <div className="grid gap-2">
                                 <Label htmlFor="description">Deskripsi</Label>
                                 <Textarea
                                     id="description"
@@ -132,7 +132,7 @@ export default function EditCompany({ company }: Props) {
                                 <InputError message={errors.description} />
                             </div>
 
-                            <div className="space-y-2">
+                            <div className="grid gap-2">
                                 <Label htmlFor="company_size">Ukuran Perusahaan</Label>
                                 <Select 
                                     value={data.company_size} 
@@ -161,7 +161,7 @@ export default function EditCompany({ company }: Props) {
                         </CardHeader>
                         <CardContent className="space-y-4">
                             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                                <div className="space-y-2">
+                                <div className="grid gap-2">
                                     <Label htmlFor="email">Email</Label>
                                     <Input
                                         id="email"
@@ -173,7 +173,7 @@ export default function EditCompany({ company }: Props) {
                                     <InputError message={errors.email} />
                                 </div>
 
-                                <div className="space-y-2">
+                                <div className="grid gap-2">
                                     <Label htmlFor="phone">Nomor Telepon</Label>
                                     <Input
                                         id="phone"
@@ -185,7 +185,7 @@ export default function EditCompany({ company }: Props) {
                                 </div>
                             </div>
 
-                            <div className="space-y-2">
+                            <div className="grid gap-2">
                                 <Label htmlFor="website">Website</Label>
                                 <Input
                                     id="website"
@@ -197,7 +197,7 @@ export default function EditCompany({ company }: Props) {
                                 <InputError message={errors.website} />
                             </div>
 
-                            <div className="space-y-2">
+                            <div className="grid gap-2">
                                 <Label htmlFor="address">Alamat</Label>
                                 <Textarea
                                     id="address"

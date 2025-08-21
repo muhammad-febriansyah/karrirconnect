@@ -29,6 +29,13 @@ interface Props {
     company: Company & {
         job_listings_count?: number;
         users_count?: number;
+        users?: Array<{
+            id: number;
+            name: string;
+            email: string;
+            is_active: boolean;
+            role: string;
+        }>;
         jobListings?: Array<{
             id: number;
             title: string;
@@ -299,19 +306,26 @@ export default function ShowCompany({ company }: Props) {
                             </CardContent>
                         </Card>
 
-                        {/* Company Owner */}
-                        {company.user && (
+                        {/* Company Admins */}
+                        {company.users && company.users.length > 0 && (
                             <Card>
                                 <CardHeader>
-                                    <CardTitle>Pemilik Perusahaan</CardTitle>
+                                    <CardTitle>Admin Perusahaan</CardTitle>
                                 </CardHeader>
                                 <CardContent>
-                                    <div className="space-y-2">
-                                        <p className="font-medium">{company.user.name}</p>
-                                        <p className="text-sm text-gray-600">{company.user.email}</p>
-                                        <Badge variant={company.user.is_active ? 'default' : 'secondary'}>
-                                            {company.user.is_active ? 'Aktif' : 'Tidak Aktif'}
-                                        </Badge>
+                                    <div className="space-y-3">
+                                        {company.users.map((user) => (
+                                            <div key={user.id} className="flex items-center justify-between p-3 border rounded-lg">
+                                                <div>
+                                                    <p className="font-medium">{user.name}</p>
+                                                    <p className="text-sm text-gray-600">{user.email}</p>
+                                                    <p className="text-xs text-gray-500 capitalize">{user.role}</p>
+                                                </div>
+                                                <Badge variant={user.is_active ? 'default' : 'secondary'}>
+                                                    {user.is_active ? 'Aktif' : 'Tidak Aktif'}
+                                                </Badge>
+                                            </div>
+                                        ))}
                                     </div>
                                 </CardContent>
                             </Card>

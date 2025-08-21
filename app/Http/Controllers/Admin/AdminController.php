@@ -20,8 +20,17 @@ class AdminController extends Controller
 
     public function dashboard()
     {
-        // Middleware already handles admin check, so we don't need this here
+        $user = Auth::user();
+        
+        if ($user->role === 'company_admin' && $user->company_id) {
+            return $this->companyAdminDashboard($user);
+        }
+        
+        return $this->superAdminDashboard();
+    }
 
+    private function superAdminDashboard()
+    {
         $stats = [
             'total_users' => User::where('role', 'user')->count(),
             'total_companies' => Company::count(),
@@ -39,6 +48,8 @@ class AdminController extends Controller
             ->get();
 
         $recentApplications = JobApplication::with(['user.profile', 'jobListing.company'])
+            ->whereHas('jobListing')
+            ->whereHas('user')
             ->latest()
             ->limit(10)
             ->get();
@@ -55,6 +66,55 @@ class AdminController extends Controller
             'recentApplications' => $recentApplications,
             'recentCompanies' => $recentCompanies,
             'monthlyStats' => $monthlyStats,
+            'userRole' => 'super_admin',
+        ]);
+    }
+
+    private function companyAdminDashboard($user)
+    {
+        $company = $user->company;
+        
+        $stats = [
+            'total_jobs' => JobListing::where('company_id', $user->company_id)->count(),
+            'active_jobs' => JobListing::where('company_id', $user->company_id)->active()->count(),
+            'draft_jobs' => JobListing::where('company_id', $user->company_id)->where('status', 'draft')->count(),
+            'closed_jobs' => JobListing::where('company_id', $user->company_id)->where('status', 'closed')->count(),
+            'total_applications' => JobApplication::whereHas('jobListing', function($q) use ($user) {
+                $q->where('company_id', $user->company_id);
+            })->count(),
+            'pending_applications' => JobApplication::whereHas('jobListing', function($q) use ($user) {
+                $q->where('company_id', $user->company_id);
+            })->where('status', 'pending')->count(),
+            'hired_applications' => JobApplication::whereHas('jobListing', function($q) use ($user) {
+                $q->where('company_id', $user->company_id);
+            })->where('status', 'hired')->count(),
+            'company_points' => $company->job_posting_points ?? 0,
+        ];
+
+        $recentJobs = JobListing::with(['company', 'category'])
+            ->where('company_id', $user->company_id)
+            ->latest()
+            ->limit(10)
+            ->get();
+
+        $recentApplications = JobApplication::with(['user.profile', 'jobListing.company'])
+            ->whereHas('jobListing', function($q) use ($user) {
+                $q->where('company_id', $user->company_id);
+            })
+            ->whereHas('user')
+            ->latest()
+            ->limit(10)
+            ->get();
+
+        $monthlyStats = $this->getCompanyMonthlyStats($user->company_id);
+
+        return Inertia::render('admin/dashboard', [
+            'stats' => $stats,
+            'recentJobs' => $recentJobs,
+            'recentApplications' => $recentApplications,
+            'monthlyStats' => $monthlyStats,
+            'userRole' => 'company_admin',
+            'company' => $company,
         ]);
     }
 
@@ -109,6 +169,36 @@ class AdminController extends Controller
                     ->count(),
                 'companies' => Company::whereYear('created_at', $date->year)
                     ->whereMonth('created_at', $date->month)
+                    ->count(),
+            ];
+        }
+
+        return $months;
+    }
+
+    private function getCompanyMonthlyStats($companyId)
+    {
+        $months = [];
+        for ($i = 11; $i >= 0; $i--) {
+            $date = now()->subMonths($i);
+            $months[] = [
+                'month' => $date->format('M Y'),
+                'jobs' => JobListing::where('company_id', $companyId)
+                    ->whereYear('created_at', $date->year)
+                    ->whereMonth('created_at', $date->month)
+                    ->count(),
+                'applications' => JobApplication::whereHas('jobListing', function($q) use ($companyId) {
+                    $q->where('company_id', $companyId);
+                })
+                    ->whereYear('created_at', $date->year)
+                    ->whereMonth('created_at', $date->month)
+                    ->count(),
+                'hired' => JobApplication::whereHas('jobListing', function($q) use ($companyId) {
+                    $q->where('company_id', $companyId);
+                })
+                    ->where('status', 'hired')
+                    ->whereYear('updated_at', $date->year)
+                    ->whereMonth('updated_at', $date->month)
                     ->count(),
             ];
         }

@@ -130,7 +130,7 @@ export default function AdminProfileEdit({ user }: AdminProfileEditProps) {
                             {errors.avatar && <p className="text-sm text-red-600">{errors.avatar}</p>}
 
                             {/* Name Field */}
-                            <div className="space-y-2">
+                            <div className="grid gap-2">
                                 <Label htmlFor="name">Nama Lengkap *</Label>
                                 <Input
                                     id="name"
@@ -143,7 +143,7 @@ export default function AdminProfileEdit({ user }: AdminProfileEditProps) {
                             </div>
 
                             {/* Email Field */}
-                            <div className="space-y-2">
+                            <div className="grid gap-2">
                                 <Label htmlFor="email">Email *</Label>
                                 <Input
                                     id="email"
@@ -157,7 +157,7 @@ export default function AdminProfileEdit({ user }: AdminProfileEditProps) {
                             </div>
 
                             {/* Role Display (Read-only) */}
-                            <div className="space-y-2">
+                            <div className="grid gap-2">
                                 <Label>Role</Label>
                                 <div className="px-3 py-2 bg-gray-100 rounded-md text-sm text-gray-700 capitalize">
                                     {user.role.replace('_', ' ')}
