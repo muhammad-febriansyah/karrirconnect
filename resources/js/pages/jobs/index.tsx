@@ -16,7 +16,18 @@ import {
     Briefcase,
     Star,
     ChevronRight,
-    Users
+    Users,
+    Bookmark,
+    Heart,
+    Share2,
+    CheckCircle,
+    TrendingUp,
+    Zap,
+    Award,
+    Calendar,
+    DollarSign,
+    Globe,
+    Shield
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -283,86 +294,124 @@ export default function JobsIndex({ jobs, categories, filters, totalJobs, featur
                     </div>
                 </section>
 
-                {/* Featured Jobs */}
+                {/* Enhanced Featured Jobs */}
                 {featuredJobs.length > 0 && (
-                    <section className="py-12 bg-white">
+                    <section className="py-16 bg-gradient-to-br from-white to-yellow-50/30">
                         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                            <div className="flex items-center justify-between mb-8">
-                                <div>
-                                    <h2 className="text-2xl font-bold text-gray-900">Lowongan Unggulan</h2>
-                                    <p className="text-gray-600 mt-1">Peluang karir terbaik pilihan kami</p>
+                            <motion.div 
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: 0.8 }}
+                                className="text-center mb-12"
+                            >
+                                <div className="inline-flex items-center space-x-2 bg-gradient-to-r from-yellow-100 to-orange-100 border border-yellow-200 rounded-full px-4 py-2 mb-4">
+                                    <Star className="h-4 w-4 text-yellow-600 fill-current" />
+                                    <span className="text-yellow-700 font-semibold text-sm">Featured Jobs</span>
                                 </div>
-                                <Star className="h-6 w-6 text-yellow-500" />
-                            </div>
+                                <h2 className="text-3xl font-bold text-gray-900 mb-2">Lowongan Unggulan</h2>
+                                <p className="text-gray-600">Peluang karir eksklusif dari perusahaan top pilihan kami</p>
+                            </motion.div>
 
-                            <div className="grid lg:grid-cols-2 gap-6">
+                            <div className="grid lg:grid-cols-2 gap-8">
                                 {featuredJobs.slice(0, 4).map((job, index) => (
                                     <motion.div
                                         key={job.id}
-                                        initial={{ opacity: 0, y: 20 }}
+                                        initial={{ opacity: 0, y: 30 }}
                                         animate={{ opacity: 1, y: 0 }}
-                                        transition={{ delay: index * 0.1 }}
+                                        transition={{ delay: 0.9 + index * 0.1 }}
                                     >
-                                        <Card className="hover:shadow-lg transition-all duration-300 border-yellow-200 bg-gradient-to-br from-yellow-50 to-white">
-                                            <CardContent className="p-6">
-                                                <div className="flex items-start space-x-4">
-                                                    <Avatar className="w-12 h-12 flex-shrink-0">
-                                                        {job.company.logo ? (
-                                                            <AvatarImage src={job.company.logo} alt={job.company.name} />
-                                                        ) : (
-                                                            <AvatarFallback className="bg-[#2347FA] text-white">
-                                                                {job.company.name.charAt(0)}
-                                                            </AvatarFallback>
-                                                        )}
-                                                    </Avatar>
-                                                    <div className="flex-1 min-w-0">
-                                                        <div className="flex items-start justify-between">
-                                                            <div>
-                                                                <Link href={`/jobs/${job.id}`}>
-                                                                    <h3 className="text-lg font-semibold text-gray-900 hover:text-[#2347FA] cursor-pointer transition-colors">
-                                                                        {job.title}
-                                                                    </h3>
-                                                                </Link>
-                                                                <p className="text-gray-600 font-medium">{job.company.name}</p>
+                                        <Card className="group hover:shadow-2xl transition-all duration-500 border-yellow-200/50 bg-gradient-to-br from-yellow-50/50 to-white hover:-translate-y-2 overflow-hidden">
+                                            {/* Featured badge */}
+                                            <div className="absolute top-4 right-4 z-10">
+                                                <div className="flex items-center rounded-full bg-gradient-to-r from-yellow-400 to-orange-400 px-3 py-1 text-xs font-bold text-white shadow-lg">
+                                                    <Star className="mr-1 h-3 w-3 fill-current" />
+                                                    Unggulan
+                                                </div>
+                                            </div>
+
+                                            <CardContent className="p-8 relative">
+                                                <div className="flex items-start space-x-6">
+                                                    <div className="relative">
+                                                        <Avatar className="w-16 h-16 flex-shrink-0 ring-2 ring-yellow-100 group-hover:ring-[#2347FA]/20 transition-all duration-300">
+                                                            {job.company.logo ? (
+                                                                <AvatarImage src={job.company.logo} alt={job.company.name} className="object-contain p-2" />
+                                                            ) : (
+                                                                <AvatarFallback className="bg-gradient-to-br from-[#2347FA] to-[#3b56fc] text-white text-xl font-bold">
+                                                                    {job.company.name.charAt(0)}
+                                                                </AvatarFallback>
+                                                            )}
+                                                        </Avatar>
+                                                        {job.company.is_verified && (
+                                                            <div className="absolute -bottom-1 -right-1 rounded-full bg-white p-1 shadow-lg ring-2 ring-white">
+                                                                <CheckCircle className="h-4 w-4 text-emerald-500" />
                                                             </div>
-                                                            <Badge className="bg-yellow-100 text-yellow-700 border-yellow-200">
-                                                                <Star className="w-3 h-3 mr-1" />
-                                                                Unggulan
-                                                            </Badge>
-                                                        </div>
+                                                        )}
+                                                    </div>
+                                                    
+                                                    <div className="flex-1 min-w-0">
+                                                        <Link href={`/jobs/${job.id}`}>
+                                                            <h3 className="text-xl font-bold text-gray-900 hover:text-[#2347FA] cursor-pointer transition-colors mb-2 line-clamp-2">
+                                                                {job.title}
+                                                            </h3>
+                                                        </Link>
+                                                        <p className="text-gray-600 font-semibold mb-3">{job.company.name}</p>
                                                         
-                                                        <div className="mt-2 flex items-center space-x-4 text-sm text-gray-500">
-                                                            <span className="flex items-center">
-                                                                <MapPin className="w-4 h-4 mr-1" />
+                                                        <div className="flex flex-wrap items-center gap-4 text-sm text-gray-500 mb-4">
+                                                            <span className="flex items-center bg-gray-100 px-3 py-1 rounded-full">
+                                                                <MapPin className="w-4 h-4 mr-2" />
                                                                 {job.location}
                                                             </span>
-                                                            <span className="flex items-center">
-                                                                <Briefcase className="w-4 h-4 mr-1" />
+                                                            <span className="flex items-center bg-blue-100 px-3 py-1 rounded-full">
+                                                                <Briefcase className="w-4 h-4 mr-2" />
                                                                 {job.employment_type === 'full_time' ? 'Full Time' : 
                                                                  job.employment_type === 'part_time' ? 'Part Time' :
                                                                  job.employment_type === 'contract' ? 'Contract' : job.employment_type}
                                                             </span>
-                                                            <span className="flex items-center">
-                                                                <Clock className="w-4 h-4 mr-1" />
+                                                            <span className="flex items-center bg-green-100 px-3 py-1 rounded-full">
+                                                                <Calendar className="w-4 h-4 mr-2" />
                                                                 {formatTimeAgo(job.created_at)}
                                                             </span>
                                                         </div>
+
+                                                        {/* Work arrangement badge */}
+                                                        {job.work_arrangement && (
+                                                            <Badge variant="outline" className="mb-3 border-green-200 text-green-700 bg-green-50">
+                                                                {job.work_arrangement === 'remote' ? 'Remote' : 
+                                                                 job.work_arrangement === 'hybrid' ? 'Hybrid' : 
+                                                                 job.work_arrangement === 'onsite' ? 'On-site' : job.work_arrangement}
+                                                            </Badge>
+                                                        )}
                                                         
-                                                        <div className="mt-3 flex items-center justify-between">
-                                                            <span className="text-lg font-bold text-[#2347FA]">
-                                                                {formatSalary(job.salary_min, job.salary_max, job.salary_currency, job.salary_negotiable)}
-                                                            </span>
-                                                            <div className="flex items-center space-x-3">
-                                                                <span className="text-sm text-gray-500 flex items-center">
+                                                        <div className="flex items-center justify-between mb-4">
+                                                            <div className="flex items-center">
+                                                                <DollarSign className="w-5 h-5 text-[#2347FA] mr-1" />
+                                                                <span className="text-2xl font-bold bg-gradient-to-r from-[#2347FA] to-[#3b56fc] bg-clip-text text-transparent">
+                                                                    {formatSalary(job.salary_min, job.salary_max, job.salary_currency, job.salary_negotiable)}
+                                                                </span>
+                                                            </div>
+                                                            <div className="text-right text-sm text-gray-500">
+                                                                <div className="flex items-center mb-1">
                                                                     <Users className="w-4 h-4 mr-1" />
                                                                     <NumberTicker value={job.applications_count} className="" delay={0.3 + index * 0.1} /> pelamar
-                                                                </span>
-                                                                <Link href={`/jobs/${job.id}`}>
-                                                                    <Button variant="outline" size="sm" className="border-[#2347FA] text-[#2347FA] hover:bg-[#2347FA] hover:text-white">
-                                                                        Lihat Detail
-                                                                        <ChevronRight className="w-4 h-4 ml-1" />
-                                                                    </Button>
-                                                                </Link>
+                                                                </div>
+                                                                <div>{job.remaining_positions} posisi tersisa</div>
+                                                            </div>
+                                                        </div>
+
+                                                        <div className="flex items-center space-x-3">
+                                                            <Link href={`/jobs/${job.id}`} className="flex-1">
+                                                                <Button className="w-full bg-gradient-to-r from-[#2347FA] to-[#3b56fc] hover:from-[#1a3af0] hover:to-[#2d47f5] text-white rounded-xl shadow-md hover:shadow-lg transition-all duration-300">
+                                                                    Lamar Sekarang
+                                                                    <ArrowRight className="w-4 h-4 ml-2" />
+                                                                </Button>
+                                                            </Link>
+                                                            <div className="flex space-x-2">
+                                                                <Button variant="outline" size="icon" className="rounded-xl border-gray-300 hover:bg-red-50 hover:border-red-200">
+                                                                    <Heart className="w-4 h-4 text-gray-400 hover:text-red-500" />
+                                                                </Button>
+                                                                <Button variant="outline" size="icon" className="rounded-xl border-gray-300 hover:bg-blue-50 hover:border-blue-200">
+                                                                    <Bookmark className="w-4 h-4 text-gray-400 hover:text-blue-500" />
+                                                                </Button>
                                                             </div>
                                                         </div>
                                                     </div>
@@ -376,25 +425,30 @@ export default function JobsIndex({ jobs, categories, filters, totalJobs, featur
                     </section>
                 )}
 
-                {/* Job Results */}
-                <section className="py-12">
+                {/* Enhanced Job Results */}
+                <section className="py-16 bg-gradient-to-br from-gray-50 to-white">
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                        <div className="flex items-center justify-between mb-8">
+                        <motion.div 
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 1.3 }}
+                            className="flex items-center justify-between mb-12"
+                        >
                             <div>
-                                <h2 className="text-2xl font-bold text-gray-900">
+                                <h2 className="text-3xl font-bold text-gray-900 mb-2">
                                     Semua Lowongan Kerja
                                 </h2>
-                                <p className="text-gray-600 mt-1">
-                                    Menampilkan <NumberTicker value={jobs.data.length} className="font-semibold" delay={0.1} /> dari <NumberTicker value={jobs.total} className="font-semibold" delay={0.2} /> lowongan
+                                <p className="text-gray-600">
+                                    Menampilkan <span className="font-bold text-[#2347FA]"><NumberTicker value={jobs.data.length} className="font-bold text-[#2347FA]" delay={0.1} /></span> dari <span className="font-bold text-gray-900"><NumberTicker value={jobs.total} className="font-bold text-gray-900" delay={0.2} /></span> lowongan yang tersedia
                                 </p>
                             </div>
                             <div className="flex items-center space-x-4">
-                                <Button variant="outline" size="sm">
+                                <Button variant="outline" size="sm" className="border-gray-300 rounded-xl">
                                     <SlidersHorizontal className="w-4 h-4 mr-2" />
-                                    Filter
+                                    Filter Lanjutan
                                 </Button>
                             </div>
-                        </div>
+                        </motion.div>
 
                         {jobs.data.length > 0 ? (
                             <div className="space-y-6">
@@ -403,82 +457,131 @@ export default function JobsIndex({ jobs, categories, filters, totalJobs, featur
                                         key={job.id}
                                         initial={{ opacity: 0, y: 20 }}
                                         animate={{ opacity: 1, y: 0 }}
-                                        transition={{ delay: index * 0.05 }}
+                                        transition={{ delay: 1.4 + index * 0.05 }}
                                     >
-                                        <Card className="hover:shadow-lg transition-all duration-300">
-                                            <CardContent className="p-6">
-                                                <div className="flex items-start space-x-4">
-                                                    <Avatar className="w-12 h-12 flex-shrink-0">
-                                                        {job.company.logo ? (
-                                                            <AvatarImage src={job.company.logo} alt={job.company.name} />
-                                                        ) : (
-                                                            <AvatarFallback className="bg-[#2347FA] text-white">
-                                                                {job.company.name.charAt(0)}
-                                                            </AvatarFallback>
+                                        <Card className="group hover:shadow-2xl transition-all duration-500 border border-gray-200/50 bg-white/80 backdrop-blur-sm hover:-translate-y-1 overflow-hidden">
+                                            {/* Top gradient bar */}
+                                            <div className="h-1 w-full bg-gradient-to-r from-[#2347FA] to-[#3b56fc] opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                                            
+                                            <CardContent className="p-8">
+                                                <div className="flex items-start space-x-6">
+                                                    <div className="relative">
+                                                        <Avatar className="w-16 h-16 flex-shrink-0 ring-2 ring-gray-100 group-hover:ring-[#2347FA]/20 transition-all duration-300">
+                                                            {job.company.logo ? (
+                                                                <AvatarImage src={job.company.logo} alt={job.company.name} className="object-contain p-2" />
+                                                            ) : (
+                                                                <AvatarFallback className="bg-gradient-to-br from-[#2347FA] to-[#3b56fc] text-white text-xl font-bold">
+                                                                    {job.company.name.charAt(0)}
+                                                                </AvatarFallback>
+                                                            )}
+                                                        </Avatar>
+                                                        {job.company.is_verified && (
+                                                            <div className="absolute -bottom-1 -right-1 rounded-full bg-white p-1 shadow-lg ring-2 ring-white">
+                                                                <CheckCircle className="h-4 w-4 text-emerald-500" />
+                                                            </div>
                                                         )}
-                                                    </Avatar>
+                                                    </div>
+                                                    
                                                     <div className="flex-1 min-w-0">
-                                                        <div className="flex items-start justify-between">
-                                                            <div>
+                                                        <div className="flex items-start justify-between mb-3">
+                                                            <div className="flex-1">
                                                                 <Link href={`/jobs/${job.id}`}>
-                                                                    <h3 className="text-lg font-semibold text-gray-900 hover:text-[#2347FA] cursor-pointer transition-colors">
+                                                                    <h3 className="text-xl font-bold text-gray-900 hover:text-[#2347FA] cursor-pointer transition-colors line-clamp-2">
                                                                         {job.title}
                                                                     </h3>
                                                                 </Link>
-                                                                <p className="text-gray-600 font-medium">{job.company.name}</p>
+                                                                <p className="text-gray-600 font-semibold mt-1">{job.company.name}</p>
                                                             </div>
-                                                            <div className="flex items-center space-x-2">
+                                                            <div className="flex items-center space-x-3 ml-4">
                                                                 {job.featured && (
-                                                                    <Badge className="bg-yellow-100 text-yellow-700 border-yellow-200">
-                                                                        <Star className="w-3 h-3 mr-1" />
+                                                                    <Badge className="bg-gradient-to-r from-yellow-400 to-orange-400 text-white border-0 shadow-sm">
+                                                                        <Star className="w-3 h-3 mr-1 fill-current" />
                                                                         Unggulan
                                                                     </Badge>
                                                                 )}
+                                                                <div className="flex space-x-2">
+                                                                    <Button variant="outline" size="icon" className="rounded-xl border-gray-300 hover:bg-red-50 hover:border-red-200">
+                                                                        <Heart className="w-4 h-4 text-gray-400 hover:text-red-500" />
+                                                                    </Button>
+                                                                    <Button variant="outline" size="icon" className="rounded-xl border-gray-300 hover:bg-blue-50 hover:border-blue-200">
+                                                                        <Bookmark className="w-4 h-4 text-gray-400 hover:text-blue-500" />
+                                                                    </Button>
+                                                                    <Button variant="outline" size="icon" className="rounded-xl border-gray-300 hover:bg-green-50 hover:border-green-200">
+                                                                        <Share2 className="w-4 h-4 text-gray-400 hover:text-green-500" />
+                                                                    </Button>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        
+                                                        <div className="flex flex-wrap items-center gap-3 text-sm mb-4">
+                                                            <span className="flex items-center bg-gray-100 px-3 py-1 rounded-full">
+                                                                <MapPin className="w-4 h-4 mr-2 text-gray-500" />
+                                                                <span className="text-gray-700">{job.location}</span>
+                                                            </span>
+                                                            <span className="flex items-center bg-blue-100 px-3 py-1 rounded-full">
+                                                                <Briefcase className="w-4 h-4 mr-2 text-blue-600" />
+                                                                <span className="text-blue-700">
+                                                                    {job.employment_type === 'full_time' ? 'Full Time' : 
+                                                                     job.employment_type === 'part_time' ? 'Part Time' :
+                                                                     job.employment_type === 'contract' ? 'Contract' : job.employment_type}
+                                                                </span>
+                                                            </span>
+                                                            <span className="flex items-center bg-green-100 px-3 py-1 rounded-full">
+                                                                <Calendar className="w-4 h-4 mr-2 text-green-600" />
+                                                                <span className="text-green-700">{formatTimeAgo(job.created_at)}</span>
+                                                            </span>
+                                                            <Badge variant="secondary" className="bg-purple-100 text-purple-700 border-purple-200">
+                                                                {job.category.name}
+                                                            </Badge>
+                                                            {job.work_arrangement && (
+                                                                <Badge variant="outline" className="border-green-200 text-green-700 bg-green-50">
+                                                                    {job.work_arrangement === 'remote' ? 'Remote' : 
+                                                                     job.work_arrangement === 'hybrid' ? 'Hybrid' : 
+                                                                     job.work_arrangement === 'onsite' ? 'On-site' : job.work_arrangement}
+                                                                </Badge>
+                                                            )}
+                                                        </div>
+                                                        
+                                                        <p className="text-gray-600 text-sm line-clamp-2 mb-4 leading-relaxed">
+                                                            {job.description}
+                                                        </p>
+                                                        
+                                                        <div className="flex items-center justify-between">
+                                                            <div className="flex items-center space-x-2">
+                                                                <DollarSign className="w-5 h-5 text-[#2347FA]" />
+                                                                <span className="text-2xl font-bold bg-gradient-to-r from-[#2347FA] to-[#3b56fc] bg-clip-text text-transparent">
+                                                                    {formatSalary(job.salary_min, job.salary_max, job.salary_currency, job.salary_negotiable)}
+                                                                </span>
+                                                            </div>
+                                                            
+                                                            <div className="flex items-center space-x-6">
+                                                                <div className="text-sm text-gray-500 text-right">
+                                                                    <div className="flex items-center mb-1">
+                                                                        <Users className="w-4 h-4 mr-1" />
+                                                                        <NumberTicker value={job.applications_count} className="" delay={0.3 + index * 0.1} /> pelamar
+                                                                    </div>
+                                                                    <div>{job.remaining_positions} posisi tersisa</div>
+                                                                </div>
+                                                                
                                                                 <Link href={`/jobs/${job.id}`}>
-                                                                    <Button variant="outline" size="sm">
-                                                                        Lihat Detail
+                                                                    <Button className="bg-gradient-to-r from-[#2347FA] to-[#3b56fc] hover:from-[#1a3af0] hover:to-[#2d47f5] text-white rounded-xl px-6 shadow-md hover:shadow-lg transition-all duration-300">
+                                                                        Lamar Sekarang
                                                                         <ArrowRight className="w-4 h-4 ml-2" />
                                                                     </Button>
                                                                 </Link>
                                                             </div>
                                                         </div>
-                                                        
-                                                        <div className="mt-2 flex items-center space-x-4 text-sm text-gray-500">
-                                                            <span className="flex items-center">
-                                                                <MapPin className="w-4 h-4 mr-1" />
-                                                                {job.location}
-                                                            </span>
-                                                            <span className="flex items-center">
-                                                                <Briefcase className="w-4 h-4 mr-1" />
-                                                                {job.employment_type === 'full_time' ? 'Full Time' : 
-                                                                 job.employment_type === 'part_time' ? 'Part Time' :
-                                                                 job.employment_type === 'contract' ? 'Contract' : job.employment_type}
-                                                            </span>
-                                                            <span className="flex items-center">
-                                                                <Clock className="w-4 h-4 mr-1" />
-                                                                {formatTimeAgo(job.created_at)}
-                                                            </span>
-                                                            <span>•</span>
-                                                            <span>{job.category.name}</span>
-                                                        </div>
-                                                        
-                                                        <p className="mt-2 text-gray-600 text-sm line-clamp-2">
-                                                            {job.description}
-                                                        </p>
-                                                        
-                                                        <div className="mt-3 flex items-center justify-between">
-                                                            <span className="text-lg font-bold text-[#2347FA]">
-                                                                {formatSalary(job.salary_min, job.salary_max, job.salary_currency, job.salary_negotiable)}
-                                                            </span>
-                                                            <div className="flex items-center space-x-4 text-sm text-gray-500">
-                                                                <span className="flex items-center">
-                                                                    <Users className="w-4 h-4 mr-1" />
-                                                                    <NumberTicker value={job.applications_count} className="" delay={0.3 + index * 0.1} /> pelamar
-                                                                </span>
-                                                                <span>•</span>
-                                                                <span>{job.remaining_positions} posisi tersisa</span>
+
+                                                        {/* Urgency indicator */}
+                                                        {job.application_deadline && new Date(job.application_deadline) < new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) && (
+                                                            <div className="mt-4 p-3 bg-orange-50 border border-orange-200 rounded-xl">
+                                                                <div className="flex items-center text-orange-700 text-sm">
+                                                                    <Clock className="w-4 h-4 mr-2" />
+                                                                    <span className="font-medium">Deadline: {new Date(job.application_deadline).toLocaleDateString('id-ID')}</span>
+                                                                    <span className="ml-2 text-xs bg-orange-200 px-2 py-1 rounded-full">Segera Berakhir!</span>
+                                                                </div>
                                                             </div>
-                                                        </div>
+                                                        )}
                                                     </div>
                                                 </div>
                                             </CardContent>
@@ -487,20 +590,28 @@ export default function JobsIndex({ jobs, categories, filters, totalJobs, featur
                                 ))}
                             </div>
                         ) : (
-                            <div className="text-center py-12">
+                            <motion.div 
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: 1.4 }}
+                                className="text-center py-16"
+                            >
                                 <div className="max-w-md mx-auto">
-                                    <Search className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-                                    <h3 className="text-lg font-medium text-gray-900 mb-2">
+                                    <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                                        <Search className="h-10 w-10 text-gray-400" />
+                                    </div>
+                                    <h3 className="text-2xl font-bold text-gray-900 mb-3">
                                         Tidak ada lowongan ditemukan
                                     </h3>
-                                    <p className="text-gray-600 mb-6">
-                                        Coba ubah kata kunci pencarian atau filter Anda
+                                    <p className="text-gray-600 mb-8 leading-relaxed">
+                                        Coba ubah kata kunci pencarian atau filter Anda untuk menemukan peluang karir yang tepat
                                     </p>
-                                    <Button onClick={clearFilters} variant="outline">
+                                    <Button onClick={clearFilters} variant="outline" className="rounded-xl border-[#2347FA] text-[#2347FA] hover:bg-[#2347FA] hover:text-white px-6">
+                                        <Filter className="w-4 h-4 mr-2" />
                                         Reset Pencarian
                                     </Button>
                                 </div>
-                            </div>
+                            </motion.div>
                         )}
 
                         {/* Pagination */}

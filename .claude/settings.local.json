@@ -28,7 +28,8 @@
       "Bash(npm run types:*)",
       "Bash(rg:*)",
       "Bash(/dev/null)",
-      "Bash(cp:*)"
+      "Bash(cp:*)",
+      "WebFetch(domain:magicui.design)"
     ],
     "deny": [],
     "defaultMode": "acceptEdits"

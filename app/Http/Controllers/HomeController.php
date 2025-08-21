@@ -8,6 +8,7 @@ use App\Models\JobCategory;
 use App\Models\JobListing;
 use App\Models\News;
 use App\Models\Setting;
+use App\Models\SuccessStory;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -131,48 +132,51 @@ class HomeController extends Controller
                 ];
             });
 
-        // Get recent job applications stats for testimonials (anonymized)
-        try {
-            $recentSuccessfulApplications = User::where('role', 'user')
-                ->whereHas('applications', function ($query) {
-                    $query->where('status', 'hired')
-                          ->where('created_at', '>=', now()->subMonths(6));
-                })
-                ->with(['applications' => function ($query) {
-                    $query->where('status', 'hired')
-                          ->where('created_at', '>=', now()->subMonths(6))
-                          ->with(['jobListing.company'])
-                          ->latest()
-                          ->limit(1);
-                }])
+        // Get success stories
+        $successStories = SuccessStory::active()
+            ->featured()
+            ->ordered()
+            ->limit(6)
+            ->get()
+            ->map(function ($story) {
+                return [
+                    'id' => $story->id,
+                    'name' => $story->name,
+                    'position' => $story->position,
+                    'company' => $story->company,
+                    'story' => $story->story,
+                    'location' => $story->location,
+                    'experience_years' => $story->experience_years,
+                    'salary_before' => $story->salary_before,
+                    'salary_after' => $story->salary_after,
+                    'salary_increase_percentage' => $story->salary_increase_percentage,
+                    'avatar_url' => $story->avatar_url,
+                    'created_at' => $story->created_at,
+                ];
+            });
+
+        // If no featured stories, get any active stories
+        if ($successStories->isEmpty()) {
+            $successStories = SuccessStory::active()
+                ->ordered()
                 ->limit(6)
                 ->get()
-                ->map(function ($user) {
-                    $application = $user->applications->first();
+                ->map(function ($story) {
                     return [
-                        'candidate_name' => $this->anonymizeName($user->name),
-                        'job_title' => $application->jobListing->title,
-                        'company_name' => $application->jobListing->company->name,
-                        'hired_at' => $application->created_at,
+                        'id' => $story->id,
+                        'name' => $story->name,
+                        'position' => $story->position,
+                        'company' => $story->company,
+                        'story' => $story->story,
+                        'location' => $story->location,
+                        'experience_years' => $story->experience_years,
+                        'salary_before' => $story->salary_before,
+                        'salary_after' => $story->salary_after,
+                        'salary_increase_percentage' => $story->salary_increase_percentage,
+                        'avatar_url' => $story->avatar_url,
+                        'created_at' => $story->created_at,
                     ];
-                })
-                ->filter(); // Remove any empty results
-        } catch (\Exception $e) {
-            // If there's an issue with applications, return some dummy success stories
-            $recentSuccessfulApplications = collect([
-                [
-                    'candidate_name' => 'Ahmad S.',
-                    'job_title' => 'Software Engineer',
-                    'company_name' => 'Tech Innovation',
-                    'hired_at' => now()->subWeeks(2),
-                ],
-                [
-                    'candidate_name' => 'Sari M.',
-                    'job_title' => 'UI/UX Designer',
-                    'company_name' => 'Digital Creative',
-                    'hired_at' => now()->subWeeks(4),
-                ],
-            ]);
+                });
         }
 
         // Get about us data
@@ -200,7 +204,7 @@ class HomeController extends Controller
             'topCompanies' => $topCompanies,
             'jobCategories' => $jobCategories,
             'latestNews' => $latestNews,
-            'successStories' => $recentSuccessfulApplications,
+            'successStories' => $successStories,
             'aboutUs' => $aboutUs,
         ]);
     }

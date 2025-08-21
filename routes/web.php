@@ -16,6 +16,8 @@ Route::get('/companies/{company}', [App\Http\Controllers\CompanyController::clas
 Route::get('/blog', [App\Http\Controllers\BlogController::class, 'index'])->name('blog');
 Route::get('/blog/{post}', [App\Http\Controllers\BlogController::class, 'show'])->name('blog.show');
 
+Route::get('/points', [App\Http\Controllers\PointController::class, 'index'])->name('points');
+
 Route::get('/contact', [App\Http\Controllers\ContactController::class, 'index'])->name('contact');
 Route::post('/contact', [App\Http\Controllers\ContactController::class, 'store'])->name('contact.store');
 

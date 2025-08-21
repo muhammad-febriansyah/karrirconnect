@@ -13,6 +13,18 @@ Route::middleware(['auth', 'verified', 'company.admin'])->prefix('company')->nam
         Route::post('/purchase', [PointController::class, 'purchase'])->name('purchase');
         Route::get('/payment/finish', [PointController::class, 'paymentFinish'])->name('payment.finish');
     });
+
+    // Job management for company admin
+    Route::prefix('jobs')->name('jobs.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Company\JobController::class, 'index'])->name('index');
+        Route::get('/create', [\App\Http\Controllers\Company\JobController::class, 'create'])->name('create');
+        Route::post('/', [\App\Http\Controllers\Company\JobController::class, 'store'])->name('store');
+        Route::get('/{job}', [\App\Http\Controllers\Company\JobController::class, 'show'])->name('show');
+        Route::get('/{job}/edit', [\App\Http\Controllers\Company\JobController::class, 'edit'])->name('edit');
+        Route::put('/{job}', [\App\Http\Controllers\Company\JobController::class, 'update'])->name('update');
+        Route::delete('/{job}', [\App\Http\Controllers\Company\JobController::class, 'destroy'])->name('destroy');
+        Route::post('/{job}/toggle-status', [\App\Http\Controllers\Company\JobController::class, 'toggleStatus'])->name('toggle-status');
+    });
 });
 
 // Webhook route for Midtrans (no authentication needed)

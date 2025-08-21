@@ -1,7 +1,8 @@
 import { motion } from 'framer-motion';
-import { Link } from '@inertiajs/react';
+import { Link, usePage } from '@inertiajs/react';
 import { ArrowRight } from 'lucide-react';
 import { NumberTicker } from '@/components/magicui/number-ticker';
+import { type SharedData } from '@/types';
 
 interface FooterProps {
     siteName?: string;
@@ -27,6 +28,7 @@ export default function ModernFooter({
     statistics,
     settings 
 }: FooterProps) {
+    const { settings: pageSettings } = usePage<SharedData>().props;
     return (
         <footer className="bg-gradient-to-r from-gray-50 to-white border-t border-gray-200">
             <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -42,109 +44,114 @@ export default function ModernFooter({
                                 className="mb-6"
                             >
                                 <div className="flex items-center space-x-3 mb-4">
-                                    <div className="w-10 h-10 bg-gradient-to-r from-[#2347FA] to-[#3b56fc] rounded-xl flex items-center justify-center shadow-lg">
-                                        <span className="text-white font-bold text-lg">
-                                            {siteName.charAt(0)}
-                                        </span>
+                                    <div className="relative">
+                                        {pageSettings?.logo ? (
+                                            <img
+                                                src={pageSettings.logo.startsWith('http') ? pageSettings.logo : `/storage/${pageSettings.logo}`}
+                                                alt={pageSettings.site_name || siteName}
+                                                className="h-10 w-40 rounded-xl object-cover"
+                                                onError={(e) => {
+                                                    e.currentTarget.style.display = 'none';
+                                                    e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                                                }}
+                                            />
+                                        ) : null}
+                                        {!pageSettings?.logo && (
+                                            <div className="w-10 h-10 bg-gradient-to-r from-[#2347FA] to-[#3b56fc] rounded-xl flex items-center justify-center shadow-lg">
+                                                <span className="text-white font-bold text-lg">
+                                                    {siteName.charAt(0)}
+                                                </span>
+                                            </div>
+                                        )}
+                                        <div className="hidden w-10 h-10 bg-gradient-to-r from-[#2347FA] to-[#3b56fc] rounded-xl flex items-center justify-center shadow-lg">
+                                            <span className="text-white font-bold text-lg">
+                                                {siteName.charAt(0)}
+                                            </span>
+                                        </div>
                                     </div>
-                                    <span className="text-2xl font-bold text-gray-900">{siteName}</span>
+                                    {!pageSettings?.logo && <span className="text-2xl font-bold text-gray-900">{siteName}</span>}
                                 </div>
-                                <p className="text-gray-600 text-lg leading-relaxed mb-6 max-w-md">
+                                <p className="text-gray-600 leading-relaxed mb-6 max-w-md">
                                     {siteDescription}
                                 </p>
                                 
-                                {/* Statistics */}
-                                <div className="grid grid-cols-3 gap-6 p-6 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl border border-blue-100">
-                                    <div className="text-center">
-                                        <div className="text-2xl font-bold text-[#2347FA] mb-1">
-                                            <NumberTicker value={statistics?.total_jobs || 10000} className="text-2xl font-bold text-[#2347FA]" delay={0.2} />+
+                                {/* Simplified Statistics */}
+                                <div className="grid grid-cols-3 gap-4 text-center">
+                                    <div>
+                                        <div className="text-xl font-bold text-[#2347FA] mb-1">
+                                            <NumberTicker value={statistics?.total_jobs || 10000} className="text-xl font-bold text-[#2347FA]" delay={0.2} />+
                                         </div>
-                                        <div className="text-sm text-gray-600">Lowongan</div>
+                                        <div className="text-xs text-gray-500">Lowongan</div>
                                     </div>
-                                    <div className="text-center">
-                                        <div className="text-2xl font-bold text-[#2347FA] mb-1">
-                                            <NumberTicker value={statistics?.total_companies || 5000} className="text-2xl font-bold text-[#2347FA]" delay={0.3} />+
+                                    <div>
+                                        <div className="text-xl font-bold text-[#2347FA] mb-1">
+                                            <NumberTicker value={statistics?.total_companies || 5000} className="text-xl font-bold text-[#2347FA]" delay={0.3} />+
                                         </div>
-                                        <div className="text-sm text-gray-600">Perusahaan</div>
+                                        <div className="text-xs text-gray-500">Perusahaan</div>
                                     </div>
-                                    <div className="text-center">
-                                        <div className="text-2xl font-bold text-[#2347FA] mb-1">
-                                            <NumberTicker value={statistics?.total_candidates || 100000} className="text-2xl font-bold text-[#2347FA]" delay={0.4} />+
+                                    <div>
+                                        <div className="text-xl font-bold text-[#2347FA] mb-1">
+                                            <NumberTicker value={statistics?.total_candidates || 100000} className="text-xl font-bold text-[#2347FA]" delay={0.4} />+
                                         </div>
-                                        <div className="text-sm text-gray-600">Pengguna</div>
+                                        <div className="text-xs text-gray-500">Pengguna</div>
                                     </div>
                                 </div>
                             </motion.div>
                         </div>
                         
-                        {/* Quick Links - Job Seekers */}
+                        {/* Platform */}
                         <motion.div
                             initial={{ opacity: 0, y: 20 }}
                             whileInView={{ opacity: 1, y: 0 }}
                             viewport={{ once: true }}
                             transition={{ delay: 0.1 }}
                         >
-                            <h4 className="font-bold text-gray-900 mb-6 text-lg">Pencari Kerja</h4>
-                            <ul className="space-y-4">
+                            <h4 className="font-semibold text-gray-900 mb-4">Platform</h4>
+                            <ul className="space-y-2">
                                 <li>
-                                    <Link href="/jobs" className="text-gray-600 hover:text-[#2347FA] transition-colors duration-300 flex items-center group">
-                                        <ArrowRight className="w-4 h-4 mr-2 transform group-hover:translate-x-1 transition-transform" />
+                                    <Link href="/jobs" className="text-gray-600 hover:text-[#2347FA] transition-colors text-sm">
                                         Cari Lowongan
                                     </Link>
                                 </li>
                                 <li>
-                                    <Link href="/blog" className="text-gray-600 hover:text-[#2347FA] transition-colors duration-300 flex items-center group">
-                                        <ArrowRight className="w-4 h-4 mr-2 transform group-hover:translate-x-1 transition-transform" />
-                                        Blog & Tips Karir
+                                    <Link href="/companies" className="text-gray-600 hover:text-[#2347FA] transition-colors text-sm">
+                                        Perusahaan
                                     </Link>
                                 </li>
                                 <li>
-                                    <Link href="/blog" className="text-gray-600 hover:text-[#2347FA] transition-colors duration-300 flex items-center group">
-                                        <ArrowRight className="w-4 h-4 mr-2 transform group-hover:translate-x-1 transition-transform" />
-                                        Panduan Interview
+                                    <Link href="/company/jobs/create" className="text-gray-600 hover:text-[#2347FA] transition-colors text-sm flex items-center gap-1">
+                                        Pasang Lowongan
+                                        <span className="px-1.5 py-0.5 bg-blue-100 text-blue-700 text-xs font-medium rounded">
+                                            1 Poin
+                                        </span>
                                     </Link>
-                                </li>
-                                <li>
-                                    <a href="#" className="text-gray-600 hover:text-[#2347FA] transition-colors duration-300 flex items-center group">
-                                        <ArrowRight className="w-4 h-4 mr-2 transform group-hover:translate-x-1 transition-transform" />
-                                        Buat CV
-                                    </a>
                                 </li>
                             </ul>
                         </motion.div>
                         
-                        {/* Quick Links - Companies */}
+                        {/* Info */}
                         <motion.div
                             initial={{ opacity: 0, y: 20 }}
                             whileInView={{ opacity: 1, y: 0 }}
                             viewport={{ once: true }}
                             transition={{ delay: 0.2 }}
                         >
-                            <h4 className="font-bold text-gray-900 mb-6 text-lg">Perusahaan</h4>
-                            <ul className="space-y-4">
+                            <h4 className="font-semibold text-gray-900 mb-4">Info</h4>
+                            <ul className="space-y-2">
                                 <li>
-                                    <a href="#" className="text-gray-600 hover:text-[#2347FA] transition-colors duration-300 flex items-center group">
-                                        <ArrowRight className="w-4 h-4 mr-2 transform group-hover:translate-x-1 transition-transform" />
-                                        Pasang Lowongan
-                                    </a>
-                                </li>
-                                <li>
-                                    <Link href="/companies" className="text-gray-600 hover:text-[#2347FA] transition-colors duration-300 flex items-center group">
-                                        <ArrowRight className="w-4 h-4 mr-2 transform group-hover:translate-x-1 transition-transform" />
-                                        Direktori Perusahaan
-                                    </Link>
-                                </li>
-                                <li>
-                                    <a href="#" className="text-gray-600 hover:text-[#2347FA] transition-colors duration-300 flex items-center group">
-                                        <ArrowRight className="w-4 h-4 mr-2 transform group-hover:translate-x-1 transition-transform" />
-                                        Paket Premium
-                                    </a>
-                                </li>
-                                <li>
-                                    <Link href="/about" className="text-gray-600 hover:text-[#2347FA] transition-colors duration-300 flex items-center group">
-                                        <ArrowRight className="w-4 h-4 mr-2 transform group-hover:translate-x-1 transition-transform" />
+                                    <Link href="/about" className="text-gray-600 hover:text-[#2347FA] transition-colors text-sm">
                                         Tentang Kami
                                     </Link>
+                                </li>
+                                <li>
+                                    <Link href="/blog" className="text-gray-600 hover:text-[#2347FA] transition-colors text-sm">
+                                        Blog
+                                    </Link>
+                                </li>
+                                <li>
+                                    <a href="#" className="text-gray-600 hover:text-[#2347FA] transition-colors text-sm">
+                                        Bantuan
+                                    </a>
                                 </li>
                             </ul>
                         </motion.div>
