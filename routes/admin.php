@@ -8,6 +8,7 @@ use App\Http\Controllers\Admin\CompanyManagementController;
 use App\Http\Controllers\Admin\JobListingsController;
 use App\Http\Controllers\Admin\EmailManagementController;
 use App\Http\Controllers\Admin\JobCategoryManagementController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\Admin\ModerationController;
 use App\Http\Controllers\Admin\NewsController;
 use App\Http\Controllers\Admin\PrivacyPolicyController;
@@ -148,4 +149,13 @@ Route::middleware(['auth', 'verified', App\Http\Middleware\EnsureUserIsCompanyAd
     // Applications Management - Only for company admin (update operations)
     Route::patch('/applications/{application}/status', [ApplicationManagementController::class, 'updateStatus'])->name('applications.update-status');
     Route::post('/applications/bulk-action', [ApplicationManagementController::class, 'bulkAction'])->name('applications.bulk-action');
+
+    // Notifications - For both super admin and company admin
+    Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
+    Route::post('/notifications/{notification}/mark-as-read', [NotificationController::class, 'markAsRead'])->name('notifications.mark-as-read');
+    Route::post('/notifications/mark-all-as-read', [NotificationController::class, 'markAllAsRead'])->name('notifications.mark-all-as-read');
+    Route::post('/notifications', [NotificationController::class, 'store'])->name('notifications.store');
+    
+    // Notification statistics (super admin only)
+    Route::get('/notifications/statistics', [NotificationController::class, 'getStatistics'])->name('notifications.statistics');
 });
