@@ -31,7 +31,8 @@
       "Bash(cp:*)",
       "WebFetch(domain:magicui.design)",
       "Bash(composer:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(git commit:*)"
     ],
     "deny": [],
     "defaultMode": "acceptEdits"

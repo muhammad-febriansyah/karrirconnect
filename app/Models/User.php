@@ -21,7 +21,10 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'google_id',
         'avatar',
+        'auth_provider',
+        'google_created_at',
         'role',
         'company_id',
         'is_active',
@@ -54,6 +57,7 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'last_login_at' => 'datetime',
+            'google_created_at' => 'datetime',
             'is_active' => 'boolean',
             'verification_documents' => 'array',
             'verified_at' => 'datetime',
@@ -131,6 +135,42 @@ class User extends Authenticatable
     public function isSuperAdmin()
     {
         return $this->role === 'super_admin';
+    }
+
+    // Google OAuth helper methods
+    public function isGoogleUser(): bool
+    {
+        return $this->auth_provider === 'google' && !empty($this->google_id);
+    }
+
+    public function isEmailUser(): bool
+    {
+        return $this->auth_provider === 'email';
+    }
+
+    public function hasPassword(): bool
+    {
+        return !empty($this->password);
+    }
+
+    public static function findByGoogleId(string $googleId): ?self
+    {
+        return static::where('google_id', $googleId)->first();
+    }
+
+    public static function createFromGoogle($googleUser): self
+    {
+        return static::create([
+            'name' => $googleUser->getName(),
+            'email' => $googleUser->getEmail(),
+            'google_id' => $googleUser->getId(),
+            'avatar' => $googleUser->getAvatar(),
+            'auth_provider' => 'google',
+            'google_created_at' => now(),
+            'email_verified_at' => now(), // Google accounts are pre-verified
+            'role' => 'user', // Default role for Google registrations
+            'is_active' => true,
+        ]);
     }
 
     public function isCompanyAdmin()

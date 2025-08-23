@@ -22,6 +22,11 @@ Route::get('/pasang-lowongan', [App\Http\Controllers\PasangLowonganController::c
     ->middleware(['auth', 'company.admin'])
     ->name('pasang-lowongan');
 
+// Google OAuth routes
+Route::get('/auth/google', [App\Http\Controllers\GoogleAuthController::class, 'redirectToGoogle'])->name('auth.google');
+Route::get('/auth/google/callback', [App\Http\Controllers\GoogleAuthController::class, 'handleGoogleCallback'])->name('auth.google.callback');
+Route::get('/auth/google/url', [App\Http\Controllers\GoogleAuthController::class, 'getGoogleAuthUrl'])->name('auth.google.url');
+
 Route::get('/contact', [App\Http\Controllers\ContactController::class, 'index'])->name('contact');
 Route::post('/contact', [App\Http\Controllers\ContactController::class, 'store'])->name('contact.store');
 
