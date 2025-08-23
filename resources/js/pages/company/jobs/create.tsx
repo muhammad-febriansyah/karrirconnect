@@ -21,7 +21,11 @@ import {
   Briefcase,
   Users,
   Calendar,
-  DollarSign
+  DollarSign,
+  Star,
+  CheckCircle,
+  CreditCard,
+  ShoppingCart
 } from 'lucide-react';
 import { NumberTicker } from '@/components/ui/number-ticker';
 
@@ -41,13 +45,39 @@ interface Company {
   job_posting_points: number;
 }
 
+interface PointPackage {
+  id: number;
+  name: string;
+  description: string;
+  points: number;
+  price: number;
+  bonus_points: number;
+  is_featured: boolean;
+  features: string[];
+  total_points: number;
+  formatted_price: string;
+}
+
+interface RecentTransaction {
+  id: number;
+  type: string;
+  points: number;
+  description: string;
+  status: string;
+  created_at: string;
+  package_name?: string;
+}
+
 interface Props {
   categories: JobCategory[];
   skills: Skill[];
   company: Company;
+  pointPackages: PointPackage[];
+  recentTransactions: RecentTransaction[];
+  jobPostingCost: number;
 }
 
-export default function CreateJob({ categories, skills, company }: Props) {
+export default function CreateJob({ categories, skills, company, pointPackages, recentTransactions, jobPostingCost }: Props) {
   const [selectedSkills, setSelectedSkills] = useState<number[]>([]);
   const [skillSearch, setSkillSearch] = useState('');
   const [showSkillDropdown, setShowSkillDropdown] = useState(false);
@@ -73,11 +103,6 @@ export default function CreateJob({ categories, skills, company }: Props) {
 
   const handleSubmit = (e: React.FormEvent, status: 'draft' | 'published') => {
     e.preventDefault();
-    
-    if (status === 'published' && company.job_posting_points < 1) {
-      alert('Poin tidak mencukupi untuk mempublikasikan lowongan. Silakan beli paket poin terlebih dahulu.');
-      return;
-    }
 
     post(route('company.jobs.store'), {
       data: {
@@ -140,29 +165,137 @@ export default function CreateJob({ categories, skills, company }: Props) {
           </div>
         </div>
 
-        {/* Point Warning */}
-        {company.job_posting_points < 1 && (
-          <Card className="border-red-200 bg-red-50">
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <AlertCircle className="h-5 w-5 text-red-600" />
-                <div className="flex-1">
-                  <h4 className="font-medium text-red-800">Poin Tidak Mencukupi!</h4>
-                  <p className="text-sm text-red-700">
-                    Anda membutuhkan minimal 1 poin untuk mempublikasikan lowongan. Anda masih bisa menyimpan sebagai draft.
-                  </p>
+        {/* Enhanced Point Packages Display */}
+        <Card className="border-blue-200 bg-gradient-to-br from-blue-50 to-indigo-50">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-lg flex items-center gap-2">
+              <ShoppingCart className="h-5 w-5 text-blue-600" />
+              Paket Poin Tersedia
+            </CardTitle>
+            {company.job_posting_points < jobPostingCost && (
+              <div className="space-y-2">
+                <p className="text-sm text-amber-700 bg-amber-50 p-2 rounded border border-amber-200">
+                  <AlertCircle className="h-4 w-4 inline mr-1" />
+                  Poin tidak mencukupi untuk publikasi. Lowongan akan disimpan sebagai draft.
+                </p>
+                <p className="text-xs text-gray-600">
+                  Biaya posting: {jobPostingCost} poin | Poin Anda: {company.job_posting_points}
+                </p>
+              </div>
+            )}
+            {company.job_posting_points >= jobPostingCost && (
+              <p className="text-sm text-green-700 bg-green-50 p-2 rounded border border-green-200">
+                <CheckCircle className="h-4 w-4 inline mr-1" />
+                Anda dapat memposting lowongan ini. Biaya: {jobPostingCost} poin.
+              </p>
+            )}
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {/* Current Balance Info */}
+            <div className="bg-white p-3 rounded-lg border border-blue-200">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium text-gray-700">Saldo Poin Anda</span>
+                <span className="text-lg font-bold text-blue-600">
+                  <NumberTicker value={company.job_posting_points} className="text-lg font-bold text-blue-600" />
+                </span>
+              </div>
+              <div className="text-xs text-gray-500 mt-1">
+                Dapat digunakan untuk {Math.floor(company.job_posting_points / jobPostingCost)} lowongan
+              </div>
+            </div>
+
+            {/* Package Options */}
+            <div className="space-y-3">
+              <h5 className="text-sm font-semibold text-gray-800">Beli Paket Poin:</h5>
+              {pointPackages.slice(0, 3).map((pkg) => (
+                <div key={pkg.id} className="bg-white p-4 rounded-lg border border-blue-200 hover:border-blue-300 transition-colors">
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="flex items-center gap-2">
+                      <h4 className="font-semibold text-sm text-gray-900">{pkg.name}</h4>
+                      {pkg.is_featured && (
+                        <Badge className="bg-gradient-to-r from-yellow-400 to-orange-400 text-white text-xs">
+                          <Star className="h-3 w-3 mr-1 fill-current" />
+                          Popular
+                        </Badge>
+                      )}
+                    </div>
+                    <span className="text-lg font-bold text-blue-600">{pkg.formatted_price}</span>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-3 mb-3 text-xs">
+                    <div className="flex items-center gap-1">
+                      <Coins className="h-3 w-3 text-blue-500" />
+                      <span className="text-gray-600">
+                        <NumberTicker value={pkg.points} className="font-medium" /> poin dasar
+                      </span>
+                    </div>
+                    {pkg.bonus_points > 0 && (
+                      <div className="flex items-center gap-1">
+                        <Plus className="h-3 w-3 text-green-500" />
+                        <span className="text-green-600 font-medium">
+                          {pkg.bonus_points} bonus
+                        </span>
+                      </div>
+                    )}
+                    <div className="flex items-center gap-1">
+                      <Briefcase className="h-3 w-3 text-purple-500" />
+                      <span className="text-gray-600">
+                        {pkg.total_points} lowongan
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <Target className="h-3 w-3 text-orange-500" />
+                      <span className="text-gray-600">
+                        Rp {Math.round(pkg.price / pkg.total_points).toLocaleString()}/poin
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Features Preview */}
+                  {pkg.features && pkg.features.length > 0 && (
+                    <div className="mb-3">
+                      <div className="text-xs text-gray-500 mb-1">Fitur:</div>
+                      <div className="flex flex-wrap gap-1">
+                        {pkg.features.slice(0, 3).map((feature, index) => (
+                          <span key={index} className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">
+                            {feature}
+                          </span>
+                        ))}
+                        {pkg.features.length > 3 && (
+                          <span className="text-xs text-blue-600">+{pkg.features.length - 3} lainnya</span>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  <Button 
+                    size="sm" 
+                    variant={pkg.is_featured ? "default" : "outline"}
+                    className="w-full text-xs"
+                    onClick={() => router.get('/company/points/packages')}
+                  >
+                    <CreditCard className="h-3 w-3 mr-1" />
+                    Beli Paket Ini
+                  </Button>
                 </div>
+              ))}
+            </div>
+
+            {pointPackages.length > 3 && (
+              <div className="text-center pt-2">
                 <Button 
-                  size="sm" 
-                  className="bg-red-600 hover:bg-red-700"
+                  variant="link" 
+                  size="sm"
                   onClick={() => router.get('/company/points/packages')}
+                  className="text-blue-600 hover:text-blue-700"
                 >
-                  Beli Poin
+                  Lihat Semua Paket ({pointPackages.length})
+                  <ArrowRight className="h-3 w-3 ml-1" />
                 </Button>
               </div>
-            </CardContent>
-          </Card>
-        )}
+            )}
+          </CardContent>
+        </Card>
 
         <form className="space-y-6">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -472,22 +605,114 @@ export default function CreateJob({ categories, skills, company }: Props) {
                       type="button"
                       className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
                       onClick={(e) => handleSubmit(e, 'published')}
-                      disabled={processing || company.job_posting_points < 1}
+                      disabled={processing}
                     >
                       <Eye className="h-4 w-4 mr-2" />
-                      Publikasikan (1 Poin)
+                      {company.job_posting_points >= jobPostingCost ? 'Publikasikan' : 'Simpan sebagai Draft'}
                     </Button>
                   </div>
 
-                  {company.job_posting_points < 1 && (
-                    <div className="p-3 bg-amber-50 border border-amber-200 rounded-md">
-                      <p className="text-sm text-amber-800">
-                        Poin tidak mencukupi untuk publikasi. Anda masih bisa menyimpan sebagai draft.
+                  {company.job_posting_points < jobPostingCost && (
+                    <div className="p-3 bg-blue-50 border border-blue-200 rounded-md">
+                      <p className="text-sm text-blue-800 mb-2">
+                        💡 Beli paket poin untuk publikasikan lowongan langsung
                       </p>
+                      <Button 
+                        size="sm" 
+                        variant="outline"
+                        className="w-full text-xs"
+                        onClick={() => router.get('/company/points/packages')}
+                      >
+                        <ShoppingCart className="h-3 w-3 mr-1" />
+                        Lihat Paket Poin
+                      </Button>
                     </div>
                   )}
                 </CardContent>
               </Card>
+
+              {/* Recent Transactions History */}
+              {recentTransactions && recentTransactions.length > 0 && (
+                <Card className="sticky top-6 mt-4">
+                  <CardHeader>
+                    <CardTitle className="text-sm flex items-center gap-2">
+                      <Clock className="h-4 w-4" />
+                      Riwayat Poin Terkini
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-2">
+                    {recentTransactions.slice(0, 3).map((transaction) => (
+                      <div key={transaction.id} className="bg-gray-50 p-2 rounded border">
+                        <div className="flex items-center justify-between mb-1">
+                          <span className={`text-xs font-medium ${
+                            transaction.points > 0 ? 'text-green-600' : 'text-red-600'
+                          }`}>
+                            {transaction.points > 0 ? '+' : ''}{transaction.points} poin
+                          </span>
+                          <span className="text-xs text-gray-500">{transaction.created_at}</span>
+                        </div>
+                        <div className="text-xs text-gray-600 truncate">
+                          {transaction.description}
+                        </div>
+                        {transaction.package_name && (
+                          <div className="text-xs text-blue-600 mt-1">
+                            {transaction.package_name}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                    <Button 
+                      size="sm" 
+                      variant="link"
+                      className="w-full text-xs mt-2 text-blue-600"
+                      onClick={() => router.get('/company/points')}
+                    >
+                      Lihat Semua Riwayat
+                    </Button>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Quick Point Packages - Only show if has points */}
+              {company.job_posting_points >= jobPostingCost && pointPackages.length > 0 && (
+                <Card className="sticky top-6 mt-4">
+                  <CardHeader>
+                    <CardTitle className="text-sm flex items-center gap-2">
+                      <Coins className="h-4 w-4" />
+                      Paket Poin
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-2">
+                    <p className="text-xs text-gray-600 mb-3">
+                      Stok habis? Beli paket poin untuk posting lebih banyak.
+                    </p>
+                    {pointPackages.slice(0, 2).map((pkg) => (
+                      <div key={pkg.id} className="bg-gray-50 p-2 rounded border">
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-xs font-medium">{pkg.name}</span>
+                          {pkg.is_featured && (
+                            <Badge className="bg-blue-500 text-white text-xs px-1 py-0">
+                              <Star className="h-2 w-2" />
+                            </Badge>
+                          )}
+                        </div>
+                        <div className="flex items-center justify-between text-xs text-gray-600">
+                          <span className="font-bold text-blue-600">{pkg.formatted_price}</span>
+                        </div>
+                      </div>
+                    ))}
+                    <Button 
+                      size="sm" 
+                      variant="outline"
+                      className="w-full text-xs mt-2"
+                      onClick={() => router.get('/company/points/packages')}
+                    >
+                      <CreditCard className="h-3 w-3 mr-1" />
+                      Beli Paket Poin
+                    </Button>
+                  </CardContent>
+                </Card>
+              )}
             </div>
           </div>
         </form>

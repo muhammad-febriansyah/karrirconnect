@@ -29,7 +29,9 @@
       "Bash(rg:*)",
       "Bash(/dev/null)",
       "Bash(cp:*)",
-      "WebFetch(domain:magicui.design)"
+      "WebFetch(domain:magicui.design)",
+      "Bash(composer:*)",
+      "Bash(git add:*)"
     ],
     "deny": [],
     "defaultMode": "acceptEdits"

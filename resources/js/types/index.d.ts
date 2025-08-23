@@ -67,6 +67,9 @@ export interface SharedData {
     quote: { message: string; author: string };
     auth: Auth;
     settings: Setting;
+    recaptcha: {
+        site_key: string;
+    };
     ziggy: Config & { location: string };
     sidebarOpen: boolean;
     [key: string]: unknown;

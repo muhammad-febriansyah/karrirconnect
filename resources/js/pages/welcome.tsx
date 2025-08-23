@@ -11,7 +11,27 @@ import { Input } from '@/components/ui/input';
 import { type SharedData } from '@/types';
 import { Head, Link, usePage } from '@inertiajs/react';
 import { motion } from 'framer-motion';
-import { ArrowRight, Award, Briefcase, Building, CheckCircle, Clock, Crown, Flame, Globe, Heart, MapPin, Search, Shield, Sparkles, Star, Target, TrendingUp, Users, Zap } from 'lucide-react';
+import {
+    ArrowRight,
+    Award,
+    Briefcase,
+    Building,
+    CheckCircle,
+    Clock,
+    Crown,
+    Flame,
+    Globe,
+    Heart,
+    MapPin,
+    Search,
+    Shield,
+    Sparkles,
+    Star,
+    Target,
+    TrendingUp,
+    Users,
+    Zap,
+} from 'lucide-react';
 
 interface Company {
     id: number;
@@ -314,18 +334,18 @@ export default function Welcome() {
                 </section>
 
                 {/* Trusted Companies - Enhanced */}
-                <section className="relative py-24 overflow-hidden" id="companies">
+                <section className="relative overflow-hidden py-24" id="companies">
                     {/* Background with sophisticated pattern */}
                     <div className="absolute inset-0 bg-gradient-to-br from-slate-50 via-white to-blue-50/40"></div>
                     <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgdmlld0JveD0iMCAwIDEwMCAxMDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImRvdHMiIHdpZHRoPSIyMCIgaGVpZ2h0PSIyMCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PGNpcmNsZSBjeD0iMTAiIGN5PSIxMCIgcj0iMS41IiBmaWxsPSIjMjM0N0ZBIiBmaWxsLW9wYWNpdHk9IjAuMDUiLz48L3BhdHRlcm4+PC9kZWZzPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9InVybCgjZG90cykiLz48L3N2Zz4=')] opacity-30"></div>
-                    
+
                     {/* Floating elements */}
-                    <div className="absolute top-20 left-10 w-20 h-20 bg-gradient-to-br from-[#2347FA]/10 to-[#3b56fc]/10 rounded-full blur-xl"></div>
-                    <div className="absolute bottom-20 right-10 w-32 h-32 bg-gradient-to-br from-blue-400/10 to-indigo-400/10 rounded-full blur-xl"></div>
-                    
+                    <div className="absolute top-20 left-10 h-20 w-20 rounded-full bg-gradient-to-br from-[#2347FA]/10 to-[#3b56fc]/10 blur-xl"></div>
+                    <div className="absolute right-10 bottom-20 h-32 w-32 rounded-full bg-gradient-to-br from-blue-400/10 to-indigo-400/10 blur-xl"></div>
+
                     <div className="relative z-10 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                         {/* Enhanced Header */}
-                        <motion.div 
+                        <motion.div
                             initial={{ opacity: 0, y: 20 }}
                             whileInView={{ opacity: 1, y: 0 }}
                             viewport={{ once: true }}
@@ -343,35 +363,37 @@ export default function Welcome() {
                                 <Shield className="h-5 w-5 text-green-600" />
                             </motion.div>
 
-                            <motion.h2 
+                            <motion.h2
                                 initial={{ opacity: 0, y: 20 }}
                                 whileInView={{ opacity: 1, y: 0 }}
                                 viewport={{ once: true }}
                                 transition={{ delay: 0.2 }}
                                 className="mb-6 text-4xl font-bold text-gray-900 md:text-5xl lg:text-6xl"
                             >
-                                Dipercaya <span className="bg-gradient-to-r from-[#2347FA] to-[#3b56fc] bg-clip-text text-transparent">Perusahaan</span>
+                                Dipercaya{' '}
+                                <span className="bg-gradient-to-r from-[#2347FA] to-[#3b56fc] bg-clip-text text-transparent">Perusahaan</span>
                                 <br />
                                 <span className="text-gray-700">Terkemuka</span>
                             </motion.h2>
-                            
-                            <motion.p 
+
+                            <motion.p
                                 initial={{ opacity: 0, y: 20 }}
                                 whileInView={{ opacity: 1, y: 0 }}
                                 viewport={{ once: true }}
                                 transition={{ delay: 0.3 }}
-                                className="mx-auto max-w-3xl text-xl text-gray-600 leading-relaxed"
+                                className="mx-auto max-w-3xl text-xl leading-relaxed text-gray-600"
                             >
-                                Lebih dari <span className="font-bold text-[#2347FA]">{statistics.total_companies.toLocaleString()}+</span> perusahaan dari berbagai industri mempercayai KarirConnect sebagai platform rekrutmen utama mereka
+                                Lebih dari <span className="font-bold text-[#2347FA]">{statistics.total_companies.toLocaleString()}+</span> perusahaan
+                                dari berbagai industri mempercayai KarirConnect sebagai platform rekrutmen utama mereka
                             </motion.p>
 
                             {/* Trust indicators */}
-                            <motion.div 
+                            <motion.div
                                 initial={{ opacity: 0, y: 20 }}
                                 whileInView={{ opacity: 1, y: 0 }}
                                 viewport={{ once: true }}
                                 transition={{ delay: 0.4 }}
-                                className="mt-8 flex flex-wrap justify-center items-center gap-8 text-sm text-gray-600"
+                                className="mt-8 flex flex-wrap items-center justify-center gap-8 text-sm text-gray-600"
                             >
                                 <div className="flex items-center space-x-2">
                                     <Award className="h-5 w-5 text-yellow-500" />
@@ -400,20 +422,20 @@ export default function Welcome() {
                                     initial={{ opacity: 0, y: 30, scale: 0.9 }}
                                     whileInView={{ opacity: 1, y: 0, scale: 1 }}
                                     viewport={{ once: true }}
-                                    transition={{ 
+                                    transition={{
                                         delay: index * 0.1,
                                         duration: 0.5,
-                                        type: "spring",
-                                        stiffness: 100
+                                        type: 'spring',
+                                        stiffness: 100,
                                     }}
                                     className="group cursor-pointer"
                                 >
                                     <Link href={`/companies/${company.id}`}>
-                                        <div className="relative h-full rounded-3xl border border-gray-200/50 bg-white/80 backdrop-blur-sm p-6 shadow-lg transition-all duration-500 hover:shadow-2xl hover:shadow-[#2347FA]/10 hover:-translate-y-3 hover:scale-105">
+                                        <div className="relative h-full rounded-3xl border border-gray-200/50 bg-white/80 p-6 shadow-lg backdrop-blur-sm transition-all duration-500 hover:-translate-y-3 hover:scale-105 hover:shadow-2xl hover:shadow-[#2347FA]/10">
                                             {/* Decorative elements */}
-                                            <div className="absolute top-0 left-0 h-1 w-full rounded-t-3xl bg-gradient-to-r from-[#2347FA] to-[#3b56fc] opacity-0 group-hover:opacity-100 transition-all duration-300"></div>
+                                            <div className="absolute top-0 left-0 h-1 w-full rounded-t-3xl bg-gradient-to-r from-[#2347FA] to-[#3b56fc] opacity-0 transition-all duration-300 group-hover:opacity-100"></div>
                                             <div className="absolute -top-20 -right-20 h-40 w-40 rounded-full bg-gradient-to-br from-[#2347FA]/5 to-[#3b56fc]/5 transition-all duration-500 group-hover:scale-150 group-hover:opacity-50"></div>
-                                            
+
                                             {/* Premium badge for top companies */}
                                             {index < 3 && (
                                                 <div className="absolute -top-2 -right-2 z-10">
@@ -424,28 +446,28 @@ export default function Welcome() {
                                                 </div>
                                             )}
 
-                                            <div className="relative z-10 flex flex-col items-center text-center space-y-4">
+                                            <div className="relative z-10 flex flex-col items-center space-y-4 text-center">
                                                 {/* Enhanced Company Logo */}
                                                 <div className="relative">
-                                                    <div className="relative h-20 w-20 rounded-2xl bg-gradient-to-br from-gray-50 to-white p-4 shadow-md ring-2 ring-gray-100 group-hover:ring-[#2347FA]/30 transition-all duration-300">
+                                                    <div className="relative h-20 w-20 rounded-2xl bg-gradient-to-br from-gray-50 to-white p-4 shadow-md ring-2 ring-gray-100 transition-all duration-300 group-hover:ring-[#2347FA]/30">
                                                         <Avatar className="h-full w-full">
                                                             {company.logo ? (
-                                                                <AvatarImage 
-                                                                    src={company.logo} 
-                                                                    alt={company.name} 
-                                                                    className="object-contain p-1 group-hover:scale-110 transition-transform duration-300" 
+                                                                <AvatarImage
+                                                                    src={company.logo}
+                                                                    alt={company.name}
+                                                                    className="object-contain p-1 transition-transform duration-300 group-hover:scale-110"
                                                                 />
                                                             ) : (
-                                                                <AvatarFallback className="bg-gradient-to-br from-[#2347FA] to-[#3b56fc] text-white font-bold text-xl">
+                                                                <AvatarFallback className="bg-gradient-to-br from-[#2347FA] to-[#3b56fc] text-xl font-bold text-white">
                                                                     {company.name.charAt(0)}
                                                                 </AvatarFallback>
                                                             )}
                                                         </Avatar>
                                                     </div>
-                                                    
+
                                                     {/* Verification badge */}
                                                     {company.is_verified && (
-                                                        <div className="absolute -bottom-1 -right-1 rounded-full bg-white p-1.5 shadow-lg ring-2 ring-white">
+                                                        <div className="absolute -right-1 -bottom-1 rounded-full bg-white p-1.5 shadow-lg ring-2 ring-white">
                                                             <CheckCircle className="h-5 w-5 text-emerald-500" />
                                                         </div>
                                                     )}
@@ -453,47 +475,43 @@ export default function Welcome() {
                                                     {/* Pulse animation for active companies */}
                                                     {company.active_jobs_count > 0 && (
                                                         <div className="absolute -top-1 -left-1 h-3 w-3 rounded-full bg-green-400">
-                                                            <div className="absolute inset-0 rounded-full bg-green-400 animate-ping"></div>
+                                                            <div className="absolute inset-0 animate-ping rounded-full bg-green-400"></div>
                                                         </div>
                                                     )}
                                                 </div>
 
                                                 {/* Company Information */}
                                                 <div className="w-full space-y-3">
-                                                    <h3 className="text-sm font-bold text-gray-900 line-clamp-2 leading-tight group-hover:text-[#2347FA] transition-colors duration-300">
+                                                    <h3 className="line-clamp-2 text-sm leading-tight font-bold text-gray-900 transition-colors duration-300 group-hover:text-[#2347FA]">
                                                         {company.name}
                                                     </h3>
-                                                    
+
                                                     {/* Stats row */}
                                                     <div className="flex items-center justify-center gap-4 text-xs">
-                                                        <div className="flex items-center gap-1 text-green-600 font-medium">
+                                                        <div className="flex items-center gap-1 font-medium text-green-600">
                                                             <Briefcase className="h-3 w-3" />
                                                             <span>{company.active_jobs_count}</span>
                                                         </div>
                                                         <div className="flex items-center gap-1 text-gray-500">
                                                             <MapPin className="h-3 w-3" />
-                                                            <span className="truncate max-w-[60px]">{company.location}</span>
+                                                            <span className="max-w-[60px] truncate">{company.location}</span>
                                                         </div>
                                                     </div>
 
                                                     {/* Industry badge */}
                                                     {company.industry && (
-                                                        <Badge variant="secondary" className="text-xs bg-blue-50 text-blue-700 border-blue-200">
+                                                        <Badge variant="secondary" className="border-blue-200 bg-blue-50 text-xs text-blue-700">
                                                             {company.industry}
                                                         </Badge>
                                                     )}
 
                                                     {/* Company size */}
-                                                    {company.size && (
-                                                        <div className="text-xs text-gray-500">
-                                                            {company.size} karyawan
-                                                        </div>
-                                                    )}
+                                                    {company.size && <div className="text-xs text-gray-500">{company.size} karyawan</div>}
                                                 </div>
                                             </div>
 
                                             {/* Hover effect overlay */}
-                                            <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-[#2347FA]/5 to-[#3b56fc]/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                                            <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-[#2347FA]/5 to-[#3b56fc]/5 opacity-0 transition-opacity duration-300 group-hover:opacity-100"></div>
                                         </div>
                                     </Link>
                                 </motion.div>
@@ -501,21 +519,21 @@ export default function Welcome() {
                         </div>
 
                         {/* Enhanced CTA Section */}
-                        <motion.div 
+                        <motion.div
                             initial={{ opacity: 0, y: 20 }}
                             whileInView={{ opacity: 1, y: 0 }}
                             viewport={{ once: true }}
                             transition={{ delay: 0.6 }}
                             className="mt-16 text-center"
                         >
-                            <div className="inline-flex flex-col sm:flex-row items-center gap-6 rounded-3xl border border-gray-200/50 bg-white/80 backdrop-blur-sm px-8 py-6 shadow-xl">
+                            <div className="inline-flex flex-col items-center gap-6 rounded-3xl border border-gray-200/50 bg-white/80 px-8 py-6 shadow-xl backdrop-blur-sm sm:flex-row">
                                 <div className="flex items-center space-x-3">
                                     <div className="flex -space-x-2">
                                         {/* Sample company avatars */}
-                                        <div className="h-10 w-10 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 border-2 border-white"></div>
-                                        <div className="h-10 w-10 rounded-full bg-gradient-to-r from-green-500 to-teal-500 border-2 border-white"></div>
-                                        <div className="h-10 w-10 rounded-full bg-gradient-to-r from-orange-500 to-red-500 border-2 border-white"></div>
-                                        <div className="h-10 w-10 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 border-2 border-white flex items-center justify-center text-white text-xs font-bold">
+                                        <div className="h-10 w-10 rounded-full border-2 border-white bg-gradient-to-r from-blue-500 to-purple-500"></div>
+                                        <div className="h-10 w-10 rounded-full border-2 border-white bg-gradient-to-r from-green-500 to-teal-500"></div>
+                                        <div className="h-10 w-10 rounded-full border-2 border-white bg-gradient-to-r from-orange-500 to-red-500"></div>
+                                        <div className="flex h-10 w-10 items-center justify-center rounded-full border-2 border-white bg-gradient-to-r from-purple-500 to-pink-500 text-xs font-bold text-white">
                                             +{statistics.total_companies - 3}
                                         </div>
                                     </div>
@@ -524,15 +542,18 @@ export default function Welcome() {
                                         <p className="text-xs">Temukan talenta terbaik untuk tim Anda</p>
                                     </div>
                                 </div>
-                                
+
                                 <div className="flex gap-3">
-                                    <Button asChild variant="outline" className="border-gray-300 text-gray-700 hover:bg-gray-50 rounded-full px-6">
+                                    <Button asChild variant="outline" className="rounded-full border-gray-300 px-6 text-gray-700 hover:bg-gray-50">
                                         <Link href="/companies">
                                             Jelajahi Semua
                                             <ArrowRight className="ml-2 h-4 w-4" />
                                         </Link>
                                     </Button>
-                                    <Button asChild className="bg-gradient-to-r from-[#2347FA] to-[#3b56fc] hover:from-[#1a3af0] hover:to-[#2d47f5] text-white rounded-full px-6 shadow-lg hover:shadow-xl transition-all duration-300">
+                                    <Button
+                                        asChild
+                                        className="rounded-full bg-gradient-to-r from-[#2347FA] to-[#3b56fc] px-6 text-white shadow-lg transition-all duration-300 hover:from-[#1a3af0] hover:to-[#2d47f5] hover:shadow-xl"
+                                    >
                                         <Link href="/employer/register">
                                             Daftar Sekarang
                                             <Building className="ml-2 h-4 w-4" />
@@ -803,10 +824,10 @@ export default function Welcome() {
                     {/* Background with gradient and subtle pattern */}
                     <div className="absolute inset-0 bg-gradient-to-br from-gray-50 via-white to-blue-50/30"></div>
                     <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZGVmcz48cGF0dGVybiBpZD0iZ3JpZCIgd2lkdGg9IjQwIiBoZWlnaHQ9IjQwIiBwYXR0ZXJuVW5pdHM9InVzZXJTcGFjZU9uVXNlIj48cGF0aCBkPSJNIDQwIDAgTCAwIDAgMCA0MCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMjM0N0ZBIiBzdHJva2Utd2lkdGg9IjEiIG9wYWNpdHk9IjAuMDMiLz48L3BhdHRlcm4+PC9kZWZzPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9InVybCgjZ3JpZCkiLz48L3N2Zz4=')] opacity-30"></div>
-                    
+
                     <div className="relative z-10 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                         {/* Enhanced Header */}
-                        <motion.div 
+                        <motion.div
                             initial={{ opacity: 0, y: 20 }}
                             whileInView={{ opacity: 1, y: 0 }}
                             viewport={{ once: true }}
@@ -824,7 +845,7 @@ export default function Welcome() {
                                 <Zap className="h-4 w-4 text-yellow-500" />
                             </motion.div>
 
-                            <motion.h2 
+                            <motion.h2
                                 initial={{ opacity: 0, y: 20 }}
                                 whileInView={{ opacity: 1, y: 0 }}
                                 viewport={{ once: true }}
@@ -833,25 +854,28 @@ export default function Welcome() {
                             >
                                 Lowongan <span className="bg-gradient-to-r from-[#2347FA] to-[#3b56fc] bg-clip-text text-transparent">Terbaru</span>
                             </motion.h2>
-                            
-                            <motion.p 
+
+                            <motion.p
                                 initial={{ opacity: 0, y: 20 }}
                                 whileInView={{ opacity: 1, y: 0 }}
                                 viewport={{ once: true }}
                                 transition={{ delay: 0.3 }}
-                                className="mx-auto max-w-2xl text-lg text-gray-600 leading-relaxed"
+                                className="mx-auto max-w-2xl text-lg leading-relaxed text-gray-600"
                             >
                                 Temukan peluang karir terbaik dari perusahaan-perusahaan top di Indonesia
                             </motion.p>
 
-                            <motion.div 
+                            <motion.div
                                 initial={{ opacity: 0, y: 20 }}
                                 whileInView={{ opacity: 1, y: 0 }}
                                 viewport={{ once: true }}
                                 transition={{ delay: 0.4 }}
                                 className="mt-6 flex justify-center"
                             >
-                                <Button asChild className="bg-gradient-to-r from-[#2347FA] to-[#3b56fc] hover:from-[#1a3af0] hover:to-[#2d47f5] text-white px-6 py-2 rounded-full shadow-lg hover:shadow-xl transition-all duration-300">
+                                <Button
+                                    asChild
+                                    className="rounded-full bg-gradient-to-r from-[#2347FA] to-[#3b56fc] px-6 py-2 text-white shadow-lg transition-all duration-300 hover:from-[#1a3af0] hover:to-[#2d47f5] hover:shadow-xl"
+                                >
                                     <Link href="/jobs">
                                         Lihat Semua Lowongan
                                         <ArrowRight className="ml-2 h-4 w-4" />
@@ -870,11 +894,11 @@ export default function Welcome() {
                                     viewport={{ once: true }}
                                     transition={{ delay: index * 0.1 }}
                                 >
-                                    <Card className="group relative h-full cursor-pointer overflow-hidden border border-gray-200/50 bg-white/80 backdrop-blur-sm transition-all duration-300 hover:shadow-2xl hover:shadow-[#2347FA]/10 hover:scale-105 hover:-translate-y-2">
+                                    <Card className="group relative h-full cursor-pointer overflow-hidden border border-gray-200/50 bg-white/80 backdrop-blur-sm transition-all duration-300 hover:-translate-y-2 hover:scale-105 hover:shadow-2xl hover:shadow-[#2347FA]/10">
                                         {/* Decorative elements */}
-                                        <div className="absolute top-0 left-0 h-1 w-full bg-gradient-to-r from-[#2347FA] to-[#3b56fc] opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                                        <div className="absolute top-0 left-0 h-1 w-full bg-gradient-to-r from-[#2347FA] to-[#3b56fc] opacity-0 transition-opacity duration-300 group-hover:opacity-100"></div>
                                         <div className="absolute -top-40 -right-40 h-80 w-80 rounded-full bg-gradient-to-br from-[#2347FA]/5 to-[#3b56fc]/5 transition-all duration-500 group-hover:scale-150"></div>
-                                        
+
                                         {/* Featured badge */}
                                         {job.featured && (
                                             <div className="absolute top-4 right-4 z-10">
@@ -889,20 +913,20 @@ export default function Welcome() {
                                             {/* Company Info */}
                                             <div className="mb-4 flex items-center space-x-4">
                                                 <div className="relative">
-                                                    <Avatar className="h-14 w-14 ring-2 ring-gray-100 group-hover:ring-[#2347FA]/20 transition-all duration-300">
+                                                    <Avatar className="h-14 w-14 ring-2 ring-gray-100 transition-all duration-300 group-hover:ring-[#2347FA]/20">
                                                         {job.company.logo ? (
                                                             <AvatarImage src={job.company.logo} alt={job.company.name} />
                                                         ) : (
-                                                            <AvatarFallback className="bg-gradient-to-br from-[#2347FA] to-[#3b56fc] text-white font-semibold text-lg">
+                                                            <AvatarFallback className="bg-gradient-to-br from-[#2347FA] to-[#3b56fc] text-lg font-semibold text-white">
                                                                 {job.company.name.charAt(0)}
                                                             </AvatarFallback>
                                                         )}
                                                     </Avatar>
-                                                    <div className="absolute -bottom-1 -right-1 h-5 w-5 bg-green-500 rounded-full border-2 border-white flex items-center justify-center">
+                                                    <div className="absolute -right-1 -bottom-1 flex h-5 w-5 items-center justify-center rounded-full border-2 border-white bg-green-500">
                                                         <CheckCircle className="h-3 w-3 text-white" />
                                                     </div>
                                                 </div>
-                                                
+
                                                 <div className="min-w-0 flex-1">
                                                     <p className="truncate text-sm font-medium text-gray-500">{job.company.name}</p>
                                                     <div className="flex items-center text-xs text-gray-400">
@@ -913,7 +937,7 @@ export default function Welcome() {
                                             </div>
 
                                             {/* Job Title */}
-                                            <h3 className="mb-3 text-xl font-bold text-gray-900 line-clamp-2 group-hover:text-[#2347FA] transition-colors duration-300">
+                                            <h3 className="mb-3 line-clamp-2 text-xl font-bold text-gray-900 transition-colors duration-300 group-hover:text-[#2347FA]">
                                                 {job.title}
                                             </h3>
 
@@ -937,7 +961,7 @@ export default function Welcome() {
                                                         </span>
                                                     </div>
                                                 </div>
-                                                
+
                                                 <div className="flex items-center justify-between text-sm">
                                                     <div className="flex items-center text-gray-500">
                                                         <Users className="mr-2 h-4 w-4" />
@@ -945,7 +969,9 @@ export default function Welcome() {
                                                     </div>
                                                     <div className="flex items-center text-gray-500">
                                                         <Clock className="mr-2 h-4 w-4" />
-                                                        <span>{new Date(job.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })}</span>
+                                                        <span>
+                                                            {new Date(job.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })}
+                                                        </span>
                                                     </div>
                                                 </div>
                                             </div>
@@ -953,10 +979,10 @@ export default function Welcome() {
                                             {/* Salary */}
                                             <div className="mb-4">
                                                 <div className="flex items-center justify-between">
-                                                    <span className="text-2xl font-bold bg-gradient-to-r from-[#2347FA] to-[#3b56fc] bg-clip-text text-transparent">
+                                                    <span className="bg-gradient-to-r from-[#2347FA] to-[#3b56fc] bg-clip-text text-2xl font-bold text-transparent">
                                                         {formatSalary(job.salary_min, job.salary_max, job.salary_currency, job.salary_negotiable)}
                                                     </span>
-                                                    <Badge variant="secondary" className="text-xs bg-blue-50 text-blue-700 border-blue-200">
+                                                    <Badge variant="secondary" className="border-blue-200 bg-blue-50 text-xs text-blue-700">
                                                         {job.category.name}
                                                     </Badge>
                                                 </div>
@@ -965,17 +991,24 @@ export default function Welcome() {
                                             {/* Work Arrangement */}
                                             {job.work_arrangement && (
                                                 <div className="mb-4">
-                                                    <Badge variant="outline" className="text-xs border-green-200 text-green-700 bg-green-50">
-                                                        {job.work_arrangement === 'remote' ? 'Remote' : 
-                                                         job.work_arrangement === 'hybrid' ? 'Hybrid' : 
-                                                         job.work_arrangement === 'onsite' ? 'On-site' : job.work_arrangement}
+                                                    <Badge variant="outline" className="border-green-200 bg-green-50 text-xs text-green-700">
+                                                        {job.work_arrangement === 'remote'
+                                                            ? 'Remote'
+                                                            : job.work_arrangement === 'hybrid'
+                                                              ? 'Hybrid'
+                                                              : job.work_arrangement === 'onsite'
+                                                                ? 'On-site'
+                                                                : job.work_arrangement}
                                                     </Badge>
                                                 </div>
                                             )}
 
                                             {/* Apply Button */}
-                                            <div className="mt-6 pt-4 border-t border-gray-100">
-                                                <Button asChild className="w-full bg-gradient-to-r from-[#2347FA] to-[#3b56fc] hover:from-[#1a3af0] hover:to-[#2d47f5] text-white rounded-full shadow-md hover:shadow-lg transition-all duration-300">
+                                            <div className="mt-6 border-t border-gray-100 pt-4">
+                                                <Button
+                                                    asChild
+                                                    className="w-full rounded-full bg-gradient-to-r from-[#2347FA] to-[#3b56fc] text-white shadow-md transition-all duration-300 hover:from-[#1a3af0] hover:to-[#2d47f5] hover:shadow-lg"
+                                                >
                                                     <Link href={`/jobs/${job.id}`}>
                                                         <span>Lamar Sekarang</span>
                                                         <ArrowRight className="ml-2 h-4 w-4" />
@@ -984,12 +1017,13 @@ export default function Welcome() {
                                             </div>
 
                                             {/* Urgency indicator */}
-                                            {job.application_deadline && new Date(job.application_deadline) < new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) && (
-                                                <div className="mt-3 flex items-center justify-center text-xs text-orange-600">
-                                                    <Clock className="mr-1 h-3 w-3" />
-                                                    <span>Deadline: {new Date(job.application_deadline).toLocaleDateString('id-ID')}</span>
-                                                </div>
-                                            )}
+                                            {job.application_deadline &&
+                                                new Date(job.application_deadline) < new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) && (
+                                                    <div className="mt-3 flex items-center justify-center text-xs text-orange-600">
+                                                        <Clock className="mr-1 h-3 w-3" />
+                                                        <span>Deadline: {new Date(job.application_deadline).toLocaleDateString('id-ID')}</span>
+                                                    </div>
+                                                )}
                                         </CardContent>
                                     </Card>
                                 </motion.div>
@@ -997,19 +1031,23 @@ export default function Welcome() {
                         </div>
 
                         {/* View More Section */}
-                        <motion.div 
+                        <motion.div
                             initial={{ opacity: 0, y: 20 }}
                             whileInView={{ opacity: 1, y: 0 }}
                             viewport={{ once: true }}
                             transition={{ delay: 0.6 }}
                             className="mt-12 text-center"
                         >
-                            <div className="inline-flex items-center space-x-4 rounded-2xl border border-gray-200/50 bg-white/80 backdrop-blur-sm px-6 py-4 shadow-lg">
+                            <div className="inline-flex items-center space-x-4 rounded-2xl border border-gray-200/50 bg-white/80 px-6 py-4 shadow-lg backdrop-blur-sm">
                                 <div className="flex items-center space-x-2 text-sm text-gray-600">
                                     <TrendingUp className="h-4 w-4 text-green-500" />
                                     <span>Tersedia {statistics.total_jobs.toLocaleString()}+ lowongan lainnya</span>
                                 </div>
-                                <Button asChild variant="outline" className="border-[#2347FA]/20 text-[#2347FA] hover:bg-[#2347FA] hover:text-white rounded-full">
+                                <Button
+                                    asChild
+                                    variant="outline"
+                                    className="rounded-full border-[#2347FA]/20 text-[#2347FA] hover:bg-[#2347FA] hover:text-white"
+                                >
                                     <Link href="/jobs">
                                         Jelajahi Semua
                                         <ArrowRight className="ml-2 h-4 w-4" />
@@ -1022,14 +1060,14 @@ export default function Welcome() {
 
                 {/* Success Stories with Marquee */}
                 {successStories.length > 0 && (
-                    <section className="relative py-20 overflow-hidden">
+                    <section className="relative overflow-hidden py-20">
                         {/* Background Pattern */}
                         <div className="absolute inset-0 bg-gradient-to-br from-blue-50/50 via-white to-indigo-50/50"></div>
                         <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiMyMzQ3RkEiIGZpbGwtb3BhY2l0eT0iMC4wMyI+PGNpcmNsZSBjeD0iMzAiIGN5PSIzMCIgcj0iNCIvPjwvZz48L2c+PC9zdmc+')] opacity-30"></div>
-                        
+
                         <div className="relative z-10 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                             {/* Enhanced Header */}
-                            <motion.div 
+                            <motion.div
                                 initial={{ opacity: 0, y: 20 }}
                                 whileInView={{ opacity: 1, y: 0 }}
                                 viewport={{ once: true }}
@@ -1042,38 +1080,40 @@ export default function Welcome() {
                                     transition={{ delay: 0.1 }}
                                     className="mb-6 inline-flex items-center space-x-2 rounded-full border border-blue-200/50 bg-blue-50/80 px-4 py-2 backdrop-blur-sm"
                                 >
-                                    <Star className="h-4 w-4 text-[#2347FA] fill-current" />
+                                    <Star className="h-4 w-4 fill-current text-[#2347FA]" />
                                     <span className="text-sm font-medium text-[#2347FA]">Success Stories</span>
-                                    <Star className="h-4 w-4 text-[#2347FA] fill-current" />
+                                    <Star className="h-4 w-4 fill-current text-[#2347FA]" />
                                 </motion.div>
 
-                                <motion.h2 
+                                <motion.h2
                                     initial={{ opacity: 0, y: 20 }}
                                     whileInView={{ opacity: 1, y: 0 }}
                                     viewport={{ once: true }}
                                     transition={{ delay: 0.2 }}
                                     className="mb-4 text-4xl font-bold text-gray-900 md:text-5xl"
                                 >
-                                    Kisah Sukses <span className="bg-gradient-to-r from-[#2347FA] to-[#3b56fc] bg-clip-text text-transparent">Nyata</span>
+                                    Kisah Sukses{' '}
+                                    <span className="bg-gradient-to-r from-[#2347FA] to-[#3b56fc] bg-clip-text text-transparent">Nyata</span>
                                 </motion.h2>
-                                
-                                <motion.p 
+
+                                <motion.p
                                     initial={{ opacity: 0, y: 20 }}
                                     whileInView={{ opacity: 1, y: 0 }}
                                     viewport={{ once: true }}
                                     transition={{ delay: 0.3 }}
-                                    className="mx-auto max-w-3xl text-lg text-gray-600 leading-relaxed"
+                                    className="mx-auto max-w-3xl text-lg leading-relaxed text-gray-600"
                                 >
-                                    Bergabunglah dengan ribuan profesional yang telah mentransformasi karir mereka dan meraih impian bersama KarirConnect
+                                    Bergabunglah dengan ribuan profesional yang telah mentransformasi karir mereka dan meraih impian bersama
+                                    KarirConnect
                                 </motion.p>
 
                                 {/* Statistics */}
-                                <motion.div 
+                                <motion.div
                                     initial={{ opacity: 0, y: 20 }}
                                     whileInView={{ opacity: 1, y: 0 }}
                                     viewport={{ once: true }}
                                     transition={{ delay: 0.4 }}
-                                    className="mt-8 flex justify-center items-center space-x-8 text-sm text-gray-600"
+                                    className="mt-8 flex items-center justify-center space-x-8 text-sm text-gray-600"
                                 >
                                     <div className="flex items-center space-x-2">
                                         <TrendingUp className="h-4 w-4 text-green-500" />
@@ -1091,7 +1131,7 @@ export default function Welcome() {
                             </motion.div>
 
                             {/* Enhanced Marquee */}
-                            <motion.div 
+                            <motion.div
                                 initial={{ opacity: 0, y: 30 }}
                                 whileInView={{ opacity: 1, y: 0 }}
                                 viewport={{ once: true }}
@@ -1102,64 +1142,58 @@ export default function Welcome() {
                                     {successStories.map((story) => (
                                         <div
                                             key={story.id}
-                                            className="group relative w-80 cursor-pointer overflow-hidden rounded-2xl border border-gray-200/50 bg-white/80 backdrop-blur-sm p-6 transition-all duration-300 hover:shadow-xl hover:shadow-[#2347FA]/10 hover:scale-105 hover:bg-white hover:-translate-y-1"
+                                            className="group relative w-80 cursor-pointer overflow-hidden rounded-2xl border border-gray-200/50 bg-white/80 p-6 backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:scale-105 hover:bg-white hover:shadow-xl hover:shadow-[#2347FA]/10"
                                         >
                                             {/* Decorative element */}
-                                            <div className="absolute top-0 left-0 h-1 w-full bg-gradient-to-r from-[#2347FA] to-[#3b56fc] opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                                            
-                                            <div className="flex flex-row items-start gap-3 mb-4">
+                                            <div className="absolute top-0 left-0 h-1 w-full bg-gradient-to-r from-[#2347FA] to-[#3b56fc] opacity-0 transition-opacity duration-300 group-hover:opacity-100"></div>
+
+                                            <div className="mb-4 flex flex-row items-start gap-3">
                                                 <div className="relative">
-                                                    <Avatar className="h-12 w-12 ring-2 ring-gray-100 group-hover:ring-[#2347FA]/20 transition-all duration-300">
-                                                        {story.avatar_url ? (
-                                                            <AvatarImage src={story.avatar_url} alt={story.name} />
-                                                        ) : null}
-                                                        <AvatarFallback className="bg-gradient-to-br from-[#2347FA] to-[#3b56fc] text-white font-semibold">
+                                                    <Avatar className="h-12 w-12 ring-2 ring-gray-100 transition-all duration-300 group-hover:ring-[#2347FA]/20">
+                                                        {story.avatar_url ? <AvatarImage src={story.avatar_url} alt={story.name} /> : null}
+                                                        <AvatarFallback className="bg-gradient-to-br from-[#2347FA] to-[#3b56fc] font-semibold text-white">
                                                             {story.name.charAt(0)}
                                                         </AvatarFallback>
                                                     </Avatar>
-                                                    <div className="absolute -bottom-1 -right-1 h-4 w-4 bg-green-500 rounded-full border-2 border-white flex items-center justify-center">
+                                                    <div className="absolute -right-1 -bottom-1 flex h-4 w-4 items-center justify-center rounded-full border-2 border-white bg-green-500">
                                                         <CheckCircle className="h-2.5 w-2.5 text-white" />
                                                     </div>
                                                 </div>
-                                                
-                                                <div className="flex-1 min-w-0">
-                                                    <figcaption className="text-sm font-semibold text-gray-900 truncate">
-                                                        {story.name}
-                                                    </figcaption>
-                                                    <p className="text-xs text-[#2347FA] font-medium truncate">
-                                                        {story.position}
-                                                    </p>
-                                                    <p className="text-xs text-gray-500 truncate flex items-center mt-0.5">
-                                                        <Building className="h-3 w-3 mr-1 flex-shrink-0" />
+
+                                                <div className="min-w-0 flex-1">
+                                                    <figcaption className="truncate text-sm font-semibold text-gray-900">{story.name}</figcaption>
+                                                    <p className="truncate text-xs font-medium text-[#2347FA]">{story.position}</p>
+                                                    <p className="mt-0.5 flex items-center truncate text-xs text-gray-500">
+                                                        <Building className="mr-1 h-3 w-3 flex-shrink-0" />
                                                         {story.company}
                                                     </p>
                                                 </div>
-                                                
+
                                                 {story.salary_increase_percentage && (
                                                     <div className="flex flex-col items-end">
-                                                        <Badge className="bg-gradient-to-r from-green-500 to-emerald-500 text-white border-0 text-xs px-2 py-1">
+                                                        <Badge className="border-0 bg-gradient-to-r from-green-500 to-emerald-500 px-2 py-1 text-xs text-white">
                                                             +{story.salary_increase_percentage}%
                                                         </Badge>
-                                                        <span className="text-xs text-green-600 font-medium mt-1">gaji naik</span>
+                                                        <span className="mt-1 text-xs font-medium text-green-600">gaji naik</span>
                                                     </div>
                                                 )}
                                             </div>
-                                            
-                                            <blockquote className="text-sm text-gray-700 leading-relaxed line-clamp-3 mb-4 italic">
+
+                                            <blockquote className="mb-4 line-clamp-3 text-sm leading-relaxed text-gray-700 italic">
                                                 "{story.story}"
                                             </blockquote>
-                                            
-                                            <div className="flex items-center justify-between text-xs text-gray-500 pt-3 border-t border-gray-100">
+
+                                            <div className="flex items-center justify-between border-t border-gray-100 pt-3 text-xs text-gray-500">
                                                 <div className="flex items-center space-x-3">
                                                     {story.location && (
                                                         <div className="flex items-center">
-                                                            <MapPin className="h-3 w-3 mr-1" />
+                                                            <MapPin className="mr-1 h-3 w-3" />
                                                             <span>{story.location}</span>
                                                         </div>
                                                     )}
                                                     {story.experience_years && (
                                                         <div className="flex items-center">
-                                                            <Briefcase className="h-3 w-3 mr-1" />
+                                                            <Briefcase className="mr-1 h-3 w-3" />
                                                             <span>{story.experience_years} tahun</span>
                                                         </div>
                                                     )}
@@ -1173,97 +1207,98 @@ export default function Welcome() {
                                         </div>
                                     ))}
                                 </Marquee>
-                                
-                                <Marquee reverse pauseOnHover className="[--duration:25s] [--gap:1.5rem] mt-6">
-                                    {successStories.slice().reverse().map((story) => (
-                                        <div
-                                            key={`reverse-${story.id}`}
-                                            className="group relative w-80 cursor-pointer overflow-hidden rounded-2xl border border-gray-200/50 bg-white/80 backdrop-blur-sm p-6 transition-all duration-300 hover:shadow-xl hover:shadow-[#2347FA]/10 hover:scale-105 hover:bg-white hover:-translate-y-1"
-                                        >
-                                            {/* Decorative element */}
-                                            <div className="absolute top-0 left-0 h-1 w-full bg-gradient-to-r from-[#2347FA] to-[#3b56fc] opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                                            
-                                            <div className="flex flex-row items-start gap-3 mb-4">
-                                                <div className="relative">
-                                                    <Avatar className="h-12 w-12 ring-2 ring-gray-100 group-hover:ring-[#2347FA]/20 transition-all duration-300">
-                                                        {story.avatar_url ? (
-                                                            <AvatarImage src={story.avatar_url} alt={story.name} />
-                                                        ) : null}
-                                                        <AvatarFallback className="bg-gradient-to-br from-[#2347FA] to-[#3b56fc] text-white font-semibold">
-                                                            {story.name.charAt(0)}
-                                                        </AvatarFallback>
-                                                    </Avatar>
-                                                    <div className="absolute -bottom-1 -right-1 h-4 w-4 bg-green-500 rounded-full border-2 border-white flex items-center justify-center">
-                                                        <CheckCircle className="h-2.5 w-2.5 text-white" />
-                                                    </div>
-                                                </div>
-                                                
-                                                <div className="flex-1 min-w-0">
-                                                    <figcaption className="text-sm font-semibold text-gray-900 truncate">
-                                                        {story.name}
-                                                    </figcaption>
-                                                    <p className="text-xs text-[#2347FA] font-medium truncate">
-                                                        {story.position}
-                                                    </p>
-                                                    <p className="text-xs text-gray-500 truncate flex items-center mt-0.5">
-                                                        <Building className="h-3 w-3 mr-1 flex-shrink-0" />
-                                                        {story.company}
-                                                    </p>
-                                                </div>
-                                                
-                                                {story.salary_increase_percentage && (
-                                                    <div className="flex flex-col items-end">
-                                                        <Badge className="bg-gradient-to-r from-green-500 to-emerald-500 text-white border-0 text-xs px-2 py-1">
-                                                            +{story.salary_increase_percentage}%
-                                                        </Badge>
-                                                        <span className="text-xs text-green-600 font-medium mt-1">gaji naik</span>
-                                                    </div>
-                                                )}
-                                            </div>
-                                            
-                                            <blockquote className="text-sm text-gray-700 leading-relaxed line-clamp-3 mb-4 italic">
-                                                "{story.story}"
-                                            </blockquote>
-                                            
-                                            <div className="flex items-center justify-between text-xs text-gray-500 pt-3 border-t border-gray-100">
-                                                <div className="flex items-center space-x-3">
-                                                    {story.location && (
-                                                        <div className="flex items-center">
-                                                            <MapPin className="h-3 w-3 mr-1" />
-                                                            <span>{story.location}</span>
+
+                                <Marquee reverse pauseOnHover className="mt-6 [--duration:25s] [--gap:1.5rem]">
+                                    {successStories
+                                        .slice()
+                                        .reverse()
+                                        .map((story) => (
+                                            <div
+                                                key={`reverse-${story.id}`}
+                                                className="group relative w-80 cursor-pointer overflow-hidden rounded-2xl border border-gray-200/50 bg-white/80 p-6 backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:scale-105 hover:bg-white hover:shadow-xl hover:shadow-[#2347FA]/10"
+                                            >
+                                                {/* Decorative element */}
+                                                <div className="absolute top-0 left-0 h-1 w-full bg-gradient-to-r from-[#2347FA] to-[#3b56fc] opacity-0 transition-opacity duration-300 group-hover:opacity-100"></div>
+
+                                                <div className="mb-4 flex flex-row items-start gap-3">
+                                                    <div className="relative">
+                                                        <Avatar className="h-12 w-12 ring-2 ring-gray-100 transition-all duration-300 group-hover:ring-[#2347FA]/20">
+                                                            {story.avatar_url ? <AvatarImage src={story.avatar_url} alt={story.name} /> : null}
+                                                            <AvatarFallback className="bg-gradient-to-br from-[#2347FA] to-[#3b56fc] font-semibold text-white">
+                                                                {story.name.charAt(0)}
+                                                            </AvatarFallback>
+                                                        </Avatar>
+                                                        <div className="absolute -right-1 -bottom-1 flex h-4 w-4 items-center justify-center rounded-full border-2 border-white bg-green-500">
+                                                            <CheckCircle className="h-2.5 w-2.5 text-white" />
                                                         </div>
-                                                    )}
-                                                    {story.experience_years && (
-                                                        <div className="flex items-center">
-                                                            <Briefcase className="h-3 w-3 mr-1" />
-                                                            <span>{story.experience_years} tahun</span>
+                                                    </div>
+
+                                                    <div className="min-w-0 flex-1">
+                                                        <figcaption className="truncate text-sm font-semibold text-gray-900">{story.name}</figcaption>
+                                                        <p className="truncate text-xs font-medium text-[#2347FA]">{story.position}</p>
+                                                        <p className="mt-0.5 flex items-center truncate text-xs text-gray-500">
+                                                            <Building className="mr-1 h-3 w-3 flex-shrink-0" />
+                                                            {story.company}
+                                                        </p>
+                                                    </div>
+
+                                                    {story.salary_increase_percentage && (
+                                                        <div className="flex flex-col items-end">
+                                                            <Badge className="border-0 bg-gradient-to-r from-green-500 to-emerald-500 px-2 py-1 text-xs text-white">
+                                                                +{story.salary_increase_percentage}%
+                                                            </Badge>
+                                                            <span className="mt-1 text-xs font-medium text-green-600">gaji naik</span>
                                                         </div>
                                                     )}
                                                 </div>
-                                                <div className="flex space-x-1">
-                                                    {[...Array(5)].map((_, i) => (
-                                                        <Star key={i} className="h-3 w-3 fill-yellow-400 text-yellow-400" />
-                                                    ))}
+
+                                                <blockquote className="mb-4 line-clamp-3 text-sm leading-relaxed text-gray-700 italic">
+                                                    "{story.story}"
+                                                </blockquote>
+
+                                                <div className="flex items-center justify-between border-t border-gray-100 pt-3 text-xs text-gray-500">
+                                                    <div className="flex items-center space-x-3">
+                                                        {story.location && (
+                                                            <div className="flex items-center">
+                                                                <MapPin className="mr-1 h-3 w-3" />
+                                                                <span>{story.location}</span>
+                                                            </div>
+                                                        )}
+                                                        {story.experience_years && (
+                                                            <div className="flex items-center">
+                                                                <Briefcase className="mr-1 h-3 w-3" />
+                                                                <span>{story.experience_years} tahun</span>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                    <div className="flex space-x-1">
+                                                        {[...Array(5)].map((_, i) => (
+                                                            <Star key={i} className="h-3 w-3 fill-yellow-400 text-yellow-400" />
+                                                        ))}
+                                                    </div>
                                                 </div>
                                             </div>
-                                        </div>
-                                    ))}
+                                        ))}
                                 </Marquee>
-                                
+
                                 {/* Enhanced gradient fade */}
                                 <div className="pointer-events-none absolute inset-y-0 left-0 w-32 bg-gradient-to-r from-blue-50/50 via-white/80 to-transparent"></div>
                                 <div className="pointer-events-none absolute inset-y-0 right-0 w-32 bg-gradient-to-l from-blue-50/50 via-white/80 to-transparent"></div>
                             </motion.div>
 
                             {/* Call to Action */}
-                            <motion.div 
+                            <motion.div
                                 initial={{ opacity: 0, y: 20 }}
                                 whileInView={{ opacity: 1, y: 0 }}
                                 viewport={{ once: true }}
                                 transition={{ delay: 0.6 }}
                                 className="mt-12 text-center"
                             >
-                                <Button asChild size="lg" className="bg-gradient-to-r from-[#2347FA] to-[#3b56fc] hover:from-[#1a3af0] hover:to-[#2d47f5] text-white px-8 py-3 rounded-full shadow-lg hover:shadow-xl transition-all duration-300">
+                                <Button
+                                    asChild
+                                    size="lg"
+                                    className="rounded-full bg-gradient-to-r from-[#2347FA] to-[#3b56fc] px-8 py-3 text-white shadow-lg transition-all duration-300 hover:from-[#1a3af0] hover:to-[#2d47f5] hover:shadow-xl"
+                                >
                                     <Link href="/jobs">
                                         Mulai Perjalanan Karir Anda
                                         <ArrowRight className="ml-2 h-4 w-4" />

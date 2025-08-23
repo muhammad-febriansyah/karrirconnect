@@ -48,6 +48,9 @@ class HandleInertiaRequests extends Middleware
                 'user' => $request->user(),
             ],
             'settings' => Setting::first() ?: new Setting(),
+            'recaptcha' => [
+                'site_key' => config('captcha.sitekey'),
+            ],
             'ziggy' => fn (): array => [
                 ...(new Ziggy)->toArray(),
                 'location' => $request->url(),

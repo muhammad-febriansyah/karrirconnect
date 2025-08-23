@@ -4,6 +4,7 @@ use App\Http\Middleware\HandleAppearance;
 use App\Http\Middleware\HandleInertiaRequests;
 use App\Http\Middleware\EnsureUserIsAdminRole;
 use App\Http\Middleware\EnsureUserIsCompanyAdmin;
+use App\Http\Middleware\EnsureUserIsRegularUser;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -22,6 +23,8 @@ return Application::configure(basePath: dirname(__DIR__))
                 ->group(base_path('routes/settings.php'));
             Route::middleware('web')
                 ->group(base_path('routes/company.php'));
+            Route::middleware('web')
+                ->group(base_path('routes/user.php'));
         },
     )
     ->withMiddleware(function (Middleware $middleware) {
@@ -36,6 +39,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'admin.role' => EnsureUserIsAdminRole::class,
             'company.admin' => EnsureUserIsCompanyAdmin::class,
+            'user.role' => EnsureUserIsRegularUser::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

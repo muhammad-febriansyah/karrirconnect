@@ -119,11 +119,8 @@ export default function ModernFooter({
                                     </Link>
                                 </li>
                                 <li>
-                                    <Link href="/company/jobs/create" className="text-gray-600 hover:text-[#2347FA] transition-colors text-sm flex items-center gap-1">
+                                    <Link href="/pasang-lowongan" className="text-gray-600 hover:text-[#2347FA] transition-colors text-sm">
                                         Pasang Lowongan
-                                        <span className="px-1.5 py-0.5 bg-blue-100 text-blue-700 text-xs font-medium rounded">
-                                            1 Poin
-                                        </span>
                                     </Link>
                                 </li>
                             </ul>

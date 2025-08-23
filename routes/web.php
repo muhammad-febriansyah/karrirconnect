@@ -18,6 +18,10 @@ Route::get('/blog/{post}', [App\Http\Controllers\BlogController::class, 'show'])
 
 Route::get('/points', [App\Http\Controllers\PointController::class, 'index'])->name('points');
 
+Route::get('/pasang-lowongan', [App\Http\Controllers\PasangLowonganController::class, 'index'])
+    ->middleware(['auth', 'company.admin'])
+    ->name('pasang-lowongan');
+
 Route::get('/contact', [App\Http\Controllers\ContactController::class, 'index'])->name('contact');
 Route::post('/contact', [App\Http\Controllers\ContactController::class, 'store'])->name('contact.store');
 

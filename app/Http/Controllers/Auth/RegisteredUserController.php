@@ -34,6 +34,10 @@ class RegisteredUserController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|string|lowercase|email|max:255|unique:'.User::class,
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
+            'g-recaptcha-response' => 'required|captcha',
+        ], [
+            'g-recaptcha-response.required' => 'Silakan verifikasi bahwa Anda bukan robot.',
+            'g-recaptcha-response.captcha' => 'Verifikasi reCAPTCHA gagal. Silakan coba lagi.',
         ]);
 
         $user = User::create([
@@ -46,6 +50,11 @@ class RegisteredUserController extends Controller
 
         Auth::login($user);
 
-        return redirect()->intended(route('admin.dashboard', absolute: false));
+        // Redirect based on user role
+        if ($user->role === 'user') {
+            return redirect()->intended(route('user.dashboard', absolute: false));
+        } else {
+            return redirect()->intended(route('admin.dashboard', absolute: false));
+        }
     }
 }

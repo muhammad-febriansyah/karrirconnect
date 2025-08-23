@@ -24,6 +24,10 @@ Route::middleware(['auth', 'verified', 'company.admin'])->prefix('company')->nam
         Route::put('/{job}', [\App\Http\Controllers\Company\JobController::class, 'update'])->name('update');
         Route::delete('/{job}', [\App\Http\Controllers\Company\JobController::class, 'destroy'])->name('destroy');
         Route::post('/{job}/toggle-status', [\App\Http\Controllers\Company\JobController::class, 'toggleStatus'])->name('toggle-status');
+        
+        // API routes for job posting
+        Route::get('/api/point-packages', [\App\Http\Controllers\Company\JobController::class, 'getPointPackages'])->name('api.point-packages');
+        Route::get('/api/check-eligibility', [\App\Http\Controllers\Company\JobController::class, 'checkPostingEligibility'])->name('api.check-eligibility');
     });
 });
 

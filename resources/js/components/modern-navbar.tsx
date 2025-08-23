@@ -14,9 +14,11 @@ import { Link, usePage } from '@inertiajs/react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { ArrowRight, Bell, ChevronDown, LogOut, Menu, Search, Settings, User, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import LoginModal from '@/components/auth/login-modal';
+import RegisterModal from '@/components/auth/register-modal';
 
 interface ModernNavbarProps {
-    currentPage?: 'home' | 'jobs' | 'companies' | 'blog' | 'about';
+    currentPage?: 'home' | 'jobs' | 'companies' | 'blog' | 'about' | 'pasang-lowongan';
 }
 
 export default function ModernNavbar({ currentPage = 'home' }: ModernNavbarProps) {
@@ -47,9 +49,18 @@ export default function ModernNavbar({ currentPage = 'home' }: ModernNavbarProps
         };
     }, [isMobileMenuOpen]);
 
-    const navItems = [
+    // Base navigation items
+    const baseNavItems = [
         { name: 'Lowongan', href: '/jobs', key: 'jobs' },
         { name: 'Perusahaan', href: '/companies', key: 'companies' },
+    ];
+
+    // Add 'Pasang Lowongan' only for non-regular users (admin/company_admin) or guests
+    const navItems = [
+        ...baseNavItems,
+        ...(auth.user?.role === 'user' ? [] : [
+            { name: 'Pasang Lowongan', href: '/pasang-lowongan', key: 'pasang-lowongan' }
+        ])
     ];
 
     const navbarClass = `
@@ -261,9 +272,9 @@ export default function ModernNavbar({ currentPage = 'home' }: ModernNavbarProps
                                             className="flex items-center space-x-2 rounded-full bg-white/10 p-1 backdrop-blur-sm transition-all duration-300 hover:bg-white/20"
                                         >
                                             <Avatar className="h-8 w-8 border-2 border-white/20">
-                                                <AvatarImage src={auth.user.avatar} alt={auth.user.name} />
+                                                <AvatarImage src={auth.user?.avatar || ''} alt={auth.user?.name || 'User'} />
                                                 <AvatarFallback className="bg-[#2347FA] text-sm text-white">
-                                                    {auth.user.name.charAt(0)}
+                                                    {auth.user?.name?.charAt(0) || 'U'}
                                                 </AvatarFallback>
                                             </Avatar>
                                             <ChevronDown
@@ -274,18 +285,24 @@ export default function ModernNavbar({ currentPage = 'home' }: ModernNavbarProps
                                         </motion.button>
                                     </DropdownMenuTrigger>
                                     <DropdownMenuContent align="end" className="w-56 border border-white/20 bg-white/95 shadow-xl backdrop-blur-xl">
-                                        <DropdownMenuLabel className="font-semibold">{auth.user.name}</DropdownMenuLabel>
+                                        <DropdownMenuLabel className="font-semibold">{auth.user?.name || 'User'}</DropdownMenuLabel>
                                         <DropdownMenuSeparator />
                                         <DropdownMenuItem asChild>
-                                            <Link href="/admin/dashboard" className="flex items-center">
+                                            <Link 
+                                                href={auth.user?.role === 'user' ? '/user/dashboard' : '/admin/dashboard'} 
+                                                className="flex items-center"
+                                            >
                                                 <User className="mr-2 h-4 w-4" />
-                                                Dashboard
+                                                {auth.user?.role === 'user' ? 'Dashboard Saya' : 'Admin Dashboard'}
                                             </Link>
                                         </DropdownMenuItem>
                                         <DropdownMenuItem asChild>
-                                            <Link href="/settings/profile" className="flex items-center">
+                                            <Link 
+                                                href={auth.user?.role === 'user' ? '/user/profile' : '/settings/profile'} 
+                                                className="flex items-center"
+                                            >
                                                 <Settings className="mr-2 h-4 w-4" />
-                                                Settings
+                                                {auth.user?.role === 'user' ? 'Profil Saya' : 'Settings'}
                                             </Link>
                                         </DropdownMenuItem>
                                         <DropdownMenuSeparator />
@@ -305,17 +322,16 @@ export default function ModernNavbar({ currentPage = 'home' }: ModernNavbarProps
                             </div>
                         ) : (
                             <div className="hidden items-center space-x-3 md:flex">
-                                <PulsatingButton
-                                    href="/login"
-                                    variant="ghost"
-                                    pulsateColor="#2347FA"
-                                    pulsateIntensity="medium"
-                                    className="group relative overflow-hidden rounded-2xl px-6 py-2.5 font-semibold transition-all duration-500 ease-out text-gray-700 hover:bg-gradient-to-r hover:from-gray-50 hover:to-gray-100/50 hover:text-[#2347FA] hover:shadow-md hover:shadow-gray-200/30"
-                                >
-                                    Masuk
-                                </PulsatingButton>
-                                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                                    <Link href="/register">
+                                <LoginModal>
+                                    <Button
+                                        variant="ghost"
+                                        className="group relative overflow-hidden rounded-2xl px-6 py-2.5 font-semibold transition-all duration-500 ease-out text-gray-700 hover:bg-gradient-to-r hover:from-gray-50 hover:to-gray-100/50 hover:text-[#2347FA] hover:shadow-md hover:shadow-gray-200/30"
+                                    >
+                                        Masuk
+                                    </Button>
+                                </LoginModal>
+                                <RegisterModal>
+                                    <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                                         <Button className="group relative transform overflow-hidden rounded-2xl bg-gradient-to-r from-[#2347FA] via-[#3b56fc] to-[#3b56fc] px-8 py-3 font-semibold text-white shadow-xl shadow-[#2347FA]/30 transition-all duration-500 ease-out hover:scale-105 hover:from-[#2347FA] hover:via-[#3b56fc] hover:to-[#3b56fc] hover:shadow-2xl hover:shadow-[#2347FA]/40">
                                             {/* Shimmer effect */}
                                             <div className="absolute inset-0 -top-px flex h-[calc(100%+2px)] w-full justify-center blur-md">
@@ -323,8 +339,8 @@ export default function ModernNavbar({ currentPage = 'home' }: ModernNavbarProps
                                             </div>
                                             <span className="relative z-10">Daftar</span>
                                         </Button>
-                                    </Link>
-                                </motion.div>
+                                    </motion.div>
+                                </RegisterModal>
                             </div>
                         )}
 
@@ -506,30 +522,36 @@ export default function ModernNavbar({ currentPage = 'home' }: ModernNavbarProps
                                         <div className="rounded-3xl bg-gradient-to-br from-gray-50 to-gray-100/50 p-4 mb-4 shadow-sm border border-gray-100/50">
                                             <div className="flex items-center space-x-3">
                                                 <Avatar className="h-12 w-12 border-2 border-[#2347FA]/20 shadow-sm">
-                                                    <AvatarImage src={auth.user.avatar} alt={auth.user.name} />
+                                                    <AvatarImage src={auth.user?.avatar || ''} alt={auth.user?.name || 'User'} />
                                                     <AvatarFallback className="bg-gradient-to-br from-[#2347FA] to-[#3b56fc] text-white font-semibold">
-                                                        {auth.user.name.charAt(0)}
+                                                        {auth.user?.name?.charAt(0) || 'U'}
                                                     </AvatarFallback>
                                                 </Avatar>
                                                 <div className="flex-1 min-w-0">
-                                                    <p className="font-semibold text-gray-900 truncate">{auth.user.name}</p>
-                                                    <p className="text-sm text-gray-500 truncate">{auth.user.email}</p>
+                                                    <p className="font-semibold text-gray-900 truncate">{auth.user?.name || 'User'}</p>
+                                                    <p className="text-sm text-gray-500 truncate">{auth.user?.email || ''}</p>
                                                 </div>
                                             </div>
                                         </div>
 
                                         <div className="space-y-2">
-                                            <Link href="/admin/dashboard" onClick={() => setIsMobileMenuOpen(false)}>
+                                            <Link 
+                                                href={auth.user?.role === 'user' ? '/user/dashboard' : '/admin/dashboard'} 
+                                                onClick={() => setIsMobileMenuOpen(false)}
+                                            >
                                                 <div className="flex items-center rounded-3xl px-4 py-3 font-medium transition-all duration-300 text-gray-700 hover:bg-gray-50 hover:text-[#2347FA] active:bg-gray-100">
                                                     <User className="mr-3 h-5 w-5" />
-                                                    Dashboard
+                                                    {auth.user?.role === 'user' ? 'Dashboard Saya' : 'Admin Dashboard'}
                                                 </div>
                                             </Link>
 
-                                            <Link href="/settings/profile" onClick={() => setIsMobileMenuOpen(false)}>
+                                            <Link 
+                                                href={auth.user?.role === 'user' ? '/user/profile' : '/settings/profile'} 
+                                                onClick={() => setIsMobileMenuOpen(false)}
+                                            >
                                                 <div className="flex items-center rounded-3xl px-4 py-3 font-medium transition-all duration-300 text-gray-700 hover:bg-gray-50 hover:text-[#2347FA] active:bg-gray-100">
                                                     <Settings className="mr-3 h-5 w-5" />
-                                                    Settings
+                                                    {auth.user?.role === 'user' ? 'Profil Saya' : 'Settings'}
                                                 </div>
                                             </Link>
 
@@ -559,16 +581,16 @@ export default function ModernNavbar({ currentPage = 'home' }: ModernNavbarProps
                                         </div>
                                         
                                         <div className="space-y-4 px-2 py-4">
-                                            <Link href="/login" onClick={() => setIsMobileMenuOpen(false)}>
-                                                <div className="flex items-center justify-center rounded-3xl border-2 border-[#2347FA] px-6 py-4 font-semibold text-[#2347FA] transition-all duration-300 hover:bg-[#2347FA] hover:text-white shadow-sm">
+                                            <LoginModal>
+                                                <div className="flex items-center justify-center rounded-3xl border-2 border-[#2347FA] px-6 py-4 font-semibold text-[#2347FA] transition-all duration-300 hover:bg-[#2347FA] hover:text-white shadow-sm cursor-pointer" onClick={() => setIsMobileMenuOpen(false)}>
                                                     Masuk
                                                 </div>
-                                            </Link>
-                                            <Link href="/register" onClick={() => setIsMobileMenuOpen(false)}>
-                                                <div className="flex items-center justify-center rounded-3xl bg-gradient-to-r from-[#2347FA] to-[#3b56fc] px-6 py-4 font-semibold text-white shadow-lg shadow-[#2347FA]/25 transition-all duration-300 hover:shadow-xl hover:shadow-[#2347FA]/35">
+                                            </LoginModal>
+                                            <RegisterModal>
+                                                <div className="flex items-center justify-center rounded-3xl bg-gradient-to-r from-[#2347FA] to-[#3b56fc] px-6 py-4 font-semibold text-white shadow-lg shadow-[#2347FA]/25 transition-all duration-300 hover:shadow-xl hover:shadow-[#2347FA]/35 cursor-pointer" onClick={() => setIsMobileMenuOpen(false)}>
                                                     Daftar Sekarang
                                                 </div>
-                                            </Link>
+                                            </RegisterModal>
                                         </div>
                                     </div>
                                 )}
