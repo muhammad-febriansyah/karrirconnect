@@ -2,13 +2,17 @@ import { type SharedData } from '@/types';
 import { usePage } from '@inertiajs/react';
 import AppLogoIcon from './app-logo-icon';
 
-export default function AppLogo() {
+interface AppLogoProps {
+    className?: string;
+}
+
+export default function AppLogo({ className = "h-8 w-auto max-w-[120px]" }: AppLogoProps) {
     const { settings } = usePage<SharedData>().props;
 
     return (
         <>
             {settings.logo ? (
-                <img src={`/storage/${settings.logo}`} alt={settings.site_name || 'Logo'} className="size-full object-cover" />
+                <img src={`/storage/${settings.logo}`} alt={settings.site_name || 'Logo'} className={`object-contain object-left ${className}`} />
             ) : (
                 <AppLogoIcon className="size-5 fill-current text-white dark:text-black" />
             )}

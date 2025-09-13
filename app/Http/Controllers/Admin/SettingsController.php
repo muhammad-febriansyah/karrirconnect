@@ -41,6 +41,10 @@ class SettingsController extends Controller
             'fee' => 'nullable|integer|min:0',
             'logo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'thumbnail' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'use_custom_stats' => 'boolean',
+            'custom_total_jobs' => 'nullable|integer|min:0',
+            'custom_total_companies' => 'nullable|integer|min:0',
+            'custom_total_candidates' => 'nullable|integer|min:0',
         ]);
 
         $setting = Setting::first();

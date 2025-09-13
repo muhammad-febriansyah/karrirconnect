@@ -17,15 +17,20 @@ class Company extends Model
         'industry',
         'size',
         'location',
+        'address',
         'email',
         'phone',
         'social_links',
+        'slug',
+        'admin_user_id',
+        'verification_status',
+        'verification_documents',
+        'verification_data',
         'is_verified',
         'is_active',
         'job_posting_points',
         'total_job_posts',
         'active_job_posts',
-        'max_active_jobs',
         'points_last_updated',
     ];
 
@@ -33,6 +38,8 @@ class Company extends Model
     {
         return [
             'social_links' => 'array',
+            'verification_documents' => 'array',
+            'verification_data' => 'array',
             'is_verified' => 'boolean',
             'is_active' => 'boolean',
             'points_last_updated' => 'datetime',
@@ -69,26 +76,32 @@ class Company extends Model
         return $this->pointTransactions()->completed();
     }
 
-    public function canCreateJobListing()
+    public function canCreateJobListing($positions = 1)
     {
-        return $this->job_posting_points > 0 && $this->active_job_posts < $this->max_active_jobs;
+        $pointsNeeded = $positions > 1 ? $positions - 1 : 0; // First position is free
+        return $this->job_posting_points >= $pointsNeeded; // Removed max_active_jobs limit
     }
 
-    public function deductJobPostingPoint()
+    public function deductJobPostingPoint($positions = 1)
     {
-        if ($this->job_posting_points > 0) {
-            $this->decrement('job_posting_points');
+        $pointsNeeded = $positions > 1 ? $positions - 1 : 0; // First position is free
+        
+        if ($this->job_posting_points >= $pointsNeeded) {
+            if ($pointsNeeded > 0) {
+                $this->decrement('job_posting_points', $pointsNeeded);
+                
+                // Record the transaction only if points were deducted
+                $this->pointTransactions()->create([
+                    'type' => 'usage',
+                    'points' => -$pointsNeeded,
+                    'description' => "Menggunakan {$pointsNeeded} poin untuk {$positions} posisi lowongan (1 posisi gratis)",
+                    'reference_type' => 'job_listing',
+                    'status' => 'completed',
+                ]);
+            }
+            
             $this->increment('total_job_posts');
             $this->increment('active_job_posts');
-            
-            // Record the transaction
-            $this->pointTransactions()->create([
-                'type' => 'usage',
-                'points' => -1,
-                'description' => 'Menggunakan 1 poin untuk posting lowongan',
-                'reference_type' => 'job_listing',
-                'status' => 'completed',
-            ]);
             
             return true;
         }

@@ -18,9 +18,33 @@
 
     <title>{{ $setting->site_name }}</title>
 
+    <!-- Favicon -->
     <link rel="icon" href="{{ asset('storage/' . $setting->logo) }}" sizes="any">
     <link rel="icon" href="{{ asset('storage/' . $setting->logo) }}" type="image/svg+xml">
-    <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+    <link rel="apple-touch-icon" href="{{ asset('storage/' . $setting->logo) }}">
+    
+    <!-- Open Graph / Facebook / WhatsApp -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="{{ url()->current() }}">
+    <meta property="og:title" content="{{ $setting->site_name }} - Platform Karir Terdepan Indonesia">
+    <meta property="og:description" content="{{ $setting->description ?? 'Temukan pekerjaan impian Anda atau cari talenta terbaik di ' . $setting->site_name . '. Platform karir terpercaya dengan ribuan lowongan dari perusahaan terbaik di Indonesia.' }}">
+    <meta property="og:image" content="{{ $setting->thumbnail ? asset('storage/' . $setting->thumbnail) : ($setting->logo ? asset('storage/' . $setting->logo) : asset('images/default-og.jpg')) }}">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:site_name" content="{{ $setting->site_name }}">
+    <meta property="og:locale" content="id_ID">
+    
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="{{ url()->current() }}">
+    <meta property="twitter:title" content="{{ $setting->site_name }} - Platform Karir Terdepan">
+    <meta property="twitter:description" content="{{ $setting->description ?? 'Temukan pekerjaan impian Anda atau cari talenta terbaik di ' . $setting->site_name . '. Platform karir terpercaya dengan ribuan lowongan dari perusahaan terbaik.' }}">
+    <meta property="twitter:image" content="{{ $setting->thumbnail ? asset('storage/' . $setting->thumbnail) : asset('storage/' . $setting->logo) }}">
+    
+    <!-- Additional Meta Tags -->
+    <meta name="description" content="{{ $setting->description ?? 'Temukan pekerjaan impian Anda atau cari talenta terbaik di ' . $setting->site_name . '. Platform karir terpercaya dengan ribuan lowongan dari perusahaan terbaik.' }}">
+    <meta name="keywords" content="{{ $setting->keyword ?? 'lowongan kerja, karir, pekerjaan, rekrutmen, ' . $setting->site_name }}">
+    <meta name="author" content="{{ $setting->site_name }}">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>

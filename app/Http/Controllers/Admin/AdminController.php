@@ -7,8 +7,10 @@ use App\Models\Company;
 use App\Models\JobApplication;
 use App\Models\JobListing;
 use App\Models\User;
+use App\Models\JobCategory;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 
 class AdminController extends Controller
@@ -59,6 +61,7 @@ class AdminController extends Controller
             ->get();
 
         $monthlyStats = $this->getMonthlyStats();
+        $chartData = $this->getSuperAdminChartData();
 
         return Inertia::render('admin/dashboard', [
             'stats' => $stats,
@@ -67,6 +70,7 @@ class AdminController extends Controller
             'recentCompanies' => $recentCompanies,
             'monthlyStats' => $monthlyStats,
             'userRole' => 'super_admin',
+            'chartData' => $chartData,
         ]);
     }
 
@@ -107,6 +111,7 @@ class AdminController extends Controller
             ->get();
 
         $monthlyStats = $this->getCompanyMonthlyStats($user->company_id);
+        $chartData = $this->getCompanyAdminChartData($user->company_id);
 
         return Inertia::render('admin/dashboard', [
             'stats' => $stats,
@@ -115,6 +120,7 @@ class AdminController extends Controller
             'monthlyStats' => $monthlyStats,
             'userRole' => 'company_admin',
             'company' => $company,
+            'chartData' => $chartData,
         ]);
     }
 
@@ -204,6 +210,164 @@ class AdminController extends Controller
         }
 
         return $months;
+    }
+
+    private function getSuperAdminChartData()
+    {
+        // Users stats
+        $usersMonthly = [];
+        for ($i = 11; $i >= 0; $i--) {
+            $date = now()->subMonths($i);
+            $usersMonthly[] = User::where('role', 'user')
+                ->whereYear('created_at', $date->year)
+                ->whereMonth('created_at', $date->month)
+                ->count();
+        }
+
+        $usersByRole = [
+            ['role' => 'User', 'count' => User::where('role', 'user')->count()],
+            ['role' => 'Company Admin', 'count' => User::where('role', 'company_admin')->count()],
+            ['role' => 'Super Admin', 'count' => User::where('role', 'super_admin')->count()],
+        ];
+
+        // Companies stats
+        $companiesMonthly = [];
+        for ($i = 11; $i >= 0; $i--) {
+            $date = now()->subMonths($i);
+            $companiesMonthly[] = Company::whereYear('created_at', $date->year)
+                ->whereMonth('created_at', $date->month)
+                ->count();
+        }
+
+        // Jobs stats
+        $jobsMonthly = [];
+        for ($i = 11; $i >= 0; $i--) {
+            $date = now()->subMonths($i);
+            $jobsMonthly[] = JobListing::whereYear('created_at', $date->year)
+                ->whereMonth('created_at', $date->month)
+                ->count();
+        }
+
+        $jobsByCategory = JobCategory::select('job_categories.name as category')
+            ->selectRaw('COUNT(job_listings.id) as count')
+            ->leftJoin('job_listings', 'job_categories.id', '=', 'job_listings.job_category_id')
+            ->groupBy('job_categories.id', 'job_categories.name')
+            ->orderBy('count', 'desc')
+            ->limit(10)
+            ->get()
+            ->map(function($item) {
+                return [
+                    'category' => $item->category,
+                    'count' => $item->count
+                ];
+            })
+            ->toArray();
+
+        // Applications stats
+        $applicationsMonthly = [];
+        for ($i = 11; $i >= 0; $i--) {
+            $date = now()->subMonths($i);
+            $applicationsMonthly[] = JobApplication::whereYear('created_at', $date->year)
+                ->whereMonth('created_at', $date->month)
+                ->count();
+        }
+
+        $applicationsByStatus = [
+            ['status' => 'Pending', 'count' => JobApplication::where('status', 'pending')->count()],
+            ['status' => 'Under Review', 'count' => JobApplication::where('status', 'reviewing')->count()],
+            ['status' => 'Accepted', 'count' => JobApplication::where('status', 'hired')->count()],
+            ['status' => 'Rejected', 'count' => JobApplication::where('status', 'rejected')->count()],
+        ];
+
+        return [
+            'usersStats' => [
+                'total' => User::where('role', 'user')->count(),
+                'monthly' => $usersMonthly,
+                'byRole' => $usersByRole,
+            ],
+            'companiesStats' => [
+                'total' => Company::count(),
+                'verified' => Company::where('is_verified', true)->count(),
+                'monthly' => $companiesMonthly,
+            ],
+            'jobsStats' => [
+                'total' => JobListing::count(),
+                'active' => JobListing::where('status', 'published')->count(),
+                'monthly' => $jobsMonthly,
+                'byCategory' => $jobsByCategory,
+            ],
+            'applicationsStats' => [
+                'total' => JobApplication::count(),
+                'monthly' => $applicationsMonthly,
+                'byStatus' => $applicationsByStatus,
+            ],
+        ];
+    }
+
+    private function getCompanyAdminChartData($companyId)
+    {
+        // Company jobs stats
+        $jobsMonthly = [];
+        for ($i = 11; $i >= 0; $i--) {
+            $date = now()->subMonths($i);
+            $jobsMonthly[] = JobListing::where('company_id', $companyId)
+                ->whereYear('created_at', $date->year)
+                ->whereMonth('created_at', $date->month)
+                ->count();
+        }
+
+        // Applications stats
+        $applicationsMonthly = [];
+        for ($i = 11; $i >= 0; $i--) {
+            $date = now()->subMonths($i);
+            $applicationsMonthly[] = JobApplication::whereHas('jobListing', function($q) use ($companyId) {
+                $q->where('company_id', $companyId);
+            })
+            ->whereYear('created_at', $date->year)
+            ->whereMonth('created_at', $date->month)
+            ->count();
+        }
+
+        $applicationsByJob = JobListing::where('company_id', $companyId)
+            ->select('title as job_title')
+            ->selectRaw('COUNT(job_applications.id) as count')
+            ->leftJoin('job_applications', 'job_listings.id', '=', 'job_applications.job_listing_id')
+            ->groupBy('job_listings.id', 'job_listings.title')
+            ->orderBy('count', 'desc')
+            ->limit(10)
+            ->get()
+            ->map(function($item) {
+                return [
+                    'job_title' => $item->job_title,
+                    'count' => $item->count
+                ];
+            })
+            ->toArray();
+
+        return [
+            'companyJobsStats' => [
+                'total' => JobListing::where('company_id', $companyId)->count(),
+                'active' => JobListing::where('company_id', $companyId)->where('status', 'published')->count(),
+                'expired' => JobListing::where('company_id', $companyId)->where('status', 'closed')->count(),
+                'monthly' => $jobsMonthly,
+            ],
+            'companyApplicationsStats' => [
+                'total' => JobApplication::whereHas('jobListing', function($q) use ($companyId) {
+                    $q->where('company_id', $companyId);
+                })->count(),
+                'pending' => JobApplication::whereHas('jobListing', function($q) use ($companyId) {
+                    $q->where('company_id', $companyId);
+                })->where('status', 'pending')->count(),
+                'accepted' => JobApplication::whereHas('jobListing', function($q) use ($companyId) {
+                    $q->where('company_id', $companyId);
+                })->where('status', 'hired')->count(),
+                'rejected' => JobApplication::whereHas('jobListing', function($q) use ($companyId) {
+                    $q->where('company_id', $companyId);
+                })->where('status', 'rejected')->count(),
+                'monthly' => $applicationsMonthly,
+                'byJob' => $applicationsByJob,
+            ],
+        ];
     }
 
     public function updateApplicationStatus(Request $request, $applicationId)

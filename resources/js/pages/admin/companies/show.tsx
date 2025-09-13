@@ -43,9 +43,10 @@ interface Props {
             status: string;
         }>;
     };
+    userRole: string;
 }
 
-export default function ShowCompany({ company }: Props) {
+export default function ShowCompany({ company, userRole }: Props) {
     const toggleVerification = () => {
         router.post(
             `/admin/companies/${company.id}/toggle-verification`,
@@ -101,7 +102,7 @@ export default function ShowCompany({ company }: Props) {
                             <Button
                                 variant="ghost"
                                 size="sm"
-                                onClick={() => router.get('/admin/companies')}
+                                onClick={() => router.get(userRole === 'company_admin' ? '/admin/dashboard' : '/admin/companies')}
                             >
                                 <ArrowLeft className="h-4 w-4" />
                             </Button>
@@ -134,6 +135,7 @@ export default function ShowCompany({ company }: Props) {
                         <p className="text-gray-600">Detail informasi perusahaan</p>
                     </div>
                     
+                    {userRole !== 'company_admin' && (
                     <div className="flex gap-2">
                         <Button
                             variant="outline"
@@ -150,6 +152,7 @@ export default function ShowCompany({ company }: Props) {
                             Hapus
                         </Button>
                     </div>
+                    )}
                 </div>
 
                 <div className="grid gap-6 md:grid-cols-3">
@@ -282,7 +285,8 @@ export default function ShowCompany({ company }: Props) {
 
                     {/* Sidebar */}
                     <div className="space-y-6">
-                        {/* Statistics */}
+                        {/* Statistics - Hidden for Company Admin */}
+                        {userRole !== 'company_admin' && (
                         <Card>
                             <CardHeader>
                                 <CardTitle>Statistik</CardTitle>
@@ -305,9 +309,10 @@ export default function ShowCompany({ company }: Props) {
                                 </div>
                             </CardContent>
                         </Card>
+                        )}
 
-                        {/* Company Admins */}
-                        {company.users && company.users.length > 0 && (
+                        {/* Company Admins - Hidden for Company Admin */}
+                        {userRole !== 'company_admin' && company.users && company.users.length > 0 && (
                             <Card>
                                 <CardHeader>
                                     <CardTitle>Admin Perusahaan</CardTitle>
@@ -331,7 +336,8 @@ export default function ShowCompany({ company }: Props) {
                             </Card>
                         )}
 
-                        {/* Actions */}
+                        {/* Actions - Hidden for Company Admin */}
+                        {userRole !== 'company_admin' && (
                         <Card>
                             <CardHeader>
                                 <CardTitle>Tindakan</CardTitle>
@@ -364,6 +370,7 @@ export default function ShowCompany({ company }: Props) {
                                 </Button>
                             </CardContent>
                         </Card>
+                        )}
 
                         {/* Timeline */}
                         <Card>

@@ -19,6 +19,10 @@ use App\Http\Controllers\Admin\UserManagementController;
 use App\Http\Controllers\Admin\ProfileController as AdminProfileController;
 use App\Http\Controllers\Admin\PointPackageController;
 use App\Http\Controllers\Admin\TransactionController;
+use App\Http\Controllers\Admin\WhatsAppTemplateController;
+use App\Http\Controllers\Admin\WhatsAppBroadcastController;
+use App\Http\Controllers\Admin\SkillController;
+use App\Http\Controllers\WaGatewayController;
 use Illuminate\Support\Facades\Route;
 
 // Admin routes - require authentication and admin role (both super_admin and company_admin)
@@ -40,13 +44,26 @@ Route::middleware(['auth', 'verified', 'admin.role'])->prefix('admin')->name('ad
     Route::resource('companies', CompanyManagementController::class);
     Route::post('/companies/{company}/toggle-verification', [CompanyManagementController::class, 'toggleVerification'])->name('companies.toggle-verification');
     Route::post('/companies/{company}/toggle-status', [CompanyManagementController::class, 'toggleStatus'])->name('companies.toggle-status');
+    
+    // Company Verification Review (Super Admin Only)
+    Route::get('/companies/verification/review', [CompanyManagementController::class, 'verificationIndex'])->name('companies.verification.index');
+    Route::post('/companies/{company}/verification/update', [CompanyManagementController::class, 'updateVerificationStatus'])->name('companies.verification.update');
 
     // Job Categories Management
     Route::post('/job-categories/{jobCategory}/toggle-status', [JobCategoryManagementController::class, 'toggleStatus'])->name('job-categories.toggle-status');
     Route::resource('job-categories', JobCategoryManagementController::class);
 
-    // Job Listings - Super admin read-only access (index & show only)
+    // Skills Management
+    Route::resource('skills', SkillController::class);
+    Route::post('/skills/{skill}/toggle-status', [SkillController::class, 'toggleStatus'])->name('skills.toggle-status');
+
+    // Job Listings - Both super admin and company admin can access index & show
     Route::get('/job-listings', [JobListingsController::class, 'index'])->name('job-listings.index');
+    
+    // Job Listings Create/Store - Company admin can create (MUST be before {jobListing} route)
+    Route::get('/job-listings/create', [JobListingsController::class, 'create'])->name('job-listings.create');
+    Route::post('/job-listings', [JobListingsController::class, 'store'])->name('job-listings.store');
+    
     Route::get('/job-listings/{jobListing}', [JobListingsController::class, 'show'])->name('job-listings.show');
 
     // Applications - Super admin read-only access (index & show only)
@@ -57,6 +74,12 @@ Route::middleware(['auth', 'verified', 'admin.role'])->prefix('admin')->name('ad
     Route::get('/transactions', [TransactionController::class, 'index'])->name('transactions.index');
     Route::get('/transactions/{transaction}', [TransactionController::class, 'show'])->name('transactions.show');
     Route::get('/transactions/export/csv', [TransactionController::class, 'export'])->name('transactions.export');
+
+    // Notifications - For both super admin and company admin
+    Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
+    Route::post('/notifications/{notification}/mark-as-read', [NotificationController::class, 'markAsRead'])->name('notifications.mark-as-read');
+    Route::post('/notifications/mark-all-as-read', [NotificationController::class, 'markAllAsRead'])->name('notifications.mark-all-as-read');
+    Route::post('/notifications', [NotificationController::class, 'store'])->name('notifications.store');
 
 
     // Settings Management
@@ -85,6 +108,24 @@ Route::middleware(['auth', 'verified', 'admin.role'])->prefix('admin')->name('ad
     // Contact Messages Management
     Route::resource('contact-messages', \App\Http\Controllers\Admin\ContactMessageController::class)->only(['index', 'show', 'destroy']);
     Route::patch('/contact-messages/{contactMessage}/status', [\App\Http\Controllers\Admin\ContactMessageController::class, 'updateStatus'])->name('contact-messages.update-status');
+
+    // WhatsApp Gateway Testing - For both super admin and company admin
+    Route::post('/whatsapp/test-connection', [WaGatewayController::class, 'testConnection'])->name('whatsapp.test-connection');
+    Route::post('/whatsapp/send-notification/{notification}', [WaGatewayController::class, 'sendNotificationWhatsApp'])->name('whatsapp.send-notification');
+    Route::post('/whatsapp/send-to-user/{notification}/{user}', [WaGatewayController::class, 'sendNotificationToUser'])->name('whatsapp.send-to-user');
+    Route::post('/whatsapp/send-with-template', [WaGatewayController::class, 'sendWithTemplate'])->name('whatsapp.send-with-template');
+
+    // WhatsApp Templates Management - For both super admin and company admin
+    Route::resource('whatsapp-templates', WhatsAppTemplateController::class)->names('whatsapp.templates')->parameters(['whatsapp-templates' => 'template']);
+    Route::post('/whatsapp-templates/{template}/toggle-status', [WhatsAppTemplateController::class, 'toggleStatus'])->name('whatsapp.templates.toggle-status');
+    Route::post('/whatsapp-templates/{template}/preview', [WhatsAppTemplateController::class, 'preview'])->name('whatsapp.templates.preview');
+    Route::post('/whatsapp-templates/{template}/test-send', [WhatsAppTemplateController::class, 'testSend'])->name('whatsapp.templates.test-send');
+
+    // WhatsApp Broadcast Management - For both super admin and company admin
+    Route::get('/whatsapp-broadcast', [WhatsAppBroadcastController::class, 'index'])->name('whatsapp.broadcast.index');
+    Route::post('/whatsapp-broadcast/users-preview', [WhatsAppBroadcastController::class, 'getUsersPreview'])->name('whatsapp.broadcast.users-preview');
+    Route::post('/whatsapp-broadcast/send', [WhatsAppBroadcastController::class, 'sendBroadcast'])->name('whatsapp.broadcast.send');
+    Route::get('/whatsapp-broadcast/history', [WhatsAppBroadcastController::class, 'getBroadcastHistory'])->name('whatsapp.broadcast.history');
 });
 
 // Super Admin only routes - require super_admin role specifically
@@ -133,14 +174,19 @@ Route::middleware(['auth', 'verified', App\Http\Middleware\EnsureUserIsAdmin::cl
     // Point Package Management (Super Admin Only)
     Route::resource('point-packages', PointPackageController::class);
     Route::post('/point-packages/{pointPackage}/toggle-status', [PointPackageController::class, 'toggleStatus'])->name('point-packages.toggle-status');
+    
+    // Notification statistics (super admin only)
+    Route::get('/notifications/statistics', [NotificationController::class, 'getStatistics'])->name('notifications.statistics');
 });
 
 // Company Admin only routes - require company_admin role specifically  
-Route::middleware(['auth', 'verified', App\Http\Middleware\EnsureUserIsCompanyAdmin::class])->prefix('admin')->name('admin.')->group(function () {
+Route::middleware(['auth', 'verified', 'company.admin'])->prefix('admin')->name('admin.')->group(function () {
     
-    // Job Listings Management - Only for company admin (CRUD operations)
-    Route::get('/job-listings/create', [JobListingsController::class, 'create'])->name('job-listings.create');
-    Route::post('/job-listings', [JobListingsController::class, 'store'])->name('job-listings.store');
+    // Company Verification - Only for company admin
+    Route::get('/company/verify', [CompanyManagementController::class, 'showVerificationForm'])->name('company.verify');
+    Route::post('/company/verify', [CompanyManagementController::class, 'submitVerification'])->name('company.verify.submit');
+    
+    // Job Listings Management - Only for company admin (edit, update, delete, toggle operations)
     Route::get('/job-listings/{jobListing}/edit', [JobListingsController::class, 'edit'])->name('job-listings.edit');
     Route::put('/job-listings/{jobListing}', [JobListingsController::class, 'update'])->name('job-listings.update');
     Route::delete('/job-listings/{jobListing}', [JobListingsController::class, 'destroy'])->name('job-listings.destroy');
@@ -149,13 +195,4 @@ Route::middleware(['auth', 'verified', App\Http\Middleware\EnsureUserIsCompanyAd
     // Applications Management - Only for company admin (update operations)
     Route::patch('/applications/{application}/status', [ApplicationManagementController::class, 'updateStatus'])->name('applications.update-status');
     Route::post('/applications/bulk-action', [ApplicationManagementController::class, 'bulkAction'])->name('applications.bulk-action');
-
-    // Notifications - For both super admin and company admin
-    Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
-    Route::post('/notifications/{notification}/mark-as-read', [NotificationController::class, 'markAsRead'])->name('notifications.mark-as-read');
-    Route::post('/notifications/mark-all-as-read', [NotificationController::class, 'markAllAsRead'])->name('notifications.mark-all-as-read');
-    Route::post('/notifications', [NotificationController::class, 'store'])->name('notifications.store');
-    
-    // Notification statistics (super admin only)
-    Route::get('/notifications/statistics', [NotificationController::class, 'getStatistics'])->name('notifications.statistics');
 });

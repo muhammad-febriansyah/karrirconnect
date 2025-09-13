@@ -19,6 +19,11 @@ export function NavAdmin({ groups = [] }: { groups: NavGroup[] }) {
             return true;
         }
         
+        // Special handling for verification review route - should not activate companies menu
+        if (currentUrl.includes('/companies/verification/review') && itemHref === '/admin/companies') {
+            return false;
+        }
+        
         // For parent routes, check if current URL starts with item href
         // but exclude cases where another route has the same prefix
         if (currentUrl.startsWith(itemHref)) {

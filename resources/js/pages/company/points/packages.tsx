@@ -4,8 +4,9 @@ import AppLayout from '@/layouts/app-layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, Star, Coins, CreditCard, CheckCircle, Clock, TrendingUp } from 'lucide-react';
+import { ArrowLeft, Star, Coins, CreditCard, CheckCircle, Clock, TrendingUp, AlertCircle } from 'lucide-react';
 import { NumberTicker } from '@/components/magicui/number-ticker';
+import { useToast } from '@/hooks/use-toast';
 import axios from 'axios';
 
 interface PointPackage {
@@ -20,6 +21,9 @@ interface PointPackage {
   features: string[];
   total_points: number;
   formatted_price: string;
+  service_fee: number;
+  total_price: number;
+  formatted_total_price: string;
 }
 
 interface Company {
@@ -31,6 +35,8 @@ interface Company {
 interface Props {
   packages: PointPackage[];
   company: Company;
+  serviceFee: number;
+  formattedServiceFee: string;
 }
 
 // Declare snap type for TypeScript
@@ -47,8 +53,9 @@ declare global {
   }
 }
 
-export default function PointPackages({ packages, company }: Props) {
+export default function PointPackages({ packages, company, serviceFee, formattedServiceFee }: Props) {
   const [purchasingId, setPurchasingId] = useState<number | null>(null);
+  const { toast } = useToast();
 
   const handlePurchase = async (packageId: number) => {
     console.log('Attempting to purchase package:', packageId);
@@ -72,18 +79,26 @@ export default function PointPackages({ packages, company }: Props) {
         window.snap.pay(response.data.snap_token, {
           onSuccess: (result: any) => {
             console.log('Payment success:', result);
-            alert('Pembayaran berhasil! Poin akan ditambahkan ke akun Anda.');
+            toast({
+              title: 'Pembayaran berhasil! Poin akan ditambahkan ke akun Anda.',
+              variant: 'default'
+            });
             // Redirect to points dashboard
             router.get('/company/points');
           },
           onPending: (result: any) => {
             console.log('Payment pending:', result);
-            alert('Pembayaran sedang diproses. Kami akan mengkonfirmasi pembayaran Anda.');
+            toast({
+              title: 'Pembayaran sedang diproses. Kami akan mengkonfirmasi pembayaran Anda.'
+            });
             router.get('/company/points');
           },
           onError: (result: any) => {
             console.log('Payment error:', result);
-            alert('Terjadi kesalahan saat memproses pembayaran.');
+            toast({
+              title: 'Terjadi kesalahan saat memproses pembayaran.',
+              variant: 'destructive'
+            });
           },
           onClose: () => {
             console.log('Payment popup closed');
@@ -95,7 +110,10 @@ export default function PointPackages({ packages, company }: Props) {
     } catch (error: any) {
       console.error('Purchase error:', error);
       const errorMessage = error.response?.data?.error || error.message || 'Terjadi kesalahan saat membeli paket';
-      alert('Error: ' + errorMessage);
+      toast({
+        title: 'Error: ' + errorMessage,
+        variant: 'destructive'
+      });
     } finally {
       setPurchasingId(null);
     }
@@ -192,10 +210,19 @@ export default function PointPackages({ packages, company }: Props) {
                 <div className="text-center">
                   <CardTitle className="text-xl mb-2">{pkg.name}</CardTitle>
                   <div className="text-3xl font-bold text-blue-600 mb-1">
-                    {pkg.formatted_price}
+                    {pkg.formatted_total_price}
                   </div>
-                  <div className="text-sm text-gray-600">
-                  </div>
+                  {serviceFee > 0 && (
+                    <div className="text-sm text-gray-600 space-y-1">
+                      <div className="flex justify-center items-center space-x-2">
+                        <span>Paket: {pkg.formatted_price}</span>
+                      </div>
+                      <div className="flex justify-center items-center space-x-2">
+                        <span>+ Biaya layanan: {formattedServiceFee}</span>
+                      </div>
+                      <div className="w-16 h-px bg-gray-300 mx-auto"></div>
+                    </div>
+                  )}
                 </div>
               </CardHeader>
               
@@ -263,6 +290,28 @@ export default function PointPackages({ packages, company }: Props) {
               >
                 Kembali ke Dashboard
               </Button>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Service Fee Notice */}
+        {serviceFee > 0 && (
+          <Card className="mt-8 border-blue-200 bg-blue-50">
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <AlertCircle className="h-5 w-5 text-blue-600" />
+                Informasi Biaya Layanan
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2 text-sm">
+              <div>
+                Semua harga paket sudah termasuk biaya layanan sebesar <strong>{formattedServiceFee}</strong>.
+              </div>
+              <div className="text-blue-700">
+                ✓ Biaya administrasi dan pemeliharaan sistem<br/>
+                ✓ Dukungan teknis 24/7<br/>
+                ✓ Keamanan transaksi terjamin
+              </div>
             </CardContent>
           </Card>
         )}

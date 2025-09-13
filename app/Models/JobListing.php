@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Str;
 
 class JobListing extends Model
 {
@@ -12,6 +13,7 @@ class JobListing extends Model
 
     protected $fillable = [
         'title',
+        'slug',
         'description',
         'requirements',
         'benefits',
@@ -138,5 +140,50 @@ class JobListing extends Model
     public function getIsFullyBookedAttribute()
     {
         return $this->applications()->where('status', '!=', 'rejected')->count() >= $this->positions_available;
+    }
+
+    /**
+     * Boot method to auto-generate slug
+     */
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($job) {
+            if (empty($job->slug)) {
+                $job->slug = static::generateUniqueSlug($job->title);
+            }
+        });
+
+        static::updating(function ($job) {
+            if ($job->isDirty('title') && empty($job->slug)) {
+                $job->slug = static::generateUniqueSlug($job->title);
+            }
+        });
+    }
+
+    /**
+     * Generate unique slug
+     */
+    protected static function generateUniqueSlug($title)
+    {
+        $slug = Str::slug($title);
+        $originalSlug = $slug;
+        $counter = 1;
+
+        while (static::where('slug', $slug)->exists()) {
+            $slug = $originalSlug . '-' . $counter;
+            $counter++;
+        }
+
+        return $slug;
+    }
+
+    /**
+     * Get the route key name for Laravel (use slug instead of id)
+     */
+    public function getRouteKeyName()
+    {
+        return 'slug';
     }
 }

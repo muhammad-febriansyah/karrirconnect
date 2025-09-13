@@ -5,12 +5,17 @@ use App\Http\Controllers\Api\JobApplicationController;
 use App\Http\Controllers\Api\JobCategoryController;
 use App\Http\Controllers\Api\JobListingController;
 use App\Http\Controllers\Api\SkillController;
+use App\Http\Controllers\Company\PointController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
+
+// Webhook routes (no authentication needed)  
+Route::post('webhook/midtrans', [PointController::class, 'webhook'])->name('api.webhook.midtrans');
+Route::post('webhook/midtrans/', [PointController::class, 'webhook'])->name('api.webhook.midtrans.slash'); // Handle trailing slash
 
 // Public API routes
 Route::group(['prefix' => 'v1'], function () {
@@ -27,9 +32,9 @@ Route::group(['prefix' => 'v1'], function () {
     Route::get('skills/{skill}', [SkillController::class, 'show']);
     
     // Companies - Public endpoints
-    Route::get('companies', [CompanyController::class, 'index']);
-    Route::get('companies/{company}', [CompanyController::class, 'show']);
-    Route::get('companies/{company}/jobs', [CompanyController::class, 'jobs']);
+    Route::get('companies', [CompanyController::class, 'index'])->name('api.companies.index');
+    Route::get('companies/{company}', [CompanyController::class, 'show'])->name('api.companies.show');
+    Route::get('companies/{company}/jobs', [CompanyController::class, 'jobs'])->name('api.companies.jobs');
     
     // Protected routes requiring authentication
     Route::middleware('auth:sanctum')->group(function () {

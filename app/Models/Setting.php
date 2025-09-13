@@ -20,9 +20,17 @@ class Setting extends Model
         'fee',
         'logo',
         'thumbnail',
+        'use_custom_stats',
+        'custom_total_jobs',
+        'custom_total_companies',
+        'custom_total_candidates',
     ];
 
     protected $casts = [
         'fee' => 'integer',
+        'use_custom_stats' => 'boolean',
+        'custom_total_jobs' => 'integer',
+        'custom_total_companies' => 'integer',
+        'custom_total_candidates' => 'integer',
     ];
 }

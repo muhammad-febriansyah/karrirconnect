@@ -31,6 +31,7 @@ import { Separator } from '@/components/ui/separator';
 
 interface JobListing {
     id: number;
+    slug: string;
     title: string;
     type: string;
     location: string;
@@ -385,7 +386,7 @@ export default function CompanyShow({ company }: CompanyShowProps) {
                                                         </div>
 
                                                         <div className="flex flex-col sm:flex-row gap-3">
-                                                            <Link href={`/jobs/${job.id}`}>
+                                                            <Link href={`/jobs/${job.slug}`}>
                                                                 <Button 
                                                                     className="bg-gradient-to-r from-[#2347FA] to-[#3b56fc] hover:from-[#1e40e0] hover:to-[#2347FA] text-white shadow-lg transform transition-all duration-300 hover:scale-105 w-full sm:w-auto"
                                                                 >

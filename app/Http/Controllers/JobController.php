@@ -4,7 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Models\JobListing;
 use App\Models\JobCategory;
+use App\Models\JobApplication;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 
 class JobController extends Controller
@@ -89,6 +91,14 @@ class JobController extends Controller
         // Increment view count
         $job->incrementViews();
 
+        // Check if user already applied for this job
+        $hasApplied = false;
+        if (Auth::check()) {
+            $hasApplied = JobApplication::where('user_id', Auth::id())
+                ->where('job_listing_id', $job->id)
+                ->exists();
+        }
+
         // Related jobs
         $relatedJobs = JobListing::with(['company', 'category'])
             ->active()
@@ -102,7 +112,8 @@ class JobController extends Controller
 
         return Inertia::render('jobs/show', [
             'job' => $job,
-            'relatedJobs' => $relatedJobs
+            'relatedJobs' => $relatedJobs,
+            'hasApplied' => $hasApplied
         ]);
     }
 }

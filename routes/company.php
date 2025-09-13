@@ -31,5 +31,3 @@ Route::middleware(['auth', 'verified', 'company.admin'])->prefix('company')->nam
     });
 });
 
-// Webhook route for Midtrans (no authentication needed)
-Route::post('/webhook/midtrans', [PointController::class, 'webhook'])->name('webhook.midtrans');

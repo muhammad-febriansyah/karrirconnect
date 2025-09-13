@@ -5,10 +5,20 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import AppLayout from '@/layouts/app-layout';
 import type { AboutUs } from '@/types';
 import { Head, useForm } from '@inertiajs/react';
-import { Building2, Save, Plus, Trash2, Eye, Users, Award, Briefcase, Heart, Target, Globe } from 'lucide-react';
+import { 
+    Building2, Save, Plus, Trash2, Upload,
+    // Company Values Icons
+    Heart, Handshake, Lightbulb, Trophy, Shield, Target, Users, Globe, 
+    Award, Star, Zap, Rocket, Eye, Compass, Crown, Diamond, Gem, Sparkles,
+    CheckCircle, ThumbsUp, Smile, TrendingUp, Infinity, Leaf, Sun, 
+    Clock, Puzzle, Key, Lock, Megaphone, MessageCircle, BookOpen,
+    Briefcase, Calendar, Coffee, Gift, Home, Music, Palette, Camera,
+    Code, Database, Wifi, Smartphone, Laptop, Settings, Cog, Wrench
+} from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
 
@@ -26,7 +36,11 @@ interface FormData {
         description: string;
         icon: string;
     }>;
-    features: string[];
+    features: Array<{
+        title: string;
+        description: string;
+        icon: string;
+    }>;
     stats: Array<{
         number: string;
         label: string;
@@ -36,7 +50,7 @@ interface FormData {
         name: string;
         position: string;
         bio: string;
-        image: string;
+        image: string | File;
     }>;
     contact: {
         email: string[];
@@ -49,6 +63,81 @@ interface FormData {
 }
 
 export default function EditAboutUs({ aboutUs }: Props) {
+    // Available Lucide icons for company values (dari lucide.dev)
+    const iconOptions = [
+        // Core Business Values
+        { value: 'handshake', label: 'Handshake - Integritas & Partnership', icon: <Handshake className="h-4 w-4" /> },
+        { value: 'heart', label: 'Heart - Kepedulian & Empati', icon: <Heart className="h-4 w-4" /> },
+        { value: 'lightbulb', label: 'Lightbulb - Inovasi & Kreativitas', icon: <Lightbulb className="h-4 w-4" /> },
+        { value: 'trophy', label: 'Trophy - Excellence & Achievement', icon: <Trophy className="h-4 w-4" /> },
+        { value: 'shield', label: 'Shield - Keamanan & Kepercayaan', icon: <Shield className="h-4 w-4" /> },
+        { value: 'target', label: 'Target - Fokus & Tujuan', icon: <Target className="h-4 w-4" /> },
+        { value: 'users', label: 'Users - Tim & Kolaborasi', icon: <Users className="h-4 w-4" /> },
+        { value: 'globe', label: 'Globe - Global & Jangkauan Luas', icon: <Globe className="h-4 w-4" /> },
+        
+        // Leadership & Excellence
+        { value: 'crown', label: 'Crown - Leadership & Kepemimpinan', icon: <Crown className="h-4 w-4" /> },
+        { value: 'award', label: 'Award - Penghargaan & Prestasi', icon: <Award className="h-4 w-4" /> },
+        { value: 'star', label: 'Star - Kualitas Prima', icon: <Star className="h-4 w-4" /> },
+        { value: 'diamond', label: 'Diamond - Premium & Eksklusif', icon: <Diamond className="h-4 w-4" /> },
+        { value: 'gem', label: 'Gem - Nilai Berharga', icon: <Gem className="h-4 w-4" /> },
+        
+        // Innovation & Growth
+        { value: 'rocket', label: 'Rocket - Pertumbuhan & Inovasi', icon: <Rocket className="h-4 w-4" /> },
+        { value: 'zap', label: 'Zap - Energi & Kecepatan', icon: <Zap className="h-4 w-4" /> },
+        { value: 'sparkles', label: 'Sparkles - Kreativitas & Magic', icon: <Sparkles className="h-4 w-4" /> },
+        { value: 'trending-up', label: 'TrendingUp - Progres & Kemajuan', icon: <TrendingUp className="h-4 w-4" /> },
+        { value: 'infinity', label: 'Infinity - Tanpa Batas', icon: <Infinity className="h-4 w-4" /> },
+        
+        // Vision & Direction
+        { value: 'eye', label: 'Eye - Visi & Transparansi', icon: <Eye className="h-4 w-4" /> },
+        { value: 'compass', label: 'Compass - Arah & Navigasi', icon: <Compass className="h-4 w-4" /> },
+        
+        // Quality & Trust
+        { value: 'check-circle', label: 'CheckCircle - Kualitas Terjamin', icon: <CheckCircle className="h-4 w-4" /> },
+        { value: 'thumbs-up', label: 'ThumbsUp - Persetujuan & Positif', icon: <ThumbsUp className="h-4 w-4" /> },
+        { value: 'key', label: 'Key - Solusi & Kunci Sukses', icon: <Key className="h-4 w-4" /> },
+        { value: 'lock', label: 'Lock - Keamanan & Privasi', icon: <Lock className="h-4 w-4" /> },
+        
+        // Communication & Service
+        { value: 'megaphone', label: 'Megaphone - Komunikasi & Pemasaran', icon: <Megaphone className="h-4 w-4" /> },
+        { value: 'message-circle', label: 'MessageCircle - Dialog & Komunikasi', icon: <MessageCircle className="h-4 w-4" /> },
+        { value: 'smile', label: 'Smile - Kepuasan & Kebahagiaan', icon: <Smile className="h-4 w-4" /> },
+        
+        // Environment & Sustainability
+        { value: 'leaf', label: 'Leaf - Ramah Lingkungan & Berkelanjutan', icon: <Leaf className="h-4 w-4" /> },
+        { value: 'sun', label: 'Sun - Energi Positif & Optimisme', icon: <Sun className="h-4 w-4" /> },
+        
+        // Work & Professional
+        { value: 'briefcase', label: 'Briefcase - Profesional & Bisnis', icon: <Briefcase className="h-4 w-4" /> },
+        { value: 'calendar', label: 'Calendar - Tepat Waktu & Terorganisir', icon: <Calendar className="h-4 w-4" /> },
+        { value: 'clock', label: 'Clock - Efisiensi Waktu', icon: <Clock className="h-4 w-4" /> },
+        { value: 'puzzle', label: 'Puzzle - Problem Solving', icon: <Puzzle className="h-4 w-4" /> },
+        
+        // Technology & Innovation
+        { value: 'code', label: 'Code - Teknologi & Development', icon: <Code className="h-4 w-4" /> },
+        { value: 'database', label: 'Database - Data & Informasi', icon: <Database className="h-4 w-4" /> },
+        { value: 'wifi', label: 'Wifi - Konektivitas & Network', icon: <Wifi className="h-4 w-4" /> },
+        { value: 'smartphone', label: 'Smartphone - Mobile & Accessibility', icon: <Smartphone className="h-4 w-4" /> },
+        { value: 'laptop', label: 'Laptop - Digital & Modern', icon: <Laptop className="h-4 w-4" /> },
+        
+        // Tools & Support
+        { value: 'settings', label: 'Settings - Kustomisasi & Kontrol', icon: <Settings className="h-4 w-4" /> },
+        { value: 'cog', label: 'Cog - Alat & Utilitas', icon: <Cog className="h-4 w-4" /> },
+        { value: 'wrench', label: 'Wrench - Maintenance & Support', icon: <Wrench className="h-4 w-4" /> },
+        
+        // Creativity & Culture
+        { value: 'palette', label: 'Palette - Kreativitas & Design', icon: <Palette className="h-4 w-4" /> },
+        { value: 'camera', label: 'Camera - Visual & Documentation', icon: <Camera className="h-4 w-4" /> },
+        { value: 'music', label: 'Music - Harmoni & Kreativitas', icon: <Music className="h-4 w-4" /> },
+        { value: 'book-open', label: 'BookOpen - Pembelajaran & Pengetahuan', icon: <BookOpen className="h-4 w-4" /> },
+        
+        // Comfort & Lifestyle
+        { value: 'coffee', label: 'Coffee - Budaya Kerja & Kenyamanan', icon: <Coffee className="h-4 w-4" /> },
+        { value: 'gift', label: 'Gift - Apresiasi & Reward', icon: <Gift className="h-4 w-4" /> },
+        { value: 'home', label: 'Home - Kekeluargaan & Comfort', icon: <Home className="h-4 w-4" /> },
+    ];
+
     const { data, setData, post, processing, errors } = useForm<FormData>({
         title: aboutUs.title || 'KarirConnect',
         description: aboutUs.description || '',
@@ -69,23 +158,26 @@ export default function EditAboutUs({ aboutUs }: Props) {
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         post('/admin/about-us', {
+            forceFormData: true,
             onSuccess: () => {
                 toast.success('Tentang Kami Berhasil Diperbarui!', {
                     description: 'Informasi tentang kami telah berhasil diperbarui.',
                     duration: 4000,
                 });
             },
-            onError: () => {
+            onError: (errors) => {
+                console.error('Update errors:', errors);
+                const errorMessages = Object.values(errors).flat().join(', ');
                 toast.error('Gagal Memperbarui Data', {
-                    description: 'Terjadi kesalahan saat memperbarui informasi tentang kami.',
-                    duration: 4000,
+                    description: errorMessages || 'Terjadi kesalahan saat memperbarui informasi tentang kami.',
+                    duration: 6000,
                 });
             },
         });
     };
 
     const addValue = () => {
-        setData('values', [...data.values, { title: '', description: '', icon: 'heart' }]);
+        setData('values', [...data.values, { title: '', description: '', icon: '' }]);
     };
 
     const removeValue = (index: number) => {
@@ -99,21 +191,21 @@ export default function EditAboutUs({ aboutUs }: Props) {
     };
 
     const addFeature = () => {
-        setData('features', [...data.features, '']);
+        setData('features', [...data.features, { title: '', description: '', icon: '' }]);
     };
 
     const removeFeature = (index: number) => {
         setData('features', data.features.filter((_, i) => i !== index));
     };
 
-    const updateFeature = (index: number, value: string) => {
+    const updateFeature = (index: number, field: keyof typeof data.features[0], value: string) => {
         const newFeatures = [...data.features];
-        newFeatures[index] = value;
+        newFeatures[index] = { ...newFeatures[index], [field]: value };
         setData('features', newFeatures);
     };
 
     const addStat = () => {
-        setData('stats', [...data.stats, { number: '', label: '', icon: 'award' }]);
+        setData('stats', [...data.stats, { number: '', label: '', icon: '' }]);
     };
 
     const removeStat = (index: number) => {
@@ -134,7 +226,7 @@ export default function EditAboutUs({ aboutUs }: Props) {
         setData('team', data.team.filter((_, i) => i !== index));
     };
 
-    const updateTeamMember = (index: number, field: keyof typeof data.team[0], value: string) => {
+    const updateTeamMember = (index: number, field: keyof typeof data.team[0], value: string | File) => {
         const newTeam = [...data.team];
         newTeam[index] = { ...newTeam[index], [field]: value };
         setData('team', newTeam);
@@ -286,12 +378,32 @@ export default function EditAboutUs({ aboutUs }: Props) {
                                                 />
                                             </div>
                                             <div className="grid gap-2">
-                                                <Label>Icon</Label>
-                                                <Input
-                                                    value={value.icon}
-                                                    onChange={(e) => updateValue(index, 'icon', e.target.value)}
-                                                    placeholder="heart, users, target, globe"
-                                                />
+                                                <Label>Pilih Icon</Label>
+                                                <Select
+                                                    value={value.icon || ''}
+                                                    onValueChange={(selectedIcon) => updateValue(index, 'icon', selectedIcon)}
+                                                >
+                                                    <SelectTrigger className="w-full">
+                                                        <SelectValue placeholder="Pilih icon untuk nilai ini" />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        {iconOptions.map((option) => (
+                                                            <SelectItem key={option.value} value={option.value}>
+                                                                <div className="flex items-center gap-2">
+                                                                    {option.icon}
+                                                                    <span>{option.label}</span>
+                                                                </div>
+                                                            </SelectItem>
+                                                        ))}
+                                                    </SelectContent>
+                                                </Select>
+                                                {value.icon && (
+                                                    <div className="text-sm text-gray-600 flex items-center gap-2">
+                                                        <span>Selected:</span>
+                                                        {iconOptions.find(opt => opt.value === value.icon)?.icon}
+                                                        <span>{iconOptions.find(opt => opt.value === value.icon)?.label}</span>
+                                                    </div>
+                                                )}
                                             </div>
                                         </div>
                                         <div className="grid gap-2">
@@ -323,23 +435,73 @@ export default function EditAboutUs({ aboutUs }: Props) {
                             </CardHeader>
                             <CardContent className="space-y-4">
                                 {data.features.map((feature, index) => (
-                                    <div key={index} className="flex items-center gap-2">
-                                        <Input
-                                            value={feature}
-                                            onChange={(e) => updateFeature(index, e.target.value)}
-                                            placeholder="Nama fitur"
-                                            className="flex-1"
-                                        />
-                                        <Button
-                                            type="button"
-                                            variant="outline"
-                                            size="sm"
-                                            onClick={() => removeFeature(index)}
-                                        >
-                                            <Trash2 className="h-4 w-4" />
-                                        </Button>
+                                    <div key={index} className="border rounded-lg p-4 space-y-4">
+                                        <div className="flex items-center justify-between">
+                                            <h4 className="font-semibold">Fitur {index + 1}</h4>
+                                            <Button
+                                                type="button"
+                                                variant="outline"
+                                                size="sm"
+                                                onClick={() => removeFeature(index)}
+                                            >
+                                                <Trash2 className="h-4 w-4" />
+                                            </Button>
+                                        </div>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <div className="grid gap-2">
+                                                <Label>Judul Fitur</Label>
+                                                <Input
+                                                    value={feature.title}
+                                                    onChange={(e) => updateFeature(index, 'title', e.target.value)}
+                                                    placeholder="Contoh: Smart Matching"
+                                                />
+                                            </div>
+                                            <div className="grid gap-2">
+                                                <Label>Pilih Icon</Label>
+                                                <Select
+                                                    value={feature.icon || ''}
+                                                    onValueChange={(selectedIcon) => updateFeature(index, 'icon', selectedIcon)}
+                                                >
+                                                    <SelectTrigger className="w-full">
+                                                        <SelectValue placeholder="Pilih icon untuk fitur ini" />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        {iconOptions.map((option) => (
+                                                            <SelectItem key={option.value} value={option.value}>
+                                                                <div className="flex items-center gap-2">
+                                                                    {option.icon}
+                                                                    <span>{option.label}</span>
+                                                                </div>
+                                                            </SelectItem>
+                                                        ))}
+                                                    </SelectContent>
+                                                </Select>
+                                                {feature.icon && (
+                                                    <div className="text-sm text-gray-600 flex items-center gap-2">
+                                                        <span>Selected:</span>
+                                                        {iconOptions.find(opt => opt.value === feature.icon)?.icon}
+                                                        <span>{iconOptions.find(opt => opt.value === feature.icon)?.label}</span>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                        <div className="grid gap-2">
+                                            <Label>Deskripsi</Label>
+                                            <Textarea
+                                                value={feature.description}
+                                                onChange={(e) => updateFeature(index, 'description', e.target.value)}
+                                                placeholder="Deskripsi fitur"
+                                                rows={2}
+                                            />
+                                        </div>
                                     </div>
                                 ))}
+                                {data.features.length === 0 && (
+                                    <div className="text-center py-8 text-gray-500">
+                                        <p>Belum ada fitur unggulan ditambahkan.</p>
+                                        <p className="text-sm">Klik "Tambah Fitur" untuk memulai.</p>
+                                    </div>
+                                )}
                             </CardContent>
                         </Card>
                     )}
@@ -388,12 +550,32 @@ export default function EditAboutUs({ aboutUs }: Props) {
                                                 />
                                             </div>
                                             <div className="grid gap-2">
-                                                <Label>Icon</Label>
-                                                <Input
-                                                    value={stat.icon}
-                                                    onChange={(e) => updateStat(index, 'icon', e.target.value)}
-                                                    placeholder="building, users, briefcase, award"
-                                                />
+                                                <Label>Pilih Icon</Label>
+                                                <Select
+                                                    value={typeof stat.icon === 'string' ? stat.icon : ''}
+                                                    onValueChange={(selectedIcon) => updateStat(index, 'icon', selectedIcon)}
+                                                >
+                                                    <SelectTrigger className="w-full">
+                                                        <SelectValue placeholder="Pilih icon untuk statistik ini" />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        {iconOptions.map((option) => (
+                                                            <SelectItem key={option.value} value={option.value}>
+                                                                <div className="flex items-center gap-2">
+                                                                    {option.icon}
+                                                                    <span>{option.label}</span>
+                                                                </div>
+                                                            </SelectItem>
+                                                        ))}
+                                                    </SelectContent>
+                                                </Select>
+                                                {typeof stat.icon === 'string' && stat.icon && (
+                                                    <div className="text-sm text-gray-600 flex items-center gap-2">
+                                                        <span>Selected:</span>
+                                                        {iconOptions.find(opt => opt.value === stat.icon)?.icon}
+                                                        <span>{iconOptions.find(opt => opt.value === stat.icon)?.label}</span>
+                                                    </div>
+                                                )}
                                             </div>
                                         </div>
                                     </div>
@@ -456,12 +638,31 @@ export default function EditAboutUs({ aboutUs }: Props) {
                                             />
                                         </div>
                                         <div className="grid gap-2">
-                                            <Label>URL Gambar</Label>
-                                            <Input
-                                                value={member.image}
-                                                onChange={(e) => updateTeamMember(index, 'image', e.target.value)}
-                                                placeholder="/images/team/person.jpg"
-                                            />
+                                            <Label>Foto Anggota Tim</Label>
+                                            <div className="flex items-center gap-2">
+                                                <Input
+                                                    type="file"
+                                                    accept=".jpg,.jpeg,.png"
+                                                    onChange={(e) => {
+                                                        const file = e.target.files?.[0];
+                                                        if (file) {
+                                                            updateTeamMember(index, 'image', file);
+                                                        }
+                                                    }}
+                                                    className="flex-1"
+                                                />
+                                                <Button type="button" variant="outline" size="sm">
+                                                    <Upload className="h-4 w-4" />
+                                                </Button>
+                                            </div>
+                                            {typeof member.image === 'string' && member.image && (
+                                                <div className="text-sm text-gray-600">
+                                                    Current: {member.image}
+                                                </div>
+                                            )}
+                                            <div className="text-xs text-gray-500">
+                                                Format: JPG, JPEG, PNG (max 5MB)
+                                            </div>
                                         </div>
                                     </div>
                                 ))}

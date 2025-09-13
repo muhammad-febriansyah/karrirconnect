@@ -21,8 +21,14 @@ class EnsureUserIsCompanyAdmin
 
         $user = auth()->user();
         
-        if ($user->role !== 'company_admin' || !$user->company_id) {
-            abort(403, 'Access denied. Company admin access required.');
+        // Check if user has company_admin role
+        if ($user->role !== 'company_admin') {
+            abort(403, 'Access denied. Company admin role required.');
+        }
+        
+        // Check if user is associated with a company
+        if (!$user->company_id || !$user->company) {
+            abort(403, 'Access denied. You must be associated with a company to access this area.');
         }
 
         return $next($request);

@@ -50,6 +50,7 @@ class JobListingsController extends Controller
             'filters' => $filters,
             'categories' => $categories,
             'userRole' => $user->role,
+            'company' => $user->role === 'company_admin' ? $user->company : null,
         ]);
     }
 
@@ -63,17 +64,19 @@ class JobListingsController extends Controller
                 ->with('error', 'Anda harus terhubung dengan perusahaan untuk membuat lowongan.');
         }
 
-        // Check if company admin has points and within limits
+        // Check if company admin has verified company and sufficient points
         if ($user->role === 'company_admin') {
             $company = $user->company;
-            if (!$company->canCreateJobListing()) {
-                if ($company->job_posting_points <= 0) {
-                    return redirect()->route('company.points.packages')
-                        ->with('error', 'Poin habis! Beli paket poin untuk membuat lowongan baru.');
-                } else {
-                    return redirect()->route('admin.job-listings.index')
-                        ->with('error', 'Batas maksimal lowongan aktif tercapai. Tutup beberapa lowongan untuk membuat yang baru.');
-                }
+
+            // Check if company is verified
+            if (!$company->is_verified || $company->verification_status !== 'verified') {
+                return redirect()->route('admin.company.verify')
+                    ->with('error', 'Perusahaan Anda harus diverifikasi terlebih dahulu sebelum dapat membuat lowongan pekerjaan. Silakan lengkapi proses verifikasi.');
+            }
+
+            if (!$company->canCreateJobListing(1)) { // Check for minimum 1 position
+                return redirect()->route('company.points.packages')
+                    ->with('error', 'Poin tidak cukup! Untuk membuat lowongan dengan beberapa posisi dibutuhkan poin tambahan. Sisa poin Anda: ' . $company->job_posting_points);
             }
         }
 
@@ -82,10 +85,28 @@ class JobListingsController extends Controller
             ? Company::where('is_active', true)->get()
             : Company::where('id', $user->company_id)->get();
 
+        // Prepare userCompany data with real-time active job count
+        $userCompany = null;
+        if ($user->role === 'company_admin' && $user->company) {
+            $company = $user->company;
+            
+            // Get real-time active job count
+            $activeJobsCount = $company->jobListings()
+                ->where('status', 'published')
+                ->count();
+            
+            $userCompany = [
+                'id' => $company->id,
+                'name' => $company->name,
+                'job_posting_points' => $company->job_posting_points,
+                'active_job_posts' => $activeJobsCount,
+            ];
+        }
+
         return Inertia::render('admin/job-listings/create', [
             'categories' => $categories,
             'companies' => $companies,
-            'userCompany' => $user->role === 'company_admin' ? $user->company : null,
+            'userCompany' => $userCompany,
         ]);
     }
 
@@ -113,12 +134,21 @@ class JobListingsController extends Controller
         // Company admin can only create for their company
         if ($user->role === 'company_admin') {
             $validated['company_id'] = $user->company_id;
-            
-            // Check again before creating (double check)
+
+            // Check again before creating with actual positions count
             $company = $user->company;
-            if (!$company->canCreateJobListing()) {
-                return redirect()->route('admin.job-listings.index')
-                    ->with('error', 'Tidak dapat membuat lowongan. Periksa poin atau batas lowongan aktif Anda.');
+
+            // Double-check verification status
+            if (!$company->is_verified || $company->verification_status !== 'verified') {
+                return redirect()->route('admin.company.verify')
+                    ->with('error', 'Perusahaan Anda harus diverifikasi terlebih dahulu sebelum dapat membuat lowongan pekerjaan.');
+            }
+
+            $positions = (int)($validated['positions_available'] ?? 1);
+            if (!$company->canCreateJobListing($positions)) {
+                $pointsNeeded = $positions > 1 ? $positions - 1 : 0;
+                return redirect()->route('company.points.packages')
+                    ->with('error', "Poin tidak cukup! Untuk {$positions} posisi dibutuhkan {$pointsNeeded} poin (1 posisi gratis). Sisa poin Anda: {$company->job_posting_points}");
             }
         }
 
@@ -128,10 +158,11 @@ class JobListingsController extends Controller
 
         $jobListing = JobListing::create($validated);
 
-        // Deduct point for company admin
+        // Deduct point for company admin based on positions
         if ($user->role === 'company_admin') {
             $company = $user->company;
-            $company->deductJobPostingPoint();
+            $positions = (int)($validated['positions_available'] ?? 1);
+            $company->deductJobPostingPoint($positions);
         }
 
         // Attach skills if provided

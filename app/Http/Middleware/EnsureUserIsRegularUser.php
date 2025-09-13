@@ -24,8 +24,18 @@ class EnsureUserIsRegularUser
         // Only allow regular users (role: 'user')
         if ($user->role !== 'user') {
             // Redirect to appropriate dashboard based on role
-            if ($user->role === 'super_admin' || $user->role === 'company_admin') {
+            if ($user->role === 'super_admin') {
                 return redirect()->route('admin.dashboard');
+            }
+            
+            if ($user->role === 'company_admin') {
+                // Check if company_admin has valid company association
+                if ($user->company_id && $user->company) {
+                    return redirect()->route('admin.dashboard');
+                } else {
+                    // Company admin without company should contact support
+                    abort(403, 'Access denied. Please contact support to associate your account with a company.');
+                }
             }
             
             // If unknown role, redirect to home

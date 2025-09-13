@@ -1,3 +1,14 @@
+import type { Errors, ErrorBag } from '@inertiajs/core';
+
+export interface PageProps {
+    auth?: { user: any };
+    [key: string]: any;
+}
+
+export interface FormData {
+    [key: string]: any;
+}
+
 export interface PaginatedResponse<T> {
     data: T[];
     current_page: number;

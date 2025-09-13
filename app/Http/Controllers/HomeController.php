@@ -21,12 +21,23 @@ class HomeController extends Controller
         $settings = Setting::first();
         
         // Get statistics
-        $statistics = [
+        $realStats = [
             'total_jobs' => JobListing::published()->count(),
             'total_companies' => Company::where('is_active', true)->count(),
             'total_candidates' => User::where('role', 'user')->count(),
             'featured_jobs' => JobListing::published()->featured()->count(),
         ];
+        
+        // Use custom stats if enabled
+        $statistics = $realStats;
+        if ($settings && $settings->use_custom_stats) {
+            $statistics = [
+                'total_jobs' => $settings->custom_total_jobs ?? $realStats['total_jobs'],
+                'total_companies' => $settings->custom_total_companies ?? $realStats['total_companies'],
+                'total_candidates' => $settings->custom_total_candidates ?? $realStats['total_candidates'],
+                'featured_jobs' => $realStats['featured_jobs'], // Keep real featured jobs count
+            ];
+        }
 
         // Get featured job listings (latest 6)
         $featuredJobs = JobListing::with(['company', 'category'])

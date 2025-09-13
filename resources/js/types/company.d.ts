@@ -41,6 +41,7 @@ export interface CompanyCreateRequest {
     is_verified: boolean;
     is_active: boolean;
     user_id?: number;
+    [key: string]: any;
 }
 
 export interface CompanyUpdateRequest {
@@ -54,6 +55,7 @@ export interface CompanyUpdateRequest {
     company_size?: CompanySize;
     is_verified: boolean;
     is_active: boolean;
+    [key: string]: any;
 }
 
 export interface CompanyFilters {

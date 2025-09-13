@@ -17,9 +17,6 @@ import {
     Star,
     ChevronRight,
     Users,
-    Bookmark,
-    Heart,
-    Share2,
     CheckCircle,
     TrendingUp,
     Zap,
@@ -58,6 +55,7 @@ interface JobCategory {
 
 interface JobListing {
     id: number;
+    slug: string;
     title: string;
     company: Company;
     category: JobCategory;
@@ -109,15 +107,18 @@ export default function JobsIndex({ jobs, categories, filters, totalJobs, featur
         
         const format = (amount: number) => {
             if (amount >= 1000000) {
-                return `${Math.floor(amount / 1000000)}M`;
+                return `Rp ${Math.floor(amount / 1000000)} Jt`;
             }
-            return `${Math.floor(amount / 1000)}K`;
+            if (amount >= 1000) {
+                return `Rp ${Math.floor(amount / 1000)} Rb`;
+            }
+            return `Rp ${amount}`;
         };
 
         if (min && max && min !== max) {
-            return `${currency} ${format(min)} - ${format(max)}`;
+            return `${format(min)} - ${format(max)}`;
         }
-        return `${currency} ${format(min || max || 0)}`;
+        return `${format(min || max || 0)}`;
     };
 
     const formatTimeAgo = (dateString: string) => {
@@ -149,6 +150,75 @@ export default function JobsIndex({ jobs, categories, filters, totalJobs, featur
         setSelectedEmploymentType('');
         setSelectedWorkArrangement('');
         router.get('/jobs');
+    };
+
+    const getFilterQueryString = () => {
+        const params = new URLSearchParams();
+        if (searchQuery) params.set('search', searchQuery);
+        if (locationQuery) params.set('location', locationQuery);
+        if (selectedCategory) params.set('category', selectedCategory);
+        if (selectedEmploymentType) params.set('employment_type', selectedEmploymentType);
+        if (selectedWorkArrangement) params.set('work_arrangement', selectedWorkArrangement);
+        const queryString = params.toString();
+        return queryString ? `&${queryString}` : '';
+    };
+
+    const renderPaginationNumbers = () => {
+        const current = jobs.current_page;
+        const last = jobs.last_page;
+        const numbers = [];
+
+        if (last <= 7) {
+            for (let i = 1; i <= last; i++) {
+                numbers.push(i);
+            }
+        } else {
+            if (current <= 4) {
+                for (let i = 1; i <= 5; i++) {
+                    numbers.push(i);
+                }
+                numbers.push('...');
+                numbers.push(last);
+            } else if (current >= last - 3) {
+                numbers.push(1);
+                numbers.push('...');
+                for (let i = last - 4; i <= last; i++) {
+                    numbers.push(i);
+                }
+            } else {
+                numbers.push(1);
+                numbers.push('...');
+                for (let i = current - 1; i <= current + 1; i++) {
+                    numbers.push(i);
+                }
+                numbers.push('...');
+                numbers.push(last);
+            }
+        }
+
+        return numbers.map((number, index) => {
+            if (number === '...') {
+                return (
+                    <span key={index} className="px-3 py-2 text-gray-400 text-sm">
+                        ...
+                    </span>
+                );
+            }
+
+            return (
+                <Link
+                    key={number}
+                    href={`/jobs?page=${number}${getFilterQueryString()}`}
+                    className={`px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 ${
+                        number === current
+                            ? 'text-white bg-[#2347FA] shadow-md'
+                            : 'text-gray-600 bg-white border border-gray-300 hover:bg-gray-50 hover:text-gray-700'
+                    }`}
+                >
+                    {number}
+                </Link>
+            );
+        });
     };
 
     return (
@@ -215,7 +285,7 @@ export default function JobsIndex({ jobs, categories, filters, totalJobs, featur
                             transition={{ duration: 0.6, delay: 0.6 }}
                             className="bg-white rounded-2xl shadow-lg p-6 max-w-7xl mx-auto border border-gray-200"
                         >
-                            <div className="grid md:grid-cols-2 lg:grid-cols-5 gap-4">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
                                 <div className="relative lg:col-span-2">
                                     <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
                                     <Input
@@ -312,7 +382,7 @@ export default function JobsIndex({ jobs, categories, filters, totalJobs, featur
                                 <p className="text-gray-600">Peluang karir eksklusif dari perusahaan top pilihan kami</p>
                             </motion.div>
 
-                            <div className="grid lg:grid-cols-2 gap-8">
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                                 {featuredJobs.slice(0, 4).map((job, index) => (
                                     <motion.div
                                         key={job.id}
@@ -349,7 +419,7 @@ export default function JobsIndex({ jobs, categories, filters, totalJobs, featur
                                                     </div>
                                                     
                                                     <div className="flex-1 min-w-0">
-                                                        <Link href={`/jobs/${job.id}`}>
+                                                        <Link href={`/jobs/${job.slug}`}>
                                                             <h3 className="text-xl font-bold text-gray-900 hover:text-[#2347FA] cursor-pointer transition-colors mb-2 line-clamp-2">
                                                                 {job.title}
                                                             </h3>
@@ -399,20 +469,12 @@ export default function JobsIndex({ jobs, categories, filters, totalJobs, featur
                                                         </div>
 
                                                         <div className="flex items-center space-x-3">
-                                                            <Link href={`/jobs/${job.id}`} className="flex-1">
+                                                            <Link href={`/jobs/${job.slug}`} className="flex-1">
                                                                 <Button className="w-full bg-gradient-to-r from-[#2347FA] to-[#3b56fc] hover:from-[#1a3af0] hover:to-[#2d47f5] text-white rounded-xl shadow-md hover:shadow-lg transition-all duration-300">
                                                                     Lamar Sekarang
                                                                     <ArrowRight className="w-4 h-4 ml-2" />
                                                                 </Button>
                                                             </Link>
-                                                            <div className="flex space-x-2">
-                                                                <Button variant="outline" size="icon" className="rounded-xl border-gray-300 hover:bg-red-50 hover:border-red-200">
-                                                                    <Heart className="w-4 h-4 text-gray-400 hover:text-red-500" />
-                                                                </Button>
-                                                                <Button variant="outline" size="icon" className="rounded-xl border-gray-300 hover:bg-blue-50 hover:border-blue-200">
-                                                                    <Bookmark className="w-4 h-4 text-gray-400 hover:text-blue-500" />
-                                                                </Button>
-                                                            </div>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -442,7 +504,7 @@ export default function JobsIndex({ jobs, categories, filters, totalJobs, featur
                                     Menampilkan <span className="font-bold text-[#2347FA]"><NumberTicker value={jobs.data.length} className="font-bold text-[#2347FA]" delay={0.1} /></span> dari <span className="font-bold text-gray-900"><NumberTicker value={jobs.total} className="font-bold text-gray-900" delay={0.2} /></span> lowongan yang tersedia
                                 </p>
                             </div>
-                            <div className="flex items-center space-x-4">
+                            <div className="hidden sm:flex items-center space-x-4">
                                 <Button variant="outline" size="sm" className="border-gray-300 rounded-xl">
                                     <SlidersHorizontal className="w-4 h-4 mr-2" />
                                     Filter Lanjutan
@@ -464,7 +526,7 @@ export default function JobsIndex({ jobs, categories, filters, totalJobs, featur
                                             <div className="h-1 w-full bg-gradient-to-r from-[#2347FA] to-[#3b56fc] opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                                             
                                             <CardContent className="p-8">
-                                                <div className="flex items-start space-x-6">
+                                                <div className="flex flex-col sm:flex-row items-start space-y-4 sm:space-y-0 sm:space-x-6">
                                                     <div className="relative">
                                                         <Avatar className="w-16 h-16 flex-shrink-0 ring-2 ring-gray-100 group-hover:ring-[#2347FA]/20 transition-all duration-300">
                                                             {job.company.logo ? (
@@ -485,7 +547,7 @@ export default function JobsIndex({ jobs, categories, filters, totalJobs, featur
                                                     <div className="flex-1 min-w-0">
                                                         <div className="flex items-start justify-between mb-3">
                                                             <div className="flex-1">
-                                                                <Link href={`/jobs/${job.id}`}>
+                                                                <Link href={`/jobs/${job.slug}`}>
                                                                     <h3 className="text-xl font-bold text-gray-900 hover:text-[#2347FA] cursor-pointer transition-colors line-clamp-2">
                                                                         {job.title}
                                                                     </h3>
@@ -499,17 +561,6 @@ export default function JobsIndex({ jobs, categories, filters, totalJobs, featur
                                                                         Unggulan
                                                                     </Badge>
                                                                 )}
-                                                                <div className="flex space-x-2">
-                                                                    <Button variant="outline" size="icon" className="rounded-xl border-gray-300 hover:bg-red-50 hover:border-red-200">
-                                                                        <Heart className="w-4 h-4 text-gray-400 hover:text-red-500" />
-                                                                    </Button>
-                                                                    <Button variant="outline" size="icon" className="rounded-xl border-gray-300 hover:bg-blue-50 hover:border-blue-200">
-                                                                        <Bookmark className="w-4 h-4 text-gray-400 hover:text-blue-500" />
-                                                                    </Button>
-                                                                    <Button variant="outline" size="icon" className="rounded-xl border-gray-300 hover:bg-green-50 hover:border-green-200">
-                                                                        <Share2 className="w-4 h-4 text-gray-400 hover:text-green-500" />
-                                                                    </Button>
-                                                                </div>
                                                             </div>
                                                         </div>
                                                         
@@ -546,16 +597,16 @@ export default function JobsIndex({ jobs, categories, filters, totalJobs, featur
                                                             {job.description}
                                                         </p>
                                                         
-                                                        <div className="flex items-center justify-between">
+                                                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
                                                             <div className="flex items-center space-x-2">
                                                                 <DollarSign className="w-5 h-5 text-[#2347FA]" />
-                                                                <span className="text-2xl font-bold bg-gradient-to-r from-[#2347FA] to-[#3b56fc] bg-clip-text text-transparent">
+                                                                <span className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-[#2347FA] to-[#3b56fc] bg-clip-text text-transparent">
                                                                     {formatSalary(job.salary_min, job.salary_max, job.salary_currency, job.salary_negotiable)}
                                                                 </span>
                                                             </div>
                                                             
-                                                            <div className="flex items-center space-x-6">
-                                                                <div className="text-sm text-gray-500 text-right">
+                                                            <div className="flex flex-col sm:flex-row sm:items-center space-y-3 sm:space-y-0 sm:space-x-6">
+                                                                <div className="text-sm text-gray-500">
                                                                     <div className="flex items-center mb-1">
                                                                         <Users className="w-4 h-4 mr-1" />
                                                                         <NumberTicker value={job.applications_count} className="" delay={0.3 + index * 0.1} /> pelamar
@@ -563,8 +614,8 @@ export default function JobsIndex({ jobs, categories, filters, totalJobs, featur
                                                                     <div>{job.remaining_positions} posisi tersisa</div>
                                                                 </div>
                                                                 
-                                                                <Link href={`/jobs/${job.id}`}>
-                                                                    <Button className="bg-gradient-to-r from-[#2347FA] to-[#3b56fc] hover:from-[#1a3af0] hover:to-[#2d47f5] text-white rounded-xl px-6 shadow-md hover:shadow-lg transition-all duration-300">
+                                                                <Link href={`/jobs/${job.slug}`} className="w-full sm:w-auto">
+                                                                    <Button className="w-full sm:w-auto bg-gradient-to-r from-[#2347FA] to-[#3b56fc] hover:from-[#1a3af0] hover:to-[#2d47f5] text-white rounded-xl px-6 shadow-md hover:shadow-lg transition-all duration-300">
                                                                         Lamar Sekarang
                                                                         <ArrowRight className="w-4 h-4 ml-2" />
                                                                     </Button>
@@ -614,46 +665,50 @@ export default function JobsIndex({ jobs, categories, filters, totalJobs, featur
                             </motion.div>
                         )}
 
-                        {/* Pagination */}
+                        {/* Enhanced Pagination */}
                         {jobs.last_page > 1 && (
-                            <div className="mt-8 flex justify-center">
-                                <div className="flex items-center space-x-2">
+                            <motion.div 
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: 1.6 }}
+                                className="mt-12 flex flex-col sm:flex-row items-center justify-between space-y-4 sm:space-y-0"
+                            >
+                                {/* Page Info */}
+                                <div className="text-sm text-gray-600">
+                                    Menampilkan halaman <span className="font-semibold text-[#2347FA]">{jobs.current_page}</span> dari{' '}
+                                    <span className="font-semibold text-gray-900">{jobs.last_page}</span> halaman
+                                </div>
+
+                                {/* Pagination Controls */}
+                                <div className="flex items-center space-x-1">
+                                    {/* Previous Button */}
                                     {jobs.current_page > 1 && (
                                         <Link
-                                            href={`/jobs?page=${jobs.current_page - 1}`}
-                                            className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+                                            href={`/jobs?page=${jobs.current_page - 1}${getFilterQueryString()}`}
+                                            className="flex items-center px-4 py-2 text-sm font-medium text-gray-600 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 hover:text-gray-700 transition-all duration-200"
                                         >
-                                            Previous
+                                            <ChevronRight className="w-4 h-4 mr-1 rotate-180" />
+                                            Sebelumnya
                                         </Link>
                                     )}
                                     
-                                    {Array.from({ length: Math.min(5, jobs.last_page) }, (_, i) => {
-                                        const page = i + 1;
-                                        return (
-                                            <Link
-                                                key={page}
-                                                href={`/jobs?page=${page}`}
-                                                className={`px-3 py-2 text-sm font-medium rounded-md ${
-                                                    page === jobs.current_page
-                                                        ? 'text-white bg-[#2347FA] border border-[#2347FA]'
-                                                        : 'text-gray-500 bg-white border border-gray-300 hover:bg-gray-50'
-                                                }`}
-                                            >
-                                                {page}
-                                            </Link>
-                                        );
-                                    })}
+                                    {/* Page Numbers */}
+                                    <div className="flex items-center space-x-1">
+                                        {renderPaginationNumbers()}
+                                    </div>
                                     
+                                    {/* Next Button */}
                                     {jobs.current_page < jobs.last_page && (
                                         <Link
-                                            href={`/jobs?page=${jobs.current_page + 1}`}
-                                            className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+                                            href={`/jobs?page=${jobs.current_page + 1}${getFilterQueryString()}`}
+                                            className="flex items-center px-4 py-2 text-sm font-medium text-gray-600 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 hover:text-gray-700 transition-all duration-200"
                                         >
-                                            Next
+                                            Selanjutnya
+                                            <ChevronRight className="w-4 h-4 ml-1" />
                                         </Link>
                                     )}
                                 </div>
-                            </div>
+                            </motion.div>
                         )}
                     </div>
                 </section>

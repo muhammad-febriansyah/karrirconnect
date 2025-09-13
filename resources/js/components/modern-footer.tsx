@@ -49,7 +49,7 @@ export default function ModernFooter({
                                             <img
                                                 src={pageSettings.logo.startsWith('http') ? pageSettings.logo : `/storage/${pageSettings.logo}`}
                                                 alt={pageSettings.site_name || siteName}
-                                                className="h-10 w-40 rounded-xl object-cover"
+                                                className="h-8 w-auto max-w-[100px] rounded-xl object-contain"
                                                 onError={(e) => {
                                                     e.currentTarget.style.display = 'none';
                                                     e.currentTarget.nextElementSibling?.classList.remove('hidden');

@@ -42,11 +42,11 @@ class AboutUsController extends Controller
             'description' => 'required|string',
             'vision' => 'required|string',
             'mission' => 'required|string',
-            'values' => 'required|array',
-            'features' => 'required|array',
-            'stats' => 'required|array',
-            'team' => 'required|array',
-            'contact' => 'required|array',
+            'values' => 'nullable|array',
+            'features' => 'nullable|array',
+            'stats' => 'nullable|array',
+            'team' => 'nullable|array',
+            'contact' => 'nullable|array',
             'cta_title' => 'nullable|string|max:255',
             'cta_description' => 'nullable|string',
             'is_active' => 'boolean',
@@ -58,7 +58,49 @@ class AboutUsController extends Controller
             $aboutUs = new AboutUs();
         }
 
-        $aboutUs->update($request->all());
+        $data = $request->except(['_token', '_method']);
+
+        // Ensure arrays exist
+        $data['values'] = $data['values'] ?? [];
+        $data['features'] = $data['features'] ?? [];
+        $data['stats'] = $data['stats'] ?? [];
+        $data['team'] = $data['team'] ?? [];
+        $data['contact'] = $data['contact'] ?? ['email' => [], 'phone' => [], 'address' => []];
+
+        // Handle SVG uploads for values
+        if (isset($data['values']) && is_array($data['values'])) {
+            foreach ($data['values'] as $index => $value) {
+                if ($request->hasFile("values.{$index}.icon")) {
+                    $file = $request->file("values.{$index}.icon");
+                    $filename = 'values_' . $index . '_' . time() . '.svg';
+                    $path = $file->storeAs('about-us/icons', $filename, 'public');
+                    $data['values'][$index]['icon'] = $path;
+                } elseif (is_string($value['icon'] ?? null)) {
+                    // Keep existing path if no new file uploaded
+                    $data['values'][$index]['icon'] = $value['icon'];
+                }
+            }
+        }
+
+        // Stats icons are now handled as strings (Lucide icon names), no file upload needed
+
+        // Handle image uploads for team members
+        if (isset($data['team']) && is_array($data['team'])) {
+            foreach ($data['team'] as $index => $member) {
+                if ($request->hasFile("team.{$index}.image")) {
+                    $file = $request->file("team.{$index}.image");
+                    $extension = $file->getClientOriginalExtension();
+                    $filename = 'team_' . $index . '_' . time() . '.' . $extension;
+                    $path = $file->storeAs('about-us/team', $filename, 'public');
+                    $data['team'][$index]['image'] = $path;
+                } elseif (is_string($member['image'] ?? null)) {
+                    // Keep existing path if no new file uploaded
+                    $data['team'][$index]['image'] = $member['image'];
+                }
+            }
+        }
+
+        $aboutUs->update($data);
 
         return redirect()->route('admin.about-us.edit')
             ->with('success', 'Informasi tentang kami berhasil diperbarui.');

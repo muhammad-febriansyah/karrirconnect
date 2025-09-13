@@ -9,8 +9,9 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { type SharedData } from '@/types';
-import { Head, Link, usePage } from '@inertiajs/react';
+import { Head, Link, usePage, router } from '@inertiajs/react';
 import { motion } from 'framer-motion';
+import { useState } from 'react';
 import {
     ArrowRight,
     Award,
@@ -31,6 +32,36 @@ import {
     TrendingUp,
     Users,
     Zap,
+    Handshake,
+    Lightbulb,
+    Trophy,
+    Eye,
+    Compass,
+    Rocket,
+    Gem,
+    Diamond,
+    ThumbsUp,
+    Smile,
+    Infinity,
+    Leaf,
+    Sun,
+    Puzzle,
+    Key,
+    Lock,
+    Megaphone,
+    MessageCircle,
+    BookOpen,
+    Calendar,
+    Coffee,
+    Gift,
+    Home,
+    Music,
+    Palette,
+    Camera,
+    Code,
+    Database,
+    GraduationCap,
+    Building2,
 } from 'lucide-react';
 
 interface Company {
@@ -58,6 +89,7 @@ interface JobCategory {
 
 interface JobListing {
     id: number;
+    slug: string;
     title: string;
     company: {
         id: number;
@@ -180,11 +212,38 @@ interface HomePageProps {
     latestNews: NewsArticle[];
     successStories: SuccessStory[];
     aboutUs: AboutUs | null;
+    [key: string]: any;
 }
 
 export default function Welcome() {
     const { auth } = usePage<SharedData>().props;
     const { settings, statistics, featuredJobs, topCompanies, jobCategories, latestNews, successStories, aboutUs } = usePage<HomePageProps>().props;
+
+    // State untuk search form
+    const [searchQuery, setSearchQuery] = useState('');
+    const [locationQuery, setLocationQuery] = useState('');
+
+    // Fungsi untuk handle search
+    const handleSearch = (e: React.FormEvent) => {
+        e.preventDefault();
+        
+        // Buat query parameters untuk search
+        const params = new URLSearchParams();
+        
+        if (searchQuery.trim()) {
+            params.append('search', searchQuery.trim());
+        }
+        
+        if (locationQuery.trim()) {
+            params.append('location', locationQuery.trim());
+        }
+        
+        // Redirect ke halaman jobs dengan query parameters
+        const queryString = params.toString();
+        const url = queryString ? `/jobs?${queryString}` : '/jobs';
+        
+        router.visit(url);
+    };
 
     const formatSalary = (min: number | null, max: number | null, currency: string, negotiable: boolean) => {
         if (negotiable) return 'Negotiable';
@@ -248,7 +307,7 @@ export default function Welcome() {
                                 initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ duration: 0.6, delay: 0.2 }}
-                                className="mb-6 text-4xl leading-tight font-bold text-gray-900 md:text-5xl lg:text-6xl"
+                                className="mb-6 text-2xl leading-tight font-bold text-gray-900 sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl"
                             >
                                 Temukan Karir <span className="text-blue-600">Impian</span>
                                 <br />
@@ -260,7 +319,7 @@ export default function Welcome() {
                                 initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ duration: 0.6, delay: 0.4 }}
-                                className="mx-auto mb-12 max-w-3xl text-lg leading-relaxed text-gray-600 md:text-xl"
+                                className="mx-auto mb-8 sm:mb-12 max-w-3xl text-base leading-relaxed text-gray-600 sm:text-lg md:text-xl px-4 sm:px-0"
                             >
                                 {siteDescription}. Bergabunglah dengan lebih dari{' '}
                                 <span className="font-semibold text-gray-900">{statistics.total_candidates.toLocaleString()}+</span> talenta dan{' '}
@@ -272,35 +331,39 @@ export default function Welcome() {
                                 initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ duration: 0.6, delay: 0.6 }}
-                                className="mx-auto max-w-4xl rounded-2xl border border-gray-200 bg-white p-6 shadow-lg"
+                                className="mx-auto max-w-4xl rounded-2xl border border-gray-200 bg-white p-4 sm:p-6 shadow-lg"
                             >
-                                <div className="grid items-center gap-4 md:grid-cols-5">
+                                <form onSubmit={handleSearch} className="flex flex-col gap-3 sm:gap-4 md:grid md:grid-cols-5 md:items-center">
                                     {/* Job Search Input */}
                                     <div className="relative md:col-span-2">
-                                        <Search className="absolute top-1/2 left-4 h-5 w-5 -translate-y-1/2 transform text-gray-400" />
+                                        <Search className="absolute top-1/2 left-3 sm:left-4 h-4 w-4 sm:h-5 sm:w-5 -translate-y-1/2 transform text-gray-400" />
                                         <Input
+                                            value={searchQuery}
+                                            onChange={(e) => setSearchQuery(e.target.value)}
                                             placeholder="Cari posisi atau perusahaan"
-                                            className="h-12 rounded-lg border-gray-300 pl-12 text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:ring-blue-500"
+                                            className="h-10 sm:h-12 rounded-lg border-gray-300 pl-10 sm:pl-12 text-sm sm:text-base text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:ring-blue-500"
                                         />
                                     </div>
 
                                     {/* Location Input */}
                                     <div className="relative md:col-span-2">
-                                        <MapPin className="absolute top-1/2 left-4 h-5 w-5 -translate-y-1/2 transform text-gray-400" />
+                                        <MapPin className="absolute top-1/2 left-3 sm:left-4 h-4 w-4 sm:h-5 sm:w-5 -translate-y-1/2 transform text-gray-400" />
                                         <Input
+                                            value={locationQuery}
+                                            onChange={(e) => setLocationQuery(e.target.value)}
                                             placeholder="Kota atau wilayah"
-                                            className="h-12 rounded-lg border-gray-300 pl-12 text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:ring-blue-500"
+                                            className="h-10 sm:h-12 rounded-lg border-gray-300 pl-10 sm:pl-12 text-sm sm:text-base text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:ring-blue-500"
                                         />
                                     </div>
 
                                     {/* Search Button */}
                                     <div className="md:col-span-1">
-                                        <Button className="h-12 w-full rounded-lg bg-blue-600 font-medium text-white hover:bg-blue-700">
+                                        <Button type="submit" className="h-10 sm:h-12 w-full rounded-lg bg-blue-600 font-medium text-white hover:bg-blue-700 text-sm sm:text-base">
                                             <Search className="mr-2 h-4 w-4" />
-                                            <span className="hidden sm:inline">Cari</span>
+                                            <span>Cari</span>
                                         </Button>
                                     </div>
-                                </div>
+                                </form>
                             </motion.div>
 
                             {/* Stats */}
@@ -308,25 +371,25 @@ export default function Welcome() {
                                 initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ duration: 0.6, delay: 0.8 }}
-                                className="mx-auto mt-16 grid max-w-2xl grid-cols-3 gap-8"
+                                className="mx-auto mt-12 sm:mt-16 grid max-w-2xl grid-cols-3 gap-4 sm:gap-8 px-4 sm:px-0"
                             >
                                 <div className="text-center">
-                                    <div className="mb-2 text-3xl font-bold text-blue-600">
-                                        <NumberTicker value={statistics.total_jobs} className="text-3xl font-bold text-blue-600" delay={0.2} />+
+                                    <div className="mb-1 sm:mb-2 text-xl sm:text-2xl lg:text-3xl font-bold text-blue-600">
+                                        <NumberTicker value={statistics.total_jobs} className="text-xl sm:text-2xl lg:text-3xl font-bold text-blue-600" delay={0.2} />+
                                     </div>
-                                    <div className="text-gray-600">Lowongan Kerja</div>
+                                    <div className="text-sm sm:text-base text-gray-600">Lowongan Kerja</div>
                                 </div>
                                 <div className="text-center">
-                                    <div className="mb-2 text-3xl font-bold text-blue-600">
-                                        <NumberTicker value={statistics.total_companies} className="text-3xl font-bold text-blue-600" delay={0.4} />+
+                                    <div className="mb-1 sm:mb-2 text-xl sm:text-2xl lg:text-3xl font-bold text-blue-600">
+                                        <NumberTicker value={statistics.total_companies} className="text-xl sm:text-2xl lg:text-3xl font-bold text-blue-600" delay={0.4} />+
                                     </div>
-                                    <div className="text-gray-600">Perusahaan</div>
+                                    <div className="text-sm sm:text-base text-gray-600">Perusahaan</div>
                                 </div>
                                 <div className="text-center">
-                                    <div className="mb-2 text-3xl font-bold text-blue-600">
-                                        <NumberTicker value={statistics.total_candidates} className="text-3xl font-bold text-blue-600" delay={0.6} />+
+                                    <div className="mb-1 sm:mb-2 text-xl sm:text-2xl lg:text-3xl font-bold text-blue-600">
+                                        <NumberTicker value={statistics.total_candidates} className="text-xl sm:text-2xl lg:text-3xl font-bold text-blue-600" delay={0.6} />+
                                     </div>
-                                    <div className="text-gray-600">Pengguna</div>
+                                    <div className="text-sm sm:text-base text-gray-600">Pengguna</div>
                                 </div>
                             </motion.div>
                         </div>
@@ -346,216 +409,153 @@ export default function Welcome() {
                     <div className="relative z-10 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                         {/* Enhanced Header */}
                         <motion.div
-                            initial={{ opacity: 0, y: 20 }}
+                            initial={{ opacity: 0, y: 30 }}
                             whileInView={{ opacity: 1, y: 0 }}
                             viewport={{ once: true }}
-                            className="mb-20 text-center"
+                            transition={{ duration: 0.8 }}
+                            className="mb-16 text-center"
                         >
                             <motion.div
                                 initial={{ opacity: 0, scale: 0.8 }}
                                 whileInView={{ opacity: 1, scale: 1 }}
                                 viewport={{ once: true }}
-                                transition={{ delay: 0.1 }}
-                                className="mb-6 inline-flex items-center space-x-2 rounded-full border border-[#2347FA]/20 bg-gradient-to-r from-[#2347FA]/5 to-blue-50/50 px-5 py-3 backdrop-blur-sm"
+                                transition={{ delay: 0.1, type: "spring", stiffness: 200 }}
+                                className="mb-8 inline-flex items-center gap-3 rounded-2xl border border-blue-100 bg-gradient-to-r from-blue-50/80 to-indigo-50/80 px-6 py-3 backdrop-blur-sm"
                             >
-                                <Crown className="h-5 w-5 text-[#2347FA]" />
-                                <span className="text-sm font-semibold text-[#2347FA]">Trusted Partners</span>
-                                <Shield className="h-5 w-5 text-green-600" />
+                                <Crown className="h-5 w-5 text-amber-500" />
+                                <span className="text-sm font-semibold text-blue-700">Trusted by Industry Leaders</span>
+                                <Shield className="h-5 w-5 text-emerald-500" />
                             </motion.div>
 
                             <motion.h2
                                 initial={{ opacity: 0, y: 20 }}
                                 whileInView={{ opacity: 1, y: 0 }}
                                 viewport={{ once: true }}
-                                transition={{ delay: 0.2 }}
-                                className="mb-6 text-4xl font-bold text-gray-900 md:text-5xl lg:text-6xl"
+                                transition={{ delay: 0.2, duration: 0.8 }}
+                                className="mb-6 text-3xl font-bold leading-tight text-gray-900 sm:text-4xl lg:text-5xl xl:text-6xl"
                             >
-                                Dipercaya{' '}
-                                <span className="bg-gradient-to-r from-[#2347FA] to-[#3b56fc] bg-clip-text text-transparent">Perusahaan</span>
+                                Dipercaya oleh{' '}
+                                <span className="bg-gradient-to-r from-[#2347FA] via-blue-600 to-indigo-600 bg-clip-text text-transparent">
+                                    {statistics.total_companies.toLocaleString()}+
+                                </span>
                                 <br />
-                                <span className="text-gray-700">Terkemuka</span>
+                                <span className="text-2xl font-medium text-gray-600 sm:text-3xl lg:text-4xl">
+                                    Perusahaan Terkemuka
+                                </span>
                             </motion.h2>
 
                             <motion.p
                                 initial={{ opacity: 0, y: 20 }}
                                 whileInView={{ opacity: 1, y: 0 }}
                                 viewport={{ once: true }}
-                                transition={{ delay: 0.3 }}
-                                className="mx-auto max-w-3xl text-xl leading-relaxed text-gray-600"
+                                transition={{ delay: 0.3, duration: 0.8 }}
+                                className="mx-auto max-w-2xl text-base leading-relaxed text-gray-600 sm:text-lg"
                             >
-                                Lebih dari <span className="font-bold text-[#2347FA]">{statistics.total_companies.toLocaleString()}+</span> perusahaan
-                                dari berbagai industri mempercayai KarirConnect sebagai platform rekrutmen utama mereka
+                                Dari startup inovatif hingga korporasi global, perusahaan-perusahaan terdepan memilih 
+                                KarirConnect sebagai partner dalam menemukan talenta terbaik Indonesia.
                             </motion.p>
 
-                            {/* Trust indicators */}
-                            <motion.div
-                                initial={{ opacity: 0, y: 20 }}
-                                whileInView={{ opacity: 1, y: 0 }}
-                                viewport={{ once: true }}
-                                transition={{ delay: 0.4 }}
-                                className="mt-8 flex flex-wrap items-center justify-center gap-8 text-sm text-gray-600"
-                            >
-                                <div className="flex items-center space-x-2">
-                                    <Award className="h-5 w-5 text-yellow-500" />
-                                    <span>Fortune 500 Companies</span>
-                                </div>
-                                <div className="flex items-center space-x-2">
-                                    <Building className="h-5 w-5 text-[#2347FA]" />
-                                    <span>Startup Unicorn</span>
-                                </div>
-                                <div className="flex items-center space-x-2">
-                                    <Shield className="h-5 w-5 text-green-500" />
-                                    <span>BUMN & Government</span>
-                                </div>
-                                <div className="flex items-center space-x-2">
-                                    <Globe className="h-5 w-5 text-purple-500" />
-                                    <span>Multinational Corps</span>
-                                </div>
-                            </motion.div>
                         </motion.div>
 
-                        {/* Enhanced Company Cards */}
-                        <div className="grid grid-cols-2 gap-6 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+                        {/* Company Showcase */}
+                        <div className="grid grid-cols-2 gap-3 sm:gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">
                             {topCompanies.map((company, index) => (
                                 <motion.div
                                     key={company.id}
-                                    initial={{ opacity: 0, y: 30, scale: 0.9 }}
-                                    whileInView={{ opacity: 1, y: 0, scale: 1 }}
+                                    initial={{ opacity: 0, y: 20 }}
+                                    whileInView={{ opacity: 1, y: 0 }}
                                     viewport={{ once: true }}
-                                    transition={{
-                                        delay: index * 0.1,
-                                        duration: 0.5,
-                                        type: 'spring',
-                                        stiffness: 100,
-                                    }}
+                                    transition={{ delay: index * 0.05, duration: 0.6 }}
                                     className="group cursor-pointer"
                                 >
                                     <Link href={`/companies/${company.id}`}>
-                                        <div className="relative h-full rounded-3xl border border-gray-200/50 bg-white/80 p-6 shadow-lg backdrop-blur-sm transition-all duration-500 hover:-translate-y-3 hover:scale-105 hover:shadow-2xl hover:shadow-[#2347FA]/10">
-                                            {/* Decorative elements */}
-                                            <div className="absolute top-0 left-0 h-1 w-full rounded-t-3xl bg-gradient-to-r from-[#2347FA] to-[#3b56fc] opacity-0 transition-all duration-300 group-hover:opacity-100"></div>
-                                            <div className="absolute -top-20 -right-20 h-40 w-40 rounded-full bg-gradient-to-br from-[#2347FA]/5 to-[#3b56fc]/5 transition-all duration-500 group-hover:scale-150 group-hover:opacity-50"></div>
-
-                                            {/* Premium badge for top companies */}
+                                        <div className="relative rounded-2xl border border-gray-100 bg-white p-3 sm:p-4 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:border-blue-200">
+                                            {/* Top badge for featured companies */}
                                             {index < 3 && (
                                                 <div className="absolute -top-2 -right-2 z-10">
-                                                    <div className="flex items-center rounded-full bg-gradient-to-r from-yellow-400 to-orange-400 px-2 py-1 text-xs font-bold text-white shadow-lg">
-                                                        <Crown className="mr-1 h-3 w-3" />
-                                                        Top
+                                                    <div className="rounded-full bg-gradient-to-r from-amber-400 to-orange-400 p-1.5 shadow-sm">
+                                                        <Crown className="h-3 w-3 text-white" />
                                                     </div>
                                                 </div>
                                             )}
 
-                                            <div className="relative z-10 flex flex-col items-center space-y-4 text-center">
-                                                {/* Enhanced Company Logo */}
+                                            <div className="flex flex-col items-center space-y-2 sm:space-y-3 text-center">
+                                                {/* Company Logo */}
                                                 <div className="relative">
-                                                    <div className="relative h-20 w-20 rounded-2xl bg-gradient-to-br from-gray-50 to-white p-4 shadow-md ring-2 ring-gray-100 transition-all duration-300 group-hover:ring-[#2347FA]/30">
+                                                    <div className="h-12 w-12 sm:h-16 sm:w-16 rounded-xl bg-gray-50 p-2 sm:p-3 transition-colors duration-300 group-hover:bg-blue-50">
                                                         <Avatar className="h-full w-full">
                                                             {company.logo ? (
                                                                 <AvatarImage
                                                                     src={company.logo}
                                                                     alt={company.name}
-                                                                    className="object-contain p-1 transition-transform duration-300 group-hover:scale-110"
+                                                                    className="object-contain"
                                                                 />
                                                             ) : (
-                                                                <AvatarFallback className="bg-gradient-to-br from-[#2347FA] to-[#3b56fc] text-xl font-bold text-white">
+                                                                <AvatarFallback className="bg-gradient-to-br from-[#2347FA] to-blue-600 text-white text-sm font-semibold">
                                                                     {company.name.charAt(0)}
                                                                 </AvatarFallback>
                                                             )}
                                                         </Avatar>
                                                     </div>
 
-                                                    {/* Verification badge */}
+                                                    {/* Status indicators */}
                                                     {company.is_verified && (
-                                                        <div className="absolute -right-1 -bottom-1 rounded-full bg-white p-1.5 shadow-lg ring-2 ring-white">
-                                                            <CheckCircle className="h-5 w-5 text-emerald-500" />
-                                                        </div>
-                                                    )}
-
-                                                    {/* Pulse animation for active companies */}
-                                                    {company.active_jobs_count > 0 && (
-                                                        <div className="absolute -top-1 -left-1 h-3 w-3 rounded-full bg-green-400">
-                                                            <div className="absolute inset-0 animate-ping rounded-full bg-green-400"></div>
+                                                        <div className="absolute -right-1 -bottom-1 rounded-full bg-white p-1 shadow-sm">
+                                                            <CheckCircle className="h-4 w-4 text-emerald-500" />
                                                         </div>
                                                     )}
                                                 </div>
 
                                                 {/* Company Information */}
-                                                <div className="w-full space-y-3">
-                                                    <h3 className="line-clamp-2 text-sm leading-tight font-bold text-gray-900 transition-colors duration-300 group-hover:text-[#2347FA]">
+                                                <div className="w-full space-y-1 sm:space-y-2">
+                                                    <h3 className="line-clamp-2 text-xs sm:text-sm font-semibold text-gray-900 transition-colors duration-300 group-hover:text-blue-600 leading-tight">
                                                         {company.name}
                                                     </h3>
 
-                                                    {/* Stats row */}
-                                                    <div className="flex items-center justify-center gap-4 text-xs">
-                                                        <div className="flex items-center gap-1 font-medium text-green-600">
-                                                            <Briefcase className="h-3 w-3" />
+                                                    {/* Quick stats */}
+                                                    <div className="flex items-center justify-center gap-2 sm:gap-3 text-xs text-gray-500">
+                                                        <div className="flex items-center gap-1">
+                                                            <Briefcase className="h-3 w-3 flex-shrink-0" />
                                                             <span>{company.active_jobs_count}</span>
                                                         </div>
-                                                        <div className="flex items-center gap-1 text-gray-500">
-                                                            <MapPin className="h-3 w-3" />
-                                                            <span className="max-w-[60px] truncate">{company.location}</span>
+                                                        <div className="h-1 w-1 rounded-full bg-gray-300 flex-shrink-0"></div>
+                                                        <div className="flex items-center gap-1 min-w-0">
+                                                            <MapPin className="h-3 w-3 flex-shrink-0" />
+                                                            <span className="max-w-[40px] sm:max-w-[60px] truncate">{company.location}</span>
                                                         </div>
                                                     </div>
-
-                                                    {/* Industry badge */}
-                                                    {company.industry && (
-                                                        <Badge variant="secondary" className="border-blue-200 bg-blue-50 text-xs text-blue-700">
-                                                            {company.industry}
-                                                        </Badge>
-                                                    )}
-
-                                                    {/* Company size */}
-                                                    {company.size && <div className="text-xs text-gray-500">{company.size} karyawan</div>}
                                                 </div>
                                             </div>
 
-                                            {/* Hover effect overlay */}
-                                            <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-[#2347FA]/5 to-[#3b56fc]/5 opacity-0 transition-opacity duration-300 group-hover:opacity-100"></div>
                                         </div>
                                     </Link>
                                 </motion.div>
                             ))}
                         </div>
 
-                        {/* Enhanced CTA Section */}
+                        {/* CTA Section */}
                         <motion.div
                             initial={{ opacity: 0, y: 20 }}
                             whileInView={{ opacity: 1, y: 0 }}
                             viewport={{ once: true }}
-                            transition={{ delay: 0.6 }}
-                            className="mt-16 text-center"
+                            transition={{ delay: 0.5, duration: 0.8 }}
+                            className="mt-12 text-center"
                         >
-                            <div className="inline-flex flex-col items-center gap-6 rounded-3xl border border-gray-200/50 bg-white/80 px-8 py-6 shadow-xl backdrop-blur-sm sm:flex-row">
-                                <div className="flex items-center space-x-3">
-                                    <div className="flex -space-x-2">
-                                        {/* Sample company avatars */}
-                                        <div className="h-10 w-10 rounded-full border-2 border-white bg-gradient-to-r from-blue-500 to-purple-500"></div>
-                                        <div className="h-10 w-10 rounded-full border-2 border-white bg-gradient-to-r from-green-500 to-teal-500"></div>
-                                        <div className="h-10 w-10 rounded-full border-2 border-white bg-gradient-to-r from-orange-500 to-red-500"></div>
-                                        <div className="flex h-10 w-10 items-center justify-center rounded-full border-2 border-white bg-gradient-to-r from-purple-500 to-pink-500 text-xs font-bold text-white">
-                                            +{statistics.total_companies - 3}
-                                        </div>
-                                    </div>
-                                    <div className="text-sm text-gray-600">
-                                        <p className="font-medium">Bergabung dengan perusahaan terkemuka lainnya</p>
-                                        <p className="text-xs">Temukan talenta terbaik untuk tim Anda</p>
-                                    </div>
+                            <div className="inline-flex flex-col items-center gap-4 sm:gap-6 rounded-2xl bg-gradient-to-r from-blue-50/50 to-indigo-50/50 p-4 sm:p-6 lg:p-8 sm:flex-row">
+                                <div className="text-center sm:text-left">
+                                    <p className="font-semibold text-gray-900">Bergabung dengan {statistics.total_companies.toLocaleString()}+ perusahaan lainnya</p>
+                                    <p className="text-sm text-gray-600">Temukan talenta terbaik untuk tim Anda di KarirConnect</p>
                                 </div>
-
-                                <div className="flex gap-3">
-                                    <Button asChild variant="outline" className="rounded-full border-gray-300 px-6 text-gray-700 hover:bg-gray-50">
+                                <div className="flex flex-col gap-3 sm:flex-row">
+                                    <Button asChild variant="outline" size="sm" className="rounded-full">
                                         <Link href="/companies">
-                                            Jelajahi Semua
+                                            Lihat Semua
                                             <ArrowRight className="ml-2 h-4 w-4" />
                                         </Link>
                                     </Button>
-                                    <Button
-                                        asChild
-                                        className="rounded-full bg-gradient-to-r from-[#2347FA] to-[#3b56fc] px-6 text-white shadow-lg transition-all duration-300 hover:from-[#1a3af0] hover:to-[#2d47f5] hover:shadow-xl"
-                                    >
+                                    <Button asChild size="sm" className="rounded-full bg-[#2347FA] hover:bg-blue-700">
                                         <Link href="/employer/register">
-                                            Daftar Sekarang
+                                            Mulai Sekarang
                                             <Building className="ml-2 h-4 w-4" />
                                         </Link>
                                     </Button>
@@ -600,21 +600,76 @@ export default function Welcome() {
                             </div>
 
                             {/* Values */}
-                            <div className="mb-16 grid gap-8 md:grid-cols-2 lg:grid-cols-4">
+                            <div className="mb-12 sm:mb-16 grid gap-6 sm:gap-8 md:grid-cols-2 lg:grid-cols-4">
                                 {aboutUs.values.map((value, index) => {
-                                    const getIcon = (iconName: string) => {
-                                        switch (iconName) {
-                                            case 'heart':
-                                                return <Heart className="h-8 w-8 text-blue-600" />;
-                                            case 'users':
-                                                return <Users className="h-8 w-8 text-blue-600" />;
-                                            case 'target':
-                                                return <Target className="h-8 w-8 text-blue-600" />;
-                                            case 'globe':
-                                                return <Globe className="h-8 w-8 text-blue-600" />;
-                                            default:
-                                                return <Building className="h-8 w-8 text-blue-600" />;
-                                        }
+                                    // Icon mapping for values (from lucide.dev) - same as about page
+                                    const iconMap: { [key: string]: JSX.Element } = {
+                                        // Core Business Values
+                                        handshake: <Handshake className="h-8 w-8 text-blue-600" />,
+                                        heart: <Heart className="h-8 w-8 text-blue-600" />,
+                                        lightbulb: <Lightbulb className="h-8 w-8 text-blue-600" />,
+                                        trophy: <Trophy className="h-8 w-8 text-blue-600" />,
+                                        shield: <Shield className="h-8 w-8 text-blue-600" />,
+                                        target: <Target className="h-8 w-8 text-blue-600" />,
+                                        users: <Users className="h-8 w-8 text-blue-600" />,
+                                        globe: <Globe className="h-8 w-8 text-blue-600" />,
+                                        search: <Search className="h-8 w-8 text-blue-600" />,
+                                        
+                                        // Leadership & Excellence
+                                        crown: <Crown className="h-8 w-8 text-blue-600" />,
+                                        award: <Award className="h-8 w-8 text-blue-600" />,
+                                        star: <Star className="h-8 w-8 text-blue-600" />,
+                                        diamond: <Diamond className="h-8 w-8 text-blue-600" />,
+                                        gem: <Gem className="h-8 w-8 text-blue-600" />,
+                                        
+                                        // Growth & Progress
+                                        'trending-up': <TrendingUp className="h-8 w-8 text-blue-600" />,
+                                        rocket: <Rocket className="h-8 w-8 text-blue-600" />,
+                                        zap: <Zap className="h-8 w-8 text-blue-600" />,
+                                        flame: <Flame className="h-8 w-8 text-blue-600" />,
+                                        sparkles: <Sparkles className="h-8 w-8 text-blue-600" />,
+                                        infinity: <Infinity className="h-8 w-8 text-blue-600" />,
+                                        
+                                        // Vision & Insight
+                                        eye: <Eye className="h-8 w-8 text-blue-600" />,
+                                        compass: <Compass className="h-8 w-8 text-blue-600" />,
+                                        sun: <Sun className="h-8 w-8 text-blue-600" />,
+                                        
+                                        // Collaboration & Communication
+                                        'thumbs-up': <ThumbsUp className="h-8 w-8 text-blue-600" />,
+                                        smile: <Smile className="h-8 w-8 text-blue-600" />,
+                                        'message-circle': <MessageCircle className="h-8 w-8 text-blue-600" />,
+                                        megaphone: <Megaphone className="h-8 w-8 text-blue-600" />,
+                                        
+                                        // Innovation & Technology
+                                        puzzle: <Puzzle className="h-8 w-8 text-blue-600" />,
+                                        code: <Code className="h-8 w-8 text-blue-600" />,
+                                        database: <Database className="h-8 w-8 text-blue-600" />,
+                                        key: <Key className="h-8 w-8 text-blue-600" />,
+                                        lock: <Lock className="h-8 w-8 text-blue-600" />,
+                                        
+                                        // Learning & Development
+                                        'graduation-cap': <GraduationCap className="h-8 w-8 text-blue-600" />,
+                                        'book-open': <BookOpen className="h-8 w-8 text-blue-600" />,
+                                        
+                                        // Work & Business
+                                        briefcase: <Briefcase className="h-8 w-8 text-blue-600" />,
+                                        building: <Building className="h-8 w-8 text-blue-600" />,
+                                        'building-2': <Building2 className="h-8 w-8 text-blue-600" />,
+                                        calendar: <Calendar className="h-8 w-8 text-blue-600" />,
+                                        clock: <Clock className="h-8 w-8 text-blue-600" />,
+                                        
+                                        // Comfort & Lifestyle
+                                        coffee: <Coffee className="h-8 w-8 text-blue-600" />,
+                                        gift: <Gift className="h-8 w-8 text-blue-600" />,
+                                        home: <Home className="h-8 w-8 text-blue-600" />,
+                                        music: <Music className="h-8 w-8 text-blue-600" />,
+                                        palette: <Palette className="h-8 w-8 text-blue-600" />,
+                                        camera: <Camera className="h-8 w-8 text-blue-600" />,
+                                        leaf: <Leaf className="h-8 w-8 text-blue-600" />,
+                                        
+                                        // Legacy icons (for backward compatibility)
+                                        'shield-check': <Shield className="h-8 w-8 text-blue-600" />,
                                     };
 
                                     return (
@@ -628,7 +683,7 @@ export default function Welcome() {
                                         >
                                             <div className="relative h-full overflow-hidden rounded-2xl border border-gray-100 bg-white p-6 shadow-sm transition-all duration-300 hover:border-blue-200 hover:shadow-lg">
                                                 <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-100 to-blue-200 shadow-sm">
-                                                    {getIcon(value.icon)}
+                                                    {iconMap[value.icon] ? iconMap[value.icon] : <Building className="h-8 w-8 text-blue-600" />}
                                                 </div>
                                                 <h3 className="mb-3 text-xl font-bold text-gray-900 transition-colors group-hover:text-blue-600">
                                                     {value.title}
@@ -642,21 +697,76 @@ export default function Welcome() {
                             </div>
 
                             {/* Stats */}
-                            <div className="mb-16 grid grid-cols-2 gap-8 md:grid-cols-4">
+                            <div className="mb-12 sm:mb-16 grid grid-cols-2 gap-6 sm:gap-8 md:grid-cols-4">
                                 {aboutUs.stats.map((stat, index) => {
-                                    const getStatIcon = (iconName: string) => {
-                                        switch (iconName) {
-                                            case 'building':
-                                                return <Building className="h-6 w-6 text-blue-600" />;
-                                            case 'users':
-                                                return <Users className="h-6 w-6 text-blue-600" />;
-                                            case 'briefcase':
-                                                return <Briefcase className="h-6 w-6 text-blue-600" />;
-                                            case 'award':
-                                                return <Award className="h-6 w-6 text-blue-600" />;
-                                            default:
-                                                return <Building className="h-6 w-6 text-blue-600" />;
-                                        }
+                                    // Icon mapping for stats (from lucide.dev) - same as about page
+                                    const statIconMap: { [key: string]: JSX.Element } = {
+                                        // Core Business Values
+                                        handshake: <Handshake className="h-6 w-6 text-blue-600" />,
+                                        heart: <Heart className="h-6 w-6 text-blue-600" />,
+                                        lightbulb: <Lightbulb className="h-6 w-6 text-blue-600" />,
+                                        trophy: <Trophy className="h-6 w-6 text-blue-600" />,
+                                        shield: <Shield className="h-6 w-6 text-blue-600" />,
+                                        target: <Target className="h-6 w-6 text-blue-600" />,
+                                        users: <Users className="h-6 w-6 text-blue-600" />,
+                                        globe: <Globe className="h-6 w-6 text-blue-600" />,
+                                        search: <Search className="h-6 w-6 text-blue-600" />,
+                                        
+                                        // Leadership & Excellence
+                                        crown: <Crown className="h-6 w-6 text-blue-600" />,
+                                        award: <Award className="h-6 w-6 text-blue-600" />,
+                                        star: <Star className="h-6 w-6 text-blue-600" />,
+                                        diamond: <Diamond className="h-6 w-6 text-blue-600" />,
+                                        gem: <Gem className="h-6 w-6 text-blue-600" />,
+                                        
+                                        // Growth & Progress
+                                        'trending-up': <TrendingUp className="h-6 w-6 text-blue-600" />,
+                                        rocket: <Rocket className="h-6 w-6 text-blue-600" />,
+                                        zap: <Zap className="h-6 w-6 text-blue-600" />,
+                                        flame: <Flame className="h-6 w-6 text-blue-600" />,
+                                        sparkles: <Sparkles className="h-6 w-6 text-blue-600" />,
+                                        infinity: <Infinity className="h-6 w-6 text-blue-600" />,
+                                        
+                                        // Vision & Insight
+                                        eye: <Eye className="h-6 w-6 text-blue-600" />,
+                                        compass: <Compass className="h-6 w-6 text-blue-600" />,
+                                        sun: <Sun className="h-6 w-6 text-blue-600" />,
+                                        
+                                        // Collaboration & Communication
+                                        'thumbs-up': <ThumbsUp className="h-6 w-6 text-blue-600" />,
+                                        smile: <Smile className="h-6 w-6 text-blue-600" />,
+                                        'message-circle': <MessageCircle className="h-6 w-6 text-blue-600" />,
+                                        megaphone: <Megaphone className="h-6 w-6 text-blue-600" />,
+                                        
+                                        // Innovation & Technology
+                                        puzzle: <Puzzle className="h-6 w-6 text-blue-600" />,
+                                        code: <Code className="h-6 w-6 text-blue-600" />,
+                                        database: <Database className="h-6 w-6 text-blue-600" />,
+                                        key: <Key className="h-6 w-6 text-blue-600" />,
+                                        lock: <Lock className="h-6 w-6 text-blue-600" />,
+                                        
+                                        // Learning & Development
+                                        'graduation-cap': <GraduationCap className="h-6 w-6 text-blue-600" />,
+                                        'book-open': <BookOpen className="h-6 w-6 text-blue-600" />,
+                                        
+                                        // Work & Business
+                                        briefcase: <Briefcase className="h-6 w-6 text-blue-600" />,
+                                        building: <Building className="h-6 w-6 text-blue-600" />,
+                                        'building-2': <Building2 className="h-6 w-6 text-blue-600" />,
+                                        calendar: <Calendar className="h-6 w-6 text-blue-600" />,
+                                        clock: <Clock className="h-6 w-6 text-blue-600" />,
+                                        
+                                        // Comfort & Lifestyle
+                                        coffee: <Coffee className="h-6 w-6 text-blue-600" />,
+                                        gift: <Gift className="h-6 w-6 text-blue-600" />,
+                                        home: <Home className="h-6 w-6 text-blue-600" />,
+                                        music: <Music className="h-6 w-6 text-blue-600" />,
+                                        palette: <Palette className="h-6 w-6 text-blue-600" />,
+                                        camera: <Camera className="h-6 w-6 text-blue-600" />,
+                                        leaf: <Leaf className="h-6 w-6 text-blue-600" />,
+                                        
+                                        // Legacy icons (for backward compatibility)
+                                        'shield-check': <Shield className="h-6 w-6 text-blue-600" />,
                                     };
 
                                     return (
@@ -668,7 +778,9 @@ export default function Welcome() {
                                             transition={{ delay: index * 0.1 }}
                                             className="text-center"
                                         >
-                                            <div className="mb-4 flex items-center justify-center">{getStatIcon(stat.icon)}</div>
+                                            <div className="mb-4 flex items-center justify-center">
+                                                {statIconMap[stat.icon] ? statIconMap[stat.icon] : <Building className="h-6 w-6 text-blue-600" />}
+                                            </div>
                                             <div className="mb-2 text-3xl font-bold text-blue-600 md:text-4xl">{stat.number}</div>
                                             <div className="text-lg font-semibold text-gray-900">{stat.label}</div>
                                         </motion.div>
@@ -677,7 +789,7 @@ export default function Welcome() {
                             </div>
 
                             {/* Mission & Vision */}
-                            <div className="grid gap-8 lg:grid-cols-2">
+                            <div className="grid gap-6 lg:gap-8 lg:grid-cols-2">
                                 <motion.div
                                     initial={{ opacity: 0, x: -20 }}
                                     whileInView={{ opacity: 1, x: 0 }}
@@ -742,7 +854,7 @@ export default function Welcome() {
                             </motion.p>
                         </div>
 
-                        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                        <div className="grid gap-4 sm:gap-6 md:grid-cols-2 lg:grid-cols-3">
                             {jobCategories.map((category, index) => (
                                 <motion.div
                                     key={category.id}
@@ -885,7 +997,7 @@ export default function Welcome() {
                         </motion.div>
 
                         {/* Enhanced Job Cards Grid */}
-                        <div className="grid gap-8 lg:grid-cols-2 xl:grid-cols-3">
+                        <div className="grid gap-6 sm:gap-8 md:grid-cols-2 xl:grid-cols-3">
                             {featuredJobs.map((job, index) => (
                                 <motion.div
                                     key={job.id}
@@ -894,7 +1006,7 @@ export default function Welcome() {
                                     viewport={{ once: true }}
                                     transition={{ delay: index * 0.1 }}
                                 >
-                                    <Card className="group relative h-full cursor-pointer overflow-hidden border border-gray-200/50 bg-white/80 backdrop-blur-sm transition-all duration-300 hover:-translate-y-2 hover:scale-105 hover:shadow-2xl hover:shadow-[#2347FA]/10">
+                                    <Card className="group relative h-full cursor-pointer overflow-hidden border border-gray-200/50 bg-white/80 backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 sm:hover:-translate-y-2 hover:scale-105 hover:shadow-2xl hover:shadow-[#2347FA]/10">
                                         {/* Decorative elements */}
                                         <div className="absolute top-0 left-0 h-1 w-full bg-gradient-to-r from-[#2347FA] to-[#3b56fc] opacity-0 transition-opacity duration-300 group-hover:opacity-100"></div>
                                         <div className="absolute -top-40 -right-40 h-80 w-80 rounded-full bg-gradient-to-br from-[#2347FA]/5 to-[#3b56fc]/5 transition-all duration-500 group-hover:scale-150"></div>
@@ -909,48 +1021,48 @@ export default function Welcome() {
                                             </div>
                                         )}
 
-                                        <CardContent className="relative z-10 p-6">
+                                        <CardContent className="relative z-10 p-4 sm:p-6">
                                             {/* Company Info */}
-                                            <div className="mb-4 flex items-center space-x-4">
-                                                <div className="relative">
-                                                    <Avatar className="h-14 w-14 ring-2 ring-gray-100 transition-all duration-300 group-hover:ring-[#2347FA]/20">
+                                            <div className="mb-3 sm:mb-4 flex items-center space-x-3 sm:space-x-4">
+                                                <div className="relative flex-shrink-0">
+                                                    <Avatar className="h-12 w-12 sm:h-14 sm:w-14 ring-2 ring-gray-100 transition-all duration-300 group-hover:ring-[#2347FA]/20">
                                                         {job.company.logo ? (
                                                             <AvatarImage src={job.company.logo} alt={job.company.name} />
                                                         ) : (
-                                                            <AvatarFallback className="bg-gradient-to-br from-[#2347FA] to-[#3b56fc] text-lg font-semibold text-white">
+                                                            <AvatarFallback className="bg-gradient-to-br from-[#2347FA] to-[#3b56fc] text-sm sm:text-lg font-semibold text-white">
                                                                 {job.company.name.charAt(0)}
                                                             </AvatarFallback>
                                                         )}
                                                     </Avatar>
-                                                    <div className="absolute -right-1 -bottom-1 flex h-5 w-5 items-center justify-center rounded-full border-2 border-white bg-green-500">
-                                                        <CheckCircle className="h-3 w-3 text-white" />
+                                                    <div className="absolute -right-1 -bottom-1 flex h-4 w-4 sm:h-5 sm:w-5 items-center justify-center rounded-full border-2 border-white bg-green-500">
+                                                        <CheckCircle className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-white" />
                                                     </div>
                                                 </div>
 
                                                 <div className="min-w-0 flex-1">
                                                     <p className="truncate text-sm font-medium text-gray-500">{job.company.name}</p>
                                                     <div className="flex items-center text-xs text-gray-400">
-                                                        <MapPin className="mr-1 h-3 w-3" />
+                                                        <MapPin className="mr-1 h-3 w-3 flex-shrink-0" />
                                                         <span className="truncate">{job.company.location}</span>
                                                     </div>
                                                 </div>
                                             </div>
 
                                             {/* Job Title */}
-                                            <h3 className="mb-3 line-clamp-2 text-xl font-bold text-gray-900 transition-colors duration-300 group-hover:text-[#2347FA]">
+                                            <h3 className="mb-2 sm:mb-3 line-clamp-2 text-lg sm:text-xl font-bold text-gray-900 transition-colors duration-300 group-hover:text-[#2347FA] leading-tight">
                                                 {job.title}
                                             </h3>
 
                                             {/* Job Details */}
-                                            <div className="mb-4 space-y-2">
+                                            <div className="mb-3 sm:mb-4 space-y-2">
                                                 <div className="flex items-center justify-between text-sm">
-                                                    <div className="flex items-center text-gray-500">
-                                                        <MapPin className="mr-2 h-4 w-4" />
-                                                        <span>{job.location}</span>
+                                                    <div className="flex items-center text-gray-500 min-w-0">
+                                                        <MapPin className="mr-2 h-4 w-4 flex-shrink-0" />
+                                                        <span className="truncate">{job.location}</span>
                                                     </div>
-                                                    <div className="flex items-center text-gray-500">
-                                                        <Briefcase className="mr-2 h-4 w-4" />
-                                                        <span>
+                                                    <div className="flex items-center text-gray-500 ml-2">
+                                                        <Briefcase className="mr-1 sm:mr-2 h-4 w-4 flex-shrink-0" />
+                                                        <span className="text-xs sm:text-sm truncate">
                                                             {job.employment_type === 'full_time'
                                                                 ? 'Full Time'
                                                                 : job.employment_type === 'part_time'
@@ -964,12 +1076,12 @@ export default function Welcome() {
 
                                                 <div className="flex items-center justify-between text-sm">
                                                     <div className="flex items-center text-gray-500">
-                                                        <Users className="mr-2 h-4 w-4" />
-                                                        <span>{job.applications_count} pelamar</span>
+                                                        <Users className="mr-2 h-4 w-4 flex-shrink-0" />
+                                                        <span className="text-xs sm:text-sm">{job.applications_count} pelamar</span>
                                                     </div>
                                                     <div className="flex items-center text-gray-500">
-                                                        <Clock className="mr-2 h-4 w-4" />
-                                                        <span>
+                                                        <Clock className="mr-1 sm:mr-2 h-4 w-4 flex-shrink-0" />
+                                                        <span className="text-xs sm:text-sm">
                                                             {new Date(job.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })}
                                                         </span>
                                                     </div>
@@ -977,12 +1089,12 @@ export default function Welcome() {
                                             </div>
 
                                             {/* Salary */}
-                                            <div className="mb-4">
-                                                <div className="flex items-center justify-between">
-                                                    <span className="bg-gradient-to-r from-[#2347FA] to-[#3b56fc] bg-clip-text text-2xl font-bold text-transparent">
-                                                        {formatSalary(job.salary_min, job.salary_max, job.salary_currency, job.salary_negotiable)}
+                                            <div className="mb-3 sm:mb-4">
+                                                <div className="flex items-center justify-between gap-2">
+                                                    <span className="bg-gradient-to-r from-[#2347FA] to-[#3b56fc] bg-clip-text text-lg sm:text-xl lg:text-2xl font-bold text-transparent flex-1 min-w-0">
+                                                        <span className="block truncate">{formatSalary(job.salary_min, job.salary_max, job.salary_currency, job.salary_negotiable)}</span>
                                                     </span>
-                                                    <Badge variant="secondary" className="border-blue-200 bg-blue-50 text-xs text-blue-700">
+                                                    <Badge variant="secondary" className="border-blue-200 bg-blue-50 text-xs text-blue-700 flex-shrink-0">
                                                         {job.category.name}
                                                     </Badge>
                                                 </div>
@@ -1004,12 +1116,12 @@ export default function Welcome() {
                                             )}
 
                                             {/* Apply Button */}
-                                            <div className="mt-6 border-t border-gray-100 pt-4">
+                                            <div className="mt-4 sm:mt-6 border-t border-gray-100 pt-3 sm:pt-4">
                                                 <Button
                                                     asChild
-                                                    className="w-full rounded-full bg-gradient-to-r from-[#2347FA] to-[#3b56fc] text-white shadow-md transition-all duration-300 hover:from-[#1a3af0] hover:to-[#2d47f5] hover:shadow-lg"
+                                                    className="w-full rounded-full bg-gradient-to-r from-[#2347FA] to-[#3b56fc] text-white shadow-md transition-all duration-300 hover:from-[#1a3af0] hover:to-[#2d47f5] hover:shadow-lg text-sm sm:text-base h-10 sm:h-11"
                                                 >
-                                                    <Link href={`/jobs/${job.id}`}>
+                                                    <Link href={`/jobs/${job.slug}`}>
                                                         <span>Lamar Sekarang</span>
                                                         <ArrowRight className="ml-2 h-4 w-4" />
                                                     </Link>
@@ -1038,9 +1150,9 @@ export default function Welcome() {
                             transition={{ delay: 0.6 }}
                             className="mt-12 text-center"
                         >
-                            <div className="inline-flex items-center space-x-4 rounded-2xl border border-gray-200/50 bg-white/80 px-6 py-4 shadow-lg backdrop-blur-sm">
-                                <div className="flex items-center space-x-2 text-sm text-gray-600">
-                                    <TrendingUp className="h-4 w-4 text-green-500" />
+                            <div className="inline-flex flex-col sm:flex-row items-center gap-4 sm:space-x-4 rounded-2xl border border-gray-200/50 bg-white/80 px-4 sm:px-6 py-4 shadow-lg backdrop-blur-sm">
+                                <div className="flex items-center space-x-2 text-sm text-gray-600 text-center sm:text-left">
+                                    <TrendingUp className="h-4 w-4 text-green-500 flex-shrink-0" />
                                     <span>Tersedia {statistics.total_jobs.toLocaleString()}+ lowongan lainnya</span>
                                 </div>
                                 <Button
@@ -1113,7 +1225,7 @@ export default function Welcome() {
                                     whileInView={{ opacity: 1, y: 0 }}
                                     viewport={{ once: true }}
                                     transition={{ delay: 0.4 }}
-                                    className="mt-8 flex items-center justify-center space-x-8 text-sm text-gray-600"
+                                    className="mt-6 sm:mt-8 flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-8 text-sm text-gray-600"
                                 >
                                     <div className="flex items-center space-x-2">
                                         <TrendingUp className="h-4 w-4 text-green-500" />
@@ -1142,7 +1254,7 @@ export default function Welcome() {
                                     {successStories.map((story) => (
                                         <div
                                             key={story.id}
-                                            className="group relative w-80 cursor-pointer overflow-hidden rounded-2xl border border-gray-200/50 bg-white/80 p-6 backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:scale-105 hover:bg-white hover:shadow-xl hover:shadow-[#2347FA]/10"
+                                            className="group relative w-72 sm:w-80 cursor-pointer overflow-hidden rounded-2xl border border-gray-200/50 bg-white/80 p-4 sm:p-6 backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:scale-105 hover:bg-white hover:shadow-xl hover:shadow-[#2347FA]/10"
                                         >
                                             {/* Decorative element */}
                                             <div className="absolute top-0 left-0 h-1 w-full bg-gradient-to-r from-[#2347FA] to-[#3b56fc] opacity-0 transition-opacity duration-300 group-hover:opacity-100"></div>
@@ -1215,7 +1327,7 @@ export default function Welcome() {
                                         .map((story) => (
                                             <div
                                                 key={`reverse-${story.id}`}
-                                                className="group relative w-80 cursor-pointer overflow-hidden rounded-2xl border border-gray-200/50 bg-white/80 p-6 backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:scale-105 hover:bg-white hover:shadow-xl hover:shadow-[#2347FA]/10"
+                                                className="group relative w-72 sm:w-80 cursor-pointer overflow-hidden rounded-2xl border border-gray-200/50 bg-white/80 p-4 sm:p-6 backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:scale-105 hover:bg-white hover:shadow-xl hover:shadow-[#2347FA]/10"
                                             >
                                                 {/* Decorative element */}
                                                 <div className="absolute top-0 left-0 h-1 w-full bg-gradient-to-r from-[#2347FA] to-[#3b56fc] opacity-0 transition-opacity duration-300 group-hover:opacity-100"></div>
@@ -1355,7 +1467,7 @@ export default function Welcome() {
                             whileInView={{ opacity: 1, y: 0 }}
                             viewport={{ once: true }}
                             transition={{ delay: 0.3 }}
-                            className="mb-12 flex flex-col justify-center gap-4 sm:flex-row"
+                            className="mb-8 sm:mb-12 flex flex-col items-center justify-center gap-4 sm:flex-row"
                         >
                             <Link href={route('register')}>
                                 <Button
@@ -1385,19 +1497,19 @@ export default function Welcome() {
                             whileInView={{ opacity: 1, y: 0 }}
                             viewport={{ once: true }}
                             transition={{ delay: 0.4 }}
-                            className="grid grid-cols-3 gap-8 border-t border-white/20 pt-8"
+                            className="grid grid-cols-3 gap-4 sm:gap-8 border-t border-white/20 pt-6 sm:pt-8"
                         >
                             <div className="text-center">
-                                <div className="mb-1 text-2xl font-bold text-white md:text-3xl">{statistics.total_jobs.toLocaleString()}+</div>
-                                <div className="text-sm text-blue-200">Lowongan Aktif</div>
+                                <div className="mb-1 text-xl sm:text-2xl md:text-3xl font-bold text-white">{statistics.total_jobs.toLocaleString()}+</div>
+                                <div className="text-xs sm:text-sm text-blue-200">Lowongan Aktif</div>
                             </div>
                             <div className="text-center">
-                                <div className="mb-1 text-2xl font-bold text-white md:text-3xl">{statistics.total_companies.toLocaleString()}+</div>
-                                <div className="text-sm text-blue-200">Perusahaan Partner</div>
+                                <div className="mb-1 text-xl sm:text-2xl md:text-3xl font-bold text-white">{statistics.total_companies.toLocaleString()}+</div>
+                                <div className="text-xs sm:text-sm text-blue-200">Perusahaan Partner</div>
                             </div>
                             <div className="text-center">
-                                <div className="mb-1 text-2xl font-bold text-white md:text-3xl">95%</div>
-                                <div className="text-sm text-blue-200">Tingkat Kepuasan</div>
+                                <div className="mb-1 text-xl sm:text-2xl md:text-3xl font-bold text-white">95%</div>
+                                <div className="text-xs sm:text-sm text-blue-200">Tingkat Kepuasan</div>
                             </div>
                         </motion.div>
                     </div>

@@ -1,4 +1,4 @@
-import { BarChart3, Briefcase, Building2, FileText, FolderOpen, Users, Settings, Info, Newspaper, Shield, UserCheck, User, Mail, AlertTriangle, ShieldCheck, Flag, Coins, CreditCard, History } from 'lucide-react';
+import { BarChart3, Briefcase, Building2, FileText, FolderOpen, Users, Settings, Info, Newspaper, Shield, UserCheck, User, Mail, AlertTriangle, ShieldCheck, Flag, Coins, CreditCard, History, MessageSquare, Award } from 'lucide-react';
 import { type NavItem } from '@/types';
 
 export function useMenuItems() {
@@ -28,9 +28,19 @@ export function useMenuItems() {
                     icon: Building2,
                 },
                 {
+                    title: 'Review Verifikasi',
+                    href: '/admin/companies/verification/review',
+                    icon: ShieldCheck,
+                },
+                {
                     title: 'Kategori',
                     href: '/admin/job-categories',
                     icon: FolderOpen,
+                },
+                {
+                    title: 'Skills',
+                    href: '/admin/skills',
+                    icon: Award,
                 },
                 {
                     title: 'Lowongan',
@@ -70,22 +80,17 @@ export function useMenuItems() {
             ]
         },
         {
-            label: 'Email & Notifikasi',
+            label: 'WhatsApp & Notifikasi',
             items: [
                 {
-                    title: 'Template Email',
-                    href: '/admin/email/templates',
-                    icon: Mail,
+                    title: 'Template WhatsApp',
+                    href: '/admin/whatsapp-templates',
+                    icon: MessageSquare,
                 },
                 {
-                    title: 'Email Massal',
-                    href: '/admin/email/campaigns',
-                    icon: Mail,
-                },
-                {
-                    title: 'Pengaturan Notifikasi',
-                    href: '/admin/email/notification-settings',
-                    icon: Settings,
+                    title: 'WhatsApp Massal',
+                    href: '/admin/whatsapp-broadcast',
+                    icon: MessageSquare,
                 }
             ]
         },
@@ -195,6 +200,11 @@ export function useMenuItems() {
                     title: 'Profil Admin',
                     href: '/admin/profile',
                     icon: User,
+                },
+                {
+                    title: 'Verifikasi Perusahaan',
+                    href: '/admin/company/verify',
+                    icon: ShieldCheck,
                 }
             ]
         }

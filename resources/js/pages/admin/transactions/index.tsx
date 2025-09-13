@@ -6,7 +6,9 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, Search, Download, Filter, Eye, TrendingUp, TrendingDown, DollarSign, Clock } from 'lucide-react';
+import { DataTable } from '@/components/ui/data-table';
+import { transactionsColumns, type Transaction } from '@/components/tables/transactions-columns';
+import { ArrowLeft, Search, Filter, Eye, TrendingUp, TrendingDown, DollarSign, Clock } from 'lucide-react';
 
 interface Company {
   id: number;
@@ -60,10 +62,16 @@ interface Props {
     date_to?: string;
   };
   companies: Company[];
+  userRole: string;
 }
 
-export default function TransactionIndex({ transactions, stats, filters, companies }: Props) {
+export default function TransactionIndex({ transactions, stats, filters, companies, userRole }: Props) {
   const [localFilters, setLocalFilters] = useState(filters);
+
+  const formatCurrency = (amount?: number) => {
+    if (!amount) return '-';
+    return `Rp ${amount.toLocaleString('id-ID')}`;
+  };
 
   const handleFilter = () => {
     router.get(route('admin.transactions.index'), localFilters, {
@@ -78,62 +86,7 @@ export default function TransactionIndex({ transactions, stats, filters, compani
     router.get(route('admin.transactions.index'), clearedFilters);
   };
 
-  const exportCSV = () => {
-    router.get(route('admin.transactions.export'), localFilters);
-  };
 
-  const getStatusBadge = (status: string) => {
-    const colors = {
-      pending: 'bg-yellow-100 text-yellow-800 border-yellow-200',
-      completed: 'bg-green-100 text-green-800 border-green-200',
-      failed: 'bg-red-100 text-red-800 border-red-200',
-    };
-    
-    const labels = {
-      pending: 'Pending',
-      completed: 'Berhasil',
-      failed: 'Gagal',
-    };
-
-    return (
-      <Badge className={colors[status as keyof typeof colors] || colors.pending}>
-        {labels[status as keyof typeof labels] || status}
-      </Badge>
-    );
-  };
-
-  const getTypeBadge = (type: string) => {
-    const colors = {
-      purchase: 'bg-blue-100 text-blue-800 border-blue-200',
-      usage: 'bg-orange-100 text-orange-800 border-orange-200',
-    };
-    
-    const labels = {
-      purchase: 'Pembelian',
-      usage: 'Penggunaan',
-    };
-
-    return (
-      <Badge className={colors[type as keyof typeof colors] || colors.purchase}>
-        {labels[type as keyof typeof labels] || type}
-      </Badge>
-    );
-  };
-
-  const formatCurrency = (amount?: number) => {
-    if (!amount) return '-';
-    return `Rp ${amount.toLocaleString('id-ID')}`;
-  };
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('id-ID', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-  };
 
   return (
     <AppLayout>
@@ -154,16 +107,18 @@ export default function TransactionIndex({ transactions, stats, filters, compani
           <div className="flex justify-between items-center">
             <div>
               <h1 className="text-2xl font-bold">History Transaksi</h1>
-              <p className="text-gray-600">Kelola dan pantau semua transaksi poin</p>
+              <p className="text-gray-600">
+                {userRole === 'company_admin' 
+                  ? 'Lihat riwayat transaksi poin perusahaan Anda' 
+                  : 'Kelola dan pantau semua transaksi poin'
+                }
+              </p>
             </div>
-            <Button onClick={exportCSV} variant="outline">
-              <Download className="h-4 w-4 mr-2" />
-              Export CSV
-            </Button>
           </div>
         </div>
 
-        {/* Statistics Cards */}
+        {/* Statistics Cards - Hidden for Company Admin */}
+        {userRole !== 'company_admin' && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
           <Card>
             <CardContent className="p-4">
@@ -235,8 +190,10 @@ export default function TransactionIndex({ transactions, stats, filters, compani
             </CardContent>
           </Card>
         </div>
+        )}
 
-        {/* Filters */}
+        {/* Filters - Hidden for Company Admin */}
+        {userRole !== 'company_admin' && (
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -338,6 +295,7 @@ export default function TransactionIndex({ transactions, stats, filters, compani
             </div>
           </CardContent>
         </Card>
+        )}
 
         {/* Transactions Table */}
         <Card>
@@ -350,79 +308,12 @@ export default function TransactionIndex({ transactions, stats, filters, compani
             </div>
           </CardHeader>
           <CardContent>
-            <div className="overflow-x-auto">
-              <table className="w-full border-collapse">
-                <thead>
-                  <tr className="border-b">
-                    <th className="text-left p-3 font-semibold">ID</th>
-                    <th className="text-left p-3 font-semibold">Perusahaan</th>
-                    <th className="text-left p-3 font-semibold">Tipe</th>
-                    <th className="text-left p-3 font-semibold">Poin</th>
-                    <th className="text-left p-3 font-semibold">Jumlah</th>
-                    <th className="text-left p-3 font-semibold">Status</th>
-                    <th className="text-left p-3 font-semibold">Tanggal</th>
-                    <th className="text-left p-3 font-semibold">Aksi</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {transactions.data.map((transaction) => (
-                    <tr key={transaction.id} className="border-b hover:bg-gray-50">
-                      <td className="p-3 font-mono text-sm">#{transaction.id}</td>
-                      <td className="p-3">
-                        <div className="font-medium">{transaction.company.name}</div>
-                        <div className="text-sm text-gray-600 truncate max-w-xs">
-                          {transaction.description}
-                        </div>
-                      </td>
-                      <td className="p-3">{getTypeBadge(transaction.type)}</td>
-                      <td className="p-3">
-                        <span className={`font-semibold ${
-                          transaction.type === 'purchase' ? 'text-green-600' : 'text-red-600'
-                        }`}>
-                          {transaction.type === 'purchase' ? '+' : ''}{transaction.points}
-                        </span>
-                      </td>
-                      <td className="p-3 font-medium">{formatCurrency(transaction.amount)}</td>
-                      <td className="p-3">{getStatusBadge(transaction.status)}</td>
-                      <td className="p-3 text-sm">{formatDate(transaction.created_at)}</td>
-                      <td className="p-3">
-                        <Link 
-                          href={route('admin.transactions.show', transaction.id)}
-                          className="inline-flex items-center text-blue-600 hover:text-blue-800"
-                        >
-                          <Eye className="h-4 w-4 mr-1" />
-                          Detail
-                        </Link>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-
-            {transactions.data.length === 0 && (
-              <div className="text-center py-8 text-gray-500">
-                <p>Tidak ada transaksi yang ditemukan</p>
-              </div>
-            )}
-
-            {/* Pagination */}
-            {transactions.last_page > 1 && (
-              <div className="mt-6 flex justify-center">
-                <div className="flex items-center gap-2">
-                  {transactions.links.map((link, index) => (
-                    <Button
-                      key={index}
-                      variant={link.active ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => link.url && router.get(link.url)}
-                      disabled={!link.url}
-                      dangerouslySetInnerHTML={{ __html: link.label }}
-                    />
-                  ))}
-                </div>
-              </div>
-            )}
+            <DataTable 
+              columns={transactionsColumns} 
+              data={transactions.data as Transaction[]}
+              searchKey="company"
+              searchPlaceholder="Cari perusahaan..."
+            />
           </CardContent>
         </Card>
       </div>

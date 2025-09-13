@@ -32,7 +32,20 @@
       "WebFetch(domain:magicui.design)",
       "Bash(composer:*)",
       "Bash(git add:*)",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "WebSearch",
+      "WebFetch(domain:help.glints.com)",
+      "WebFetch(domain:lucide.dev)",
+      "Bash(npm run typecheck:*)",
+      "Bash(npm run:*)",
+      "Bash(npx tsc:*)",
+      "Bash(npm:*)",
+      "Bash(lsof:*)",
+      "WebFetch(domain:127.0.0.1)",
+      "Bash(node:*)",
+      "Bash(chmod:*)",
+      "Bash(mysql:*)",
+      "WebFetch(domain:ui.shadcn.com)"
     ],
     "deny": [],
     "defaultMode": "acceptEdits"

@@ -10,6 +10,10 @@ Route::get('/about', [App\Http\Controllers\AboutController::class, 'index'])->na
 Route::get('/jobs', [App\Http\Controllers\JobController::class, 'index'])->name('jobs');
 Route::get('/jobs/{job}', [App\Http\Controllers\JobController::class, 'show'])->name('jobs.show');
 
+// Job application routes
+Route::get('/jobs/{job}/apply', [App\Http\Controllers\JobApplicationController::class, 'create'])->name('jobs.apply');
+Route::post('/jobs/{job}/apply', [App\Http\Controllers\JobApplicationController::class, 'store']);
+
 Route::get('/companies', [App\Http\Controllers\CompanyController::class, 'index'])->name('companies');
 Route::get('/companies/{company}', [App\Http\Controllers\CompanyController::class, 'show'])->name('companies.show');
 
@@ -21,6 +25,14 @@ Route::get('/points', [App\Http\Controllers\PointController::class, 'index'])->n
 Route::get('/pasang-lowongan', [App\Http\Controllers\PasangLowonganController::class, 'index'])
     ->middleware(['auth', 'company.admin'])
     ->name('pasang-lowongan');
+
+// User login routes (regular users only)
+Route::middleware('guest')->group(function () {
+    Route::get('/masuk', [App\Http\Controllers\UserLoginController::class, 'create'])
+        ->name('user.login');
+    Route::post('/masuk', [App\Http\Controllers\UserLoginController::class, 'store']);
+});
+
 
 // Google OAuth routes
 Route::get('/auth/google', [App\Http\Controllers\GoogleAuthController::class, 'redirectToGoogle'])->name('auth.google');

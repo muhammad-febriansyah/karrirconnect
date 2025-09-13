@@ -21,7 +21,7 @@ export function AppSidebar() {
                     <SidebarMenuItem>
                         <SidebarMenuButton size="lg" asChild>
                             <Link href="/admin/dashboard" prefetch>
-                                <AppLogo />
+                                <AppLogo className={`${isCompanyAdmin ? 'h-6 w-auto max-w-[100px]' : 'h-8 w-auto max-w-[160px]'}`} />
                             </Link>
                         </SidebarMenuButton>
                     </SidebarMenuItem>

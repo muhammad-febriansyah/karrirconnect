@@ -138,13 +138,19 @@ class Notification extends Model
 
     public static function createJobApplication($application): self
     {
+        $application->load(['jobListing', 'user']);
+        
         return static::createForCompanyAdmin([
             'type' => 'application',
             'title' => 'Lamaran Baru',
-            'message' => "Ada lamaran baru untuk posisi {$application->job->title}",
+            'message' => "{$application->user->name} melamar untuk posisi {$application->jobListing->title}",
             'action_url' => "/company/applications/{$application->id}",
             'priority' => 'medium',
-            'data' => ['application_id' => $application->id],
+            'data' => [
+                'application_id' => $application->id,
+                'user_id' => $application->user->id,
+                'job_id' => $application->jobListing->id
+            ],
         ]);
     }
 
@@ -157,5 +163,94 @@ class Notification extends Model
             'priority' => 'low',
             'data' => ['version' => $version],
         ]);
+    }
+
+    public function sendWhatsApp(?string $phoneNumber = null): array
+    {
+        try {
+            $controller = new \App\Http\Controllers\WaGatewayController();
+            $response = $controller->sendNotificationWhatsApp($this, $phoneNumber);
+            
+            return [
+                'success' => $response->getStatusCode() === 200,
+                'response' => $response->getData(true)
+            ];
+        } catch (\Exception $e) {
+            return [
+                'success' => false,
+                'error' => $e->getMessage()
+            ];
+        }
+    }
+
+    public function sendWhatsAppToUser(User $user): array
+    {
+        try {
+            $controller = new \App\Http\Controllers\WaGatewayController();
+            $response = $controller->sendNotificationToUser($this, $user);
+            
+            return [
+                'success' => $response->getStatusCode() === 200,
+                'response' => $response->getData(true)
+            ];
+        } catch (\Exception $e) {
+            return [
+                'success' => false,
+                'error' => $e->getMessage()
+            ];
+        }
+    }
+
+    public function sendWhatsAppToUsersWithRole(string $role): array
+    {
+        $results = [];
+        $users = User::where('role', $role)->whereNotNull('phone_number')->get();
+        
+        foreach ($users as $user) {
+            $results[] = $this->sendWhatsAppToUser($user);
+        }
+        
+        return $results;
+    }
+
+    public function sendWhatsAppToTargetRoles(): array
+    {
+        $results = [];
+        
+        if (!empty($this->target_roles)) {
+            foreach ($this->target_roles as $role) {
+                $roleResults = $this->sendWhatsAppToUsersWithRole($role);
+                $results = array_merge($results, $roleResults);
+            }
+        }
+        
+        return $results;
+    }
+
+    public static function createUserRegistrationWithWhatsApp(User $user): self
+    {
+        $notification = static::createUserRegistration($user);
+        
+        $notification->sendWhatsAppToTargetRoles();
+        
+        return $notification;
+    }
+
+    public static function createCompanyRegistrationWithWhatsApp($company): self
+    {
+        $notification = static::createCompanyRegistration($company);
+        
+        $notification->sendWhatsAppToTargetRoles();
+        
+        return $notification;
+    }
+
+    public static function createJobApplicationWithWhatsApp($application): self
+    {
+        $notification = static::createJobApplication($application);
+        
+        $notification->sendWhatsAppToTargetRoles();
+        
+        return $notification;
     }
 }

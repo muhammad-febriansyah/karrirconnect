@@ -10,8 +10,11 @@ class ContactController extends Controller
 {
     public function index()
     {
+        $settings = \App\Models\Setting::first();
+
         return Inertia::render('contact', [
-            'title' => 'Hubungi Kami - KarirConnect'
+            'title' => 'Hubungi Kami - KarirConnect',
+            'settings' => $settings
         ]);
     }
 

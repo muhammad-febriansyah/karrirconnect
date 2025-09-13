@@ -26,6 +26,10 @@ interface Setting {
     fee?: number;
     logo?: string;
     thumbnail?: string;
+    use_custom_stats?: boolean;
+    custom_total_jobs?: number;
+    custom_total_companies?: number;
+    custom_total_candidates?: number;
 }
 
 interface Props {
@@ -60,6 +64,10 @@ export default function EditSettings({ setting, flash }: Props) {
         fee: setting.fee || 0,
         logo: null as File | null,
         thumbnail: null as File | null,
+        use_custom_stats: setting.use_custom_stats || false,
+        custom_total_jobs: setting.custom_total_jobs || 0,
+        custom_total_companies: setting.custom_total_companies || 0,
+        custom_total_candidates: setting.custom_total_candidates || 0,
     });
 
     useEffect(() => {
@@ -470,6 +478,82 @@ export default function EditSettings({ setting, flash }: Props) {
                                             Nilai: Rp {new Intl.NumberFormat('id-ID').format(data.fee)}
                                         </span>
                                     )} */}
+                                </p>
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    {/* Marketing Statistics */}
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="flex items-center gap-2">
+                                <DollarSign className="h-5 w-5" />
+                                Statistik Marketing
+                            </CardTitle>
+                            <p className="text-sm text-gray-600">
+                                Gunakan angka custom untuk tujuan marketing di homepage. Aktifkan untuk mengganti data real dengan angka custom.
+                            </p>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                            <div className="flex items-center space-x-2">
+                                <input
+                                    id="use_custom_stats"
+                                    type="checkbox"
+                                    checked={data.use_custom_stats}
+                                    onChange={(e) => setData('use_custom_stats', e.target.checked)}
+                                    className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                                />
+                                <Label htmlFor="use_custom_stats" className="text-sm font-medium">
+                                    Gunakan Statistik Custom (Marketing Gimmick)
+                                </Label>
+                            </div>
+                            
+                            {data.use_custom_stats && (
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                                    <div className="grid gap-2">
+                                        <Label htmlFor="custom_total_jobs">Total Lowongan Kerja</Label>
+                                        <Input
+                                            id="custom_total_jobs"
+                                            type="number"
+                                            min="0"
+                                            value={data.custom_total_jobs}
+                                            onChange={(e) => setData('custom_total_jobs', parseInt(e.target.value) || 0)}
+                                            placeholder="1000"
+                                        />
+                                        <p className="text-xs text-gray-600">Angka yang akan ditampilkan di homepage</p>
+                                    </div>
+                                    
+                                    <div className="grid gap-2">
+                                        <Label htmlFor="custom_total_companies">Total Perusahaan</Label>
+                                        <Input
+                                            id="custom_total_companies"
+                                            type="number"
+                                            min="0"
+                                            value={data.custom_total_companies}
+                                            onChange={(e) => setData('custom_total_companies', parseInt(e.target.value) || 0)}
+                                            placeholder="500"
+                                        />
+                                        <p className="text-xs text-gray-600">Angka yang akan ditampilkan di homepage</p>
+                                    </div>
+                                    
+                                    <div className="grid gap-2">
+                                        <Label htmlFor="custom_total_candidates">Total Pengguna</Label>
+                                        <Input
+                                            id="custom_total_candidates"
+                                            type="number"
+                                            min="0"
+                                            value={data.custom_total_candidates}
+                                            onChange={(e) => setData('custom_total_candidates', parseInt(e.target.value) || 0)}
+                                            placeholder="10000"
+                                        />
+                                        <p className="text-xs text-gray-600">Angka yang akan ditampilkan di homepage</p>
+                                    </div>
+                                </div>
+                            )}
+                            
+                            <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                                <p className="text-sm text-yellow-800">
+                                    <strong>Catatan:</strong> Fitur ini untuk keperluan marketing. Ketika diaktifkan, angka-angka di homepage akan menggunakan nilai custom ini alih-alih data real dari database.
                                 </p>
                             </div>
                         </CardContent>

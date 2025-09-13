@@ -10,6 +10,7 @@ import { Eye, Search, Filter, Plus, Edit, Trash2, ToggleLeft, ToggleRight, Brief
 
 interface JobListing {
   id: number;
+  slug: string;
   title: string;
   description: string;
   employment_type: string;
@@ -39,6 +40,13 @@ interface Category {
   name: string;
 }
 
+interface Company {
+  id: number;
+  name: string;
+  is_verified: boolean;
+  verification_status: string;
+}
+
 interface Props {
   jobListings: {
     data: JobListing[];
@@ -54,9 +62,10 @@ interface Props {
   };
   categories: Category[];
   userRole: string;
+  company?: Company;
 }
 
-export default function JobListingsIndex({ jobListings, filters, categories, userRole }: Props) {
+export default function JobListingsIndex({ jobListings, filters, categories, userRole, company }: Props) {
   const [search, setSearch] = useState(filters.search || '');
   const [status, setStatus] = useState(filters.status || 'all');
   const [category, setCategory] = useState(filters.category || 'all');
@@ -116,7 +125,7 @@ export default function JobListingsIndex({ jobListings, filters, categories, use
   };
 
   const toggleStatus = (jobListing: JobListing) => {
-    router.post(route('admin.job-listings.toggle-status', jobListing.id), {}, {
+    router.post(route('admin.job-listings.toggle-status', jobListing.slug), {}, {
       onSuccess: () => {
         // Handle success
       },
@@ -125,7 +134,7 @@ export default function JobListingsIndex({ jobListings, filters, categories, use
 
   const deleteJobListing = (jobListing: JobListing) => {
     if (confirm(`Apakah Anda yakin ingin menghapus lowongan "${jobListing.title}"?`)) {
-      router.delete(route('admin.job-listings.destroy', jobListing.id));
+      router.delete(route('admin.job-listings.destroy', jobListing.slug));
     }
   };
 
@@ -155,12 +164,21 @@ export default function JobListingsIndex({ jobListings, filters, categories, use
             </p>
           </div>
           {userRole === 'company_admin' && (
-            <Link href="/admin/job-listings/create">
-              <Button className="flex items-center gap-2">
-                <Plus className="h-4 w-4" />
-                Buat Lowongan
-              </Button>
-            </Link>
+            company && company.is_verified && company.verification_status === 'verified' ? (
+              <Link href="/admin/job-listings/create">
+                <Button className="flex items-center gap-2">
+                  <Plus className="h-4 w-4" />
+                  Buat Lowongan
+                </Button>
+              </Link>
+            ) : (
+              <Link href="/admin/company/verify">
+                <Button variant="outline" className="flex items-center gap-2">
+                  <Plus className="h-4 w-4" />
+                  Verifikasi Untuk Buat Lowongan
+                </Button>
+              </Link>
+            )
           )}
         </div>
 
@@ -337,7 +355,7 @@ export default function JobListingsIndex({ jobListings, filters, categories, use
                   </div>
 
                   <div className="flex items-center gap-2">
-                    <Link href={route('admin.job-listings.show', job.id)}>
+                    <Link href={route('admin.job-listings.show', job.slug)}>
                       <Button size="sm" variant="outline">
                         <Eye className="h-4 w-4 mr-2" />
                         Lihat
@@ -346,7 +364,7 @@ export default function JobListingsIndex({ jobListings, filters, categories, use
                     
                     {userRole === 'company_admin' && (
                       <>
-                        <Link href={route('admin.job-listings.edit', job.id)}>
+                        <Link href={route('admin.job-listings.edit', job.slug)}>
                           <Button size="sm" variant="outline">
                             <Edit className="h-4 w-4 mr-2" />
                             Edit
@@ -389,12 +407,21 @@ export default function JobListingsIndex({ jobListings, filters, categories, use
                 }
               </p>
               {userRole === 'company_admin' && (
-                <Link href="/admin/job-listings/create">
-                  <Button>
-                    <Plus className="h-4 w-4 mr-2" />
-                    Buat Lowongan
-                  </Button>
-                </Link>
+                company && company.is_verified && company.verification_status === 'verified' ? (
+                  <Link href="/admin/job-listings/create">
+                    <Button>
+                      <Plus className="h-4 w-4 mr-2" />
+                      Buat Lowongan
+                    </Button>
+                  </Link>
+                ) : (
+                  <Link href="/admin/company/verify">
+                    <Button variant="outline">
+                      <Plus className="h-4 w-4 mr-2" />
+                      Verifikasi Untuk Buat Lowongan
+                    </Button>
+                  </Link>
+                )
               )}
             </CardContent>
           </Card>

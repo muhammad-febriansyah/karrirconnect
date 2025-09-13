@@ -6,6 +6,7 @@ export interface User {
     role: UserRole;
     is_active: boolean;
     email_verified_at: string | null;
+    last_login_at?: string | null;
     created_at: string;
     updated_at: string;
     company_id?: number;
@@ -56,6 +57,7 @@ export interface UserCreateRequest {
     bio?: string;
     location?: string;
     current_position?: string;
+    [key: string]: any;
 }
 
 export interface UserUpdateRequest {
@@ -71,6 +73,7 @@ export interface UserUpdateRequest {
     bio?: string;
     location?: string;
     current_position?: string;
+    [key: string]: any;
 }
 
 export interface UserFilters {

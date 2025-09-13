@@ -163,6 +163,7 @@ class User extends Authenticatable
         return static::create([
             'name' => $googleUser->getName(),
             'email' => $googleUser->getEmail(),
+            'password' => null, // No password needed for Google OAuth users
             'google_id' => $googleUser->getId(),
             'avatar' => $googleUser->getAvatar(),
             'auth_provider' => 'google',
@@ -176,5 +177,103 @@ class User extends Authenticatable
     public function isCompanyAdmin()
     {
         return $this->role === 'company_admin';
+    }
+
+    /**
+     * Check if user profile is complete for job applications
+     */
+    public function hasCompleteProfile(): bool
+    {
+        // Check if user has a profile
+        if (!$this->profile) {
+            return false;
+        }
+
+        $profile = $this->profile;
+        
+        // Required fields for job application
+        $requiredFields = [
+            'first_name',
+            'last_name', 
+            'phone',
+            'location',
+            'bio',
+            'current_position'
+        ];
+
+        // Check if all required fields are filled
+        foreach ($requiredFields as $field) {
+            if (empty($profile->$field)) {
+                return false;
+            }
+        }
+
+        // Check if user has at least one experience or education entry
+        $hasExperience = !empty($profile->experience) && is_array($profile->experience) && count($profile->experience) > 0;
+        $hasEducation = !empty($profile->education) && is_array($profile->education) && count($profile->education) > 0;
+        
+        if (!$hasExperience && !$hasEducation) {
+            return false;
+        }
+
+        // Check if user has at least one skill
+        if ($this->skills->count() === 0) {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * Get missing profile fields
+     */
+    public function getMissingProfileFields(): array
+    {
+        $missing = [];
+        
+        if (!$this->profile) {
+            return [
+                'first_name' => 'Nama depan',
+                'last_name' => 'Nama belakang',
+                'phone' => 'Nomor telepon',
+                'location' => 'Lokasi',
+                'bio' => 'Deskripsi diri',
+                'current_position' => 'Posisi saat ini',
+                'experience_education' => 'Pengalaman kerja atau pendidikan',
+                'skills' => 'Keahlian/Skills'
+            ];
+        }
+
+        $profile = $this->profile;
+        $fieldLabels = [
+            'first_name' => 'Nama depan',
+            'last_name' => 'Nama belakang',
+            'phone' => 'Nomor telepon',
+            'location' => 'Lokasi',
+            'bio' => 'Deskripsi diri',
+            'current_position' => 'Posisi saat ini'
+        ];
+
+        // Check basic fields
+        foreach ($fieldLabels as $field => $label) {
+            if (empty($profile->$field)) {
+                $missing[$field] = $label;
+            }
+        }
+
+        // Check experience or education
+        $hasExperience = !empty($profile->experience) && is_array($profile->experience) && count($profile->experience) > 0;
+        $hasEducation = !empty($profile->education) && is_array($profile->education) && count($profile->education) > 0;
+        
+        if (!$hasExperience && !$hasEducation) {
+            $missing['experience_education'] = 'Pengalaman kerja atau pendidikan';
+        }
+
+        // Check skills
+        if ($this->skills->count() === 0) {
+            $missing['skills'] = 'Keahlian/Skills';
+        }
+
+        return $missing;
     }
 }

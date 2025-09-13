@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Company;
 use App\Http\Controllers\Controller;
 use App\Models\JobListing;
 use App\Models\JobCategory;
+use App\Models\Setting;
 use App\Models\Skill;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -43,12 +44,17 @@ class JobController extends Controller
         $categories = JobCategory::orderBy('name')->get();
         $skills = Skill::orderBy('name')->get();
 
+        // Get service fee from settings
+        $settings = Setting::first();
+        $serviceFee = $settings->fee ?? 0;
+        
         // Get active point packages for display with enhanced data
         $pointPackages = \App\Models\PointPackage::active()
             ->orderBy('is_featured', 'desc')
             ->orderBy('price')
             ->get()
-            ->map(function ($package) {
+            ->map(function ($package) use ($serviceFee) {
+                $totalPrice = $package->price + $serviceFee;
                 return [
                     'id' => $package->id,
                     'name' => $package->name,
@@ -60,7 +66,10 @@ class JobController extends Controller
                     'features' => $package->features,
                     'total_points' => $package->total_points,
                     'formatted_price' => $package->formatted_price,
-                    'cost_per_point' => $package->total_points > 0 ? round($package->price / $package->total_points, 0) : 0,
+                    'service_fee' => $serviceFee,
+                    'total_price' => $totalPrice,
+                    'formatted_total_price' => 'Rp ' . number_format($totalPrice, 0, ',', '.'),
+                    'cost_per_point' => $package->total_points > 0 ? round($totalPrice / $package->total_points, 0) : 0,
                     'savings_percentage' => $package->bonus_points > 0 ? round(($package->bonus_points / $package->points) * 100, 0) : 0,
                 ];
             });

@@ -47,25 +47,39 @@ class TransactionController extends Controller
 
         $transactions = $query->paginate(20)->withQueryString();
 
-        // Summary statistics
+        // Summary statistics - filtered by company for company admin
+        $statsQuery = PointTransaction::query()
+            ->when($user->role === 'company_admin' && $user->company_id, function ($q) use ($user) {
+                $q->where('company_id', $user->company_id);
+            });
+
         $stats = [
-            'total_transactions' => PointTransaction::count(),
-            'total_points_sold' => PointTransaction::where('type', 'purchase')
+            'total_transactions' => (clone $statsQuery)->count(),
+            'total_points_sold' => (clone $statsQuery)
+                ->where('type', 'purchase')
                 ->where('status', 'completed')
                 ->sum('points'),
-            'total_points_used' => PointTransaction::where('type', 'usage')
+            'total_points_used' => (clone $statsQuery)
+                ->where('type', 'usage')
                 ->where('status', 'completed')
                 ->sum('points') * -1,
-            'total_revenue' => PointTransaction::where('type', 'purchase')
+            'total_revenue' => (clone $statsQuery)
+                ->where('type', 'purchase')
                 ->where('status', 'completed')
                 ->sum('amount'),
-            'pending_transactions' => PointTransaction::where('status', 'pending')->count(),
+            'pending_transactions' => (clone $statsQuery)
+                ->where('status', 'pending')
+                ->count(),
         ];
 
         $filters = $request->only(['search', 'status', 'type', 'company_id', 'date_from', 'date_to']);
         
         // Get companies for filter dropdown
         $companies = Company::where('is_active', true)
+            ->when($user->role === 'company_admin' && $user->company_id, function ($q) use ($user) {
+                // Company admin hanya bisa lihat perusahaannya sendiri
+                $q->where('id', $user->company_id);
+            })
             ->orderBy('name')
             ->get(['id', 'name']);
 
@@ -74,6 +88,7 @@ class TransactionController extends Controller
             'stats' => $stats,
             'filters' => $filters,
             'companies' => $companies,
+            'userRole' => $user->role,
         ]);
     }
 

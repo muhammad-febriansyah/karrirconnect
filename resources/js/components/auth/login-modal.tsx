@@ -27,6 +27,7 @@ interface LoginForm {
     password: string;
     remember: boolean;
     'g-recaptcha-response': string;
+    [key: string]: any;
 }
 
 export default function LoginModal({ children }: LoginModalProps) {
@@ -70,8 +71,11 @@ export default function LoginModal({ children }: LoginModalProps) {
         }
     };
 
-    const handleGoogleLogin = () => {
+    const handleGoogleLogin = (e: React.MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
         setLoading(true);
+        console.log('Google login clicked, redirecting to:', '/auth/google');
         window.location.href = '/auth/google';
     };
 
@@ -80,7 +84,21 @@ export default function LoginModal({ children }: LoginModalProps) {
             <DialogTrigger asChild>
                 {children}
             </DialogTrigger>
-            <DialogContent className="sm:max-w-md bg-white/95 backdrop-blur-xl border border-white/20 shadow-2xl">
+            <DialogContent 
+                className="sm:max-w-md bg-white/95 backdrop-blur-xl border border-white/20 shadow-2xl"
+                onInteractOutside={(e) => {
+                    // Prevent closing on outside click for mobile
+                    if (window.innerWidth <= 768) {
+                        e.preventDefault();
+                    }
+                }}
+                onEscapeKeyDown={(e) => {
+                    // Prevent closing on ESC key for mobile
+                    if (window.innerWidth <= 768) {
+                        e.preventDefault();
+                    }
+                }}
+            >
                 <DialogHeader>
                     <DialogTitle className="text-2xl font-bold text-center bg-gradient-to-r from-[#2347FA] to-[#3b56fc] bg-clip-text text-transparent">
                         Masuk ke Akun Anda
@@ -151,6 +169,16 @@ export default function LoginModal({ children }: LoginModalProps) {
                         {errors.password && (
                             <p className="text-sm text-red-600">{errors.password}</p>
                         )}
+                        
+                        <div className="text-right">
+                            <a 
+                                href="/forgot-password"
+                                className="text-sm text-muted-foreground hover:text-primary transition-colors"
+                                onClick={() => setOpen(false)}
+                            >
+                                Lupa kata sandi?
+                            </a>
+                        </div>
                     </div>
 
                     <div className="flex items-center space-x-2">

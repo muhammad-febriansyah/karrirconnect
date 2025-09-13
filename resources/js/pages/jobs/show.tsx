@@ -32,6 +32,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 interface Company {
     id: number;
@@ -59,6 +60,7 @@ interface Skill {
 
 interface JobListing {
     id: number;
+    slug: string;
     title: string;
     description: string;
     requirements: string | null;
@@ -91,9 +93,10 @@ interface JobListing {
 interface JobShowProps {
     job: JobListing;
     relatedJobs: JobListing[];
+    hasApplied: boolean;
 }
 
-export default function JobShow({ job, relatedJobs }: JobShowProps) {
+export default function JobShow({ job, relatedJobs, hasApplied }: JobShowProps) {
     const formatSalary = (min: number | null, max: number | null, currency: string = 'IDR', negotiable: boolean = false) => {
         if (negotiable) return 'Gaji dapat dinegosiasi';
         if (!min && !max) return 'Gaji tidak disebutkan';
@@ -237,12 +240,12 @@ export default function JobShow({ job, relatedJobs }: JobShowProps) {
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ duration: 0.6 }}
-                            className="bg-white rounded-3xl shadow-xl p-8 border border-gray-100"
+                            className="bg-white rounded-3xl shadow-xl p-4 sm:p-6 lg:p-8 border border-gray-100"
                         >
-                            <div className="flex flex-col lg:flex-row lg:items-start gap-8">
+                            <div className="flex flex-col lg:flex-row lg:items-start gap-4 sm:gap-6 lg:gap-8">
                                 {/* Company Logo */}
                                 <div className="relative flex-shrink-0">
-                                    <Avatar className="w-24 h-24 shadow-2xl ring-8 ring-white border-4 border-gray-100">
+                                    <Avatar className="w-16 h-16 sm:w-20 sm:h-20 lg:w-24 lg:h-24 shadow-2xl ring-4 sm:ring-6 lg:ring-8 ring-white border-2 sm:border-3 lg:border-4 border-gray-100">
                                         {job.company.logo ? (
                                             <AvatarImage src={job.company.logo} alt={job.company.name} className="object-cover" />
                                         ) : (
@@ -259,10 +262,10 @@ export default function JobShow({ job, relatedJobs }: JobShowProps) {
                                 </div>
 
                                 {/* Job Info */}
-                                <div className="flex-1 space-y-6">
+                                <div className="flex-1 space-y-4 sm:space-y-6">
                                     <div>
-                                        <div className="flex items-center gap-3 mb-4">
-                                            <h1 className="text-3xl lg:text-4xl font-bold text-gray-900">
+                                        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 mb-4">
+                                            <h1 className="text-xl sm:text-2xl lg:text-3xl xl:text-4xl font-bold text-gray-900 leading-tight">
                                                 {job.title}
                                             </h1>
                                             {job.featured && (
@@ -273,12 +276,12 @@ export default function JobShow({ job, relatedJobs }: JobShowProps) {
                                             )}
                                         </div>
                                         
-                                        <div className="flex items-center gap-4 mb-4">
+                                        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 mb-4">
                                             <Link 
                                                 href={`/companies/${job.company.id}`}
                                                 className="flex items-center gap-2 hover:text-[#2347FA] transition-colors"
                                             >
-                                                <h2 className="text-xl font-semibold text-gray-800">
+                                                <h2 className="text-lg sm:text-xl font-semibold text-gray-800">
                                                     {job.company.name}
                                                 </h2>
                                                 {job.company.is_verified && (
@@ -293,98 +296,120 @@ export default function JobShow({ job, relatedJobs }: JobShowProps) {
                                             )}
                                         </div>
 
-                                        <p className="text-gray-600 text-lg">
-                                            {job.company.industry} • {job.company.location}
+                                        <p className="text-gray-600 text-sm sm:text-base lg:text-lg">
+                                            <span className="block sm:inline">{job.company.industry}</span>
+                                            <span className="hidden sm:inline mx-2">•</span>
+                                            <span className="block sm:inline">{job.company.location}</span>
                                         </p>
                                     </div>
 
                                     {/* Job Details */}
-                                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                                        <div className="bg-gradient-to-r from-gray-50 to-gray-100 rounded-xl p-4 border border-gray-200">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                                        <div className="bg-gradient-to-r from-gray-50 to-gray-100 rounded-xl p-3 sm:p-4 border border-gray-200">
                                             <div className="flex items-center space-x-2">
-                                                <MapPin className="w-5 h-5 text-[#2347FA]" />
-                                                <div>
-                                                    <p className="text-sm text-gray-500">Lokasi</p>
-                                                    <p className="font-semibold text-gray-900">{job.location}</p>
+                                                <MapPin className="w-4 h-4 sm:w-5 sm:h-5 text-[#2347FA] flex-shrink-0" />
+                                                <div className="min-w-0">
+                                                    <p className="text-xs sm:text-sm text-gray-500">Lokasi</p>
+                                                    <p className="font-semibold text-sm sm:text-base text-gray-900 truncate">{job.location}</p>
                                                 </div>
                                             </div>
                                         </div>
                                         
-                                        <div className="bg-gradient-to-r from-gray-50 to-gray-100 rounded-xl p-4 border border-gray-200">
+                                        <div className="bg-gradient-to-r from-gray-50 to-gray-100 rounded-xl p-3 sm:p-4 border border-gray-200">
                                             <div className="flex items-center space-x-2">
-                                                <Briefcase className="w-5 h-5 text-[#2347FA]" />
-                                                <div>
-                                                    <p className="text-sm text-gray-500">Tipe</p>
-                                                    <p className="font-semibold text-gray-900">{formatEmploymentType(job.employment_type)}</p>
+                                                <Briefcase className="w-4 h-4 sm:w-5 sm:h-5 text-[#2347FA] flex-shrink-0" />
+                                                <div className="min-w-0">
+                                                    <p className="text-xs sm:text-sm text-gray-500">Tipe</p>
+                                                    <p className="font-semibold text-sm sm:text-base text-gray-900 truncate">{formatEmploymentType(job.employment_type)}</p>
                                                 </div>
                                             </div>
                                         </div>
                                         
-                                        <div className="bg-gradient-to-r from-gray-50 to-gray-100 rounded-xl p-4 border border-gray-200">
+                                        <div className="bg-gradient-to-r from-gray-50 to-gray-100 rounded-xl p-3 sm:p-4 border border-gray-200">
                                             <div className="flex items-center space-x-2">
                                                 {React.createElement(getWorkArrangementIcon(job.work_arrangement), { 
-                                                    className: "w-5 h-5 text-[#2347FA]" 
+                                                    className: "w-4 h-4 sm:w-5 sm:h-5 text-[#2347FA] flex-shrink-0" 
                                                 })}
-                                                <div>
-                                                    <p className="text-sm text-gray-500">Kerja</p>
-                                                    <p className="font-semibold text-gray-900">{formatWorkArrangement(job.work_arrangement)}</p>
+                                                <div className="min-w-0">
+                                                    <p className="text-xs sm:text-sm text-gray-500">Kerja</p>
+                                                    <p className="font-semibold text-sm sm:text-base text-gray-900 truncate">{formatWorkArrangement(job.work_arrangement)}</p>
                                                 </div>
                                             </div>
                                         </div>
                                         
-                                        <div className="bg-gradient-to-r from-gray-50 to-gray-100 rounded-xl p-4 border border-gray-200">
+                                        <div className="bg-gradient-to-r from-gray-50 to-gray-100 rounded-xl p-3 sm:p-4 border border-gray-200 sm:col-span-2">
                                             <div className="flex items-center space-x-2">
-                                                <User className="w-5 h-5 text-[#2347FA]" />
-                                                <div>
-                                                    <p className="text-sm text-gray-500">Level</p>
-                                                    <p className="font-semibold text-gray-900">{formatExperienceLevel(job.experience_level)}</p>
+                                                <User className="w-4 h-4 sm:w-5 sm:h-5 text-[#2347FA] flex-shrink-0" />
+                                                <div className="min-w-0">
+                                                    <p className="text-xs sm:text-sm text-gray-500">Level Pengalaman</p>
+                                                    <p className="font-semibold text-sm sm:text-base text-gray-900">{formatExperienceLevel(job.experience_level)}</p>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
 
                                     {/* Salary & Stats */}
-                                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 bg-gradient-to-r from-[#2347FA]/5 to-[#3b56fc]/5 rounded-xl border border-[#2347FA]/10">
-                                        <div className="flex items-center space-x-4">
-                                            <div className="flex items-center space-x-2">
-                                                <TrendingUp className="w-5 h-5 text-[#2347FA]" />
-                                                <div>
+                                    <div className="flex flex-col gap-4 p-3 sm:p-4 bg-gradient-to-r from-[#2347FA]/5 to-[#3b56fc]/5 rounded-xl border border-[#2347FA]/10">
+                                        <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+                                            <div className="flex items-center space-x-2 flex-1">
+                                                <TrendingUp className="w-5 h-5 text-[#2347FA] flex-shrink-0" />
+                                                <div className="min-w-0">
                                                     <p className="text-sm text-gray-500">Gaji</p>
-                                                    <p className="font-bold text-lg text-[#2347FA]">
+                                                    <p className="font-bold text-base sm:text-lg text-[#2347FA] break-words">
                                                         {formatSalary(job.salary_min, job.salary_max, job.salary_currency, job.salary_negotiable)}
                                                     </p>
                                                 </div>
                                             </div>
                                             
-                                            <div className="h-8 w-px bg-gray-300"></div>
-                                            
-                                            <div className="flex items-center space-x-4 text-sm text-gray-600">
+                                            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 text-sm text-gray-600">
                                                 <div className="flex items-center space-x-1">
-                                                    <Eye className="w-4 h-4" />
+                                                    <Eye className="w-4 h-4 flex-shrink-0" />
                                                     <span>{job.views_count} views</span>
                                                 </div>
                                                 <div className="flex items-center space-x-1">
-                                                    <Users className="w-4 h-4" />
+                                                    <Users className="w-4 h-4 flex-shrink-0" />
                                                     <span>{job.applications_count} pelamar</span>
+                                                </div>
+                                                <div className="text-right">
+                                                    <p className="text-xs text-gray-500">Diposting</p>
+                                                    <p className="font-medium text-gray-700">{getDaysAgo(job.created_at)}</p>
                                                 </div>
                                             </div>
                                         </div>
-
-                                        <div className="text-right">
-                                            <p className="text-sm text-gray-500">Diposting</p>
-                                            <p className="font-medium text-gray-700">{getDaysAgo(job.created_at)}</p>
-                                        </div>
                                     </div>
 
+                                    {/* Alert if already applied */}
+                                    {hasApplied && (
+                                        <Alert className="border-green-200 bg-green-50">
+                                            <CheckCircle className="h-4 w-4 text-green-600" />
+                                            <AlertDescription className="text-green-800 font-medium">
+                                                Anda sudah melamar untuk posisi ini. Terima kasih atas minat Anda!
+                                            </AlertDescription>
+                                        </Alert>
+                                    )}
+
                                     {/* Action Buttons */}
-                                    <div className="flex justify-center">
-                                        <Button 
-                                            size="lg"
-                                            className="bg-gradient-to-r from-[#2347FA] to-[#3b56fc] hover:from-[#1e40e0] hover:to-[#2347FA] text-white shadow-lg transform transition-all duration-300 hover:scale-105 px-8"
-                                        >
-                                            <Target className="w-5 h-5 mr-2" />
-                                            Lamar Sekarang
-                                        </Button>
+                                    <div className="flex justify-center px-4 sm:px-0">
+                                        {hasApplied ? (
+                                            <Button 
+                                                size="lg"
+                                                disabled
+                                                className="bg-gray-400 text-white shadow-lg px-6 sm:px-8 w-full sm:w-auto cursor-not-allowed"
+                                            >
+                                                <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
+                                                Sudah Melamar
+                                            </Button>
+                                        ) : (
+                                            <Link href={`/jobs/${job.slug}/apply`} className="w-full sm:w-auto">
+                                                <Button 
+                                                    size="lg"
+                                                    className="bg-gradient-to-r from-[#2347FA] to-[#3b56fc] hover:from-[#1e40e0] hover:to-[#2347FA] text-white shadow-lg transform transition-all duration-300 hover:scale-105 px-6 sm:px-8 w-full sm:w-auto"
+                                                >
+                                                    <Target className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
+                                                    Lamar Sekarang
+                                                </Button>
+                                            </Link>
+                                        )}
                                     </div>
 
                                     {/* Application Deadline */}
@@ -403,9 +428,9 @@ export default function JobShow({ job, relatedJobs }: JobShowProps) {
                 {/* Job Details Content */}
                 <section className="py-16 bg-white">
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                        <div className="grid lg:grid-cols-3 gap-8">
+                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
                             {/* Main Content */}
-                            <div className="lg:col-span-2 space-y-8">
+                            <div className="lg:col-span-2 space-y-6 lg:space-y-8">
                                 {/* Job Overview */}
                                 <motion.div
                                     initial={{ opacity: 0, y: 20 }}
@@ -420,7 +445,7 @@ export default function JobShow({ job, relatedJobs }: JobShowProps) {
                                             </CardTitle>
                                         </CardHeader>
                                         <CardContent>
-                                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 lg:gap-6">
                                                 <div className="bg-gradient-to-r from-blue-50 to-blue-100 rounded-xl p-4 border border-blue-200">
                                                     <div className="flex items-center space-x-3">
                                                         <div className="bg-blue-500 rounded-full p-2">
@@ -459,7 +484,7 @@ export default function JobShow({ job, relatedJobs }: JobShowProps) {
                                                     </div>
                                                 </div>
 
-                                                <div className="bg-gradient-to-r from-orange-50 to-orange-100 rounded-xl p-4 border border-orange-200 md:col-span-2">
+                                                <div className="bg-gradient-to-r from-orange-50 to-orange-100 rounded-xl p-4 border border-orange-200 sm:col-span-2">
                                                     <div className="flex items-center space-x-3">
                                                         <div className="bg-orange-500 rounded-full p-2">
                                                             <TrendingUp className="w-4 h-4 text-white" />
@@ -638,7 +663,7 @@ export default function JobShow({ job, relatedJobs }: JobShowProps) {
                             </div>
 
                             {/* Sidebar */}
-                            <div className="space-y-6">
+                            <div className="space-y-4 lg:space-y-6">
                                 {/* Company Info */}
                                 <motion.div
                                     initial={{ opacity: 0, y: 20 }}
@@ -752,40 +777,36 @@ export default function JobShow({ job, relatedJobs }: JobShowProps) {
                                             </CardTitle>
                                         </CardHeader>
                                         <CardContent className="space-y-4">
-                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
-                                                <div className="space-y-2">
-                                                    <div className="flex justify-between">
-                                                        <span className="text-gray-600">ID Lowongan:</span>
-                                                        <span className="font-mono font-medium">{job.id}</span>
-                                                    </div>
-                                                    <div className="flex justify-between">
-                                                        <span className="text-gray-600">Kategori:</span>
-                                                        <span className="font-medium">{job.category?.name || 'Tidak dikategorikan'}</span>
-                                                    </div>
-                                                    {job.creator && (
-                                                        <div className="flex justify-between">
-                                                            <span className="text-gray-600">Diposting oleh:</span>
-                                                            <span className="font-medium">{job.creator.name}</span>
-                                                        </div>
-                                                    )}
+                                            <div className="flex flex-col space-y-3 text-sm">
+                                                <div className="flex justify-between">
+                                                    <span className="text-gray-600">ID Lowongan:</span>
+                                                    <span className="font-mono font-medium">{job.id}</span>
                                                 </div>
-                                                <div className="space-y-2">
+                                                <div className="flex justify-between">
+                                                    <span className="text-gray-600">Kategori:</span>
+                                                    <span className="font-medium">{job.category?.name || 'Tidak dikategorikan'}</span>
+                                                </div>
+                                                {job.creator && (
                                                     <div className="flex justify-between">
-                                                        <span className="text-gray-600">Tanggal posting:</span>
-                                                        <span className="font-medium">{formatDate(job.created_at)}</span>
+                                                        <span className="text-gray-600">Diposting oleh:</span>
+                                                        <span className="font-medium">{job.creator.name}</span>
                                                     </div>
-                                                    {job.application_deadline && (
-                                                        <div className="flex justify-between">
-                                                            <span className="text-gray-600">Batas lamaran:</span>
-                                                            <span className="font-medium text-red-600">{formatDate(job.application_deadline)}</span>
-                                                        </div>
-                                                    )}
+                                                )}
+                                                <div className="flex justify-between">
+                                                    <span className="text-gray-600">Tanggal posting:</span>
+                                                    <span className="font-medium">{formatDate(job.created_at)}</span>
+                                                </div>
+                                                {job.application_deadline && (
                                                     <div className="flex justify-between">
-                                                        <span className="text-gray-600">Status:</span>
-                                                        <Badge className="bg-green-100 text-green-800 text-xs">
-                                                            {job.status === 'published' ? 'Aktif' : job.status}
-                                                        </Badge>
+                                                        <span className="text-gray-600">Batas lamaran:</span>
+                                                        <span className="font-medium text-red-600">{formatDate(job.application_deadline)}</span>
                                                     </div>
+                                                )}
+                                                <div className="flex justify-between">
+                                                    <span className="text-gray-600">Status:</span>
+                                                    <Badge className="bg-green-100 text-green-800 text-xs">
+                                                        {job.status === 'published' ? 'Aktif' : job.status}
+                                                    </Badge>
                                                 </div>
                                             </div>
                                         </CardContent>
@@ -814,7 +835,7 @@ export default function JobShow({ job, relatedJobs }: JobShowProps) {
                                     </p>
                                 </div>
 
-                                <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                                     {relatedJobs.map((relatedJob, index) => (
                                         <motion.div
                                             key={relatedJob.id}
@@ -824,8 +845,8 @@ export default function JobShow({ job, relatedJobs }: JobShowProps) {
                                         >
                                             <Card className="hover:shadow-2xl hover:scale-[1.02] transition-all duration-300 border-0 shadow-lg h-full">
                                                 <CardContent className="p-6 flex flex-col h-full">
-                                                    <div className="flex items-start space-x-4 mb-4">
-                                                        <Avatar className="w-12 h-12 ring-2 ring-gray-200 flex-shrink-0">
+                                                    <div className="flex items-start space-x-3 sm:space-x-4 mb-4">
+                                                        <Avatar className="w-10 h-10 sm:w-12 sm:h-12 ring-2 ring-gray-200 flex-shrink-0">
                                                             {relatedJob.company.logo ? (
                                                                 <AvatarImage src={relatedJob.company.logo} alt={relatedJob.company.name} />
                                                             ) : (
@@ -835,10 +856,10 @@ export default function JobShow({ job, relatedJobs }: JobShowProps) {
                                                             )}
                                                         </Avatar>
                                                         <div className="flex-1 min-w-0">
-                                                            <h3 className="font-bold text-gray-900 mb-1 hover:text-[#2347FA] transition-colors line-clamp-2">
+                                                            <h3 className="font-bold text-sm sm:text-base text-gray-900 mb-1 hover:text-[#2347FA] transition-colors line-clamp-2">
                                                                 {relatedJob.title}
                                                             </h3>
-                                                            <p className="text-sm text-gray-600">{relatedJob.company.name}</p>
+                                                            <p className="text-xs sm:text-sm text-gray-600 truncate">{relatedJob.company.name}</p>
                                                         </div>
                                                     </div>
                                                     
@@ -861,7 +882,7 @@ export default function JobShow({ job, relatedJobs }: JobShowProps) {
                                                             <span className="text-sm font-medium text-[#2347FA]">
                                                                 {formatSalary(relatedJob.salary_min, relatedJob.salary_max, relatedJob.salary_currency, relatedJob.salary_negotiable)}
                                                             </span>
-                                                            <Link href={`/jobs/${relatedJob.id}`}>
+                                                            <Link href={`/jobs/${relatedJob.slug}`}>
                                                                 <Button 
                                                                     size="sm" 
                                                                     variant="outline"

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Company;
 use App\Http\Controllers\Controller;
 use App\Models\PointPackage;
 use App\Models\PointTransaction;
+use App\Models\Setting;
 use App\Services\MidtransService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -42,7 +43,11 @@ class PointController extends Controller
 
     public function packages()
     {
-        $packages = PointPackage::active()->orderBy('price')->get()->map(function ($package) {
+        $settings = Setting::first();
+        $serviceFee = $settings->fee ?? 0;
+        
+        $packages = PointPackage::active()->orderBy('price')->get()->map(function ($package) use ($serviceFee) {
+            $totalPrice = $package->price + $serviceFee;
             return [
                 'id' => $package->id,
                 'name' => $package->name,
@@ -55,32 +60,37 @@ class PointController extends Controller
                 'features' => $package->features,
                 'total_points' => $package->total_points,
                 'formatted_price' => $package->formatted_price,
+                'service_fee' => $serviceFee,
+                'total_price' => $totalPrice,
+                'formatted_total_price' => 'Rp ' . number_format($totalPrice, 0, ',', '.'),
             ];
         });
-        
+
         $company = auth()->user()->company;
 
         return Inertia::render('company/points/packages', [
             'packages' => $packages,
-            'company' => $company
+            'company' => $company,
+            'serviceFee' => $serviceFee,
+            'formattedServiceFee' => 'Rp ' . number_format($serviceFee, 0, ',', '.'),
         ]);
     }
 
     public function purchase(Request $request)
     {
         \Illuminate\Support\Facades\Log::info('Purchase request received', $request->all());
-        
+
         $request->validate([
             'package_id' => 'required|exists:point_packages,id'
         ]);
 
         $package = PointPackage::findOrFail($request->package_id);
         $company = auth()->user()->company;
-        
+
         if (!$company) {
             return back()->with('error', 'User tidak terhubung dengan perusahaan. Silakan hubungi admin.');
         }
-        
+
         \Illuminate\Support\Facades\Log::info('Purchase details', [
             'package_id' => $package->id,
             'company_id' => $company->id,
@@ -94,7 +104,7 @@ class PointController extends Controller
         try {
             \Illuminate\Support\Facades\Log::info('Creating payment with Midtrans');
             $payment = $this->midtransService->createPayment($company, $package);
-            
+
             \Illuminate\Support\Facades\Log::info('Payment created successfully', [
                 'snap_token' => $payment['snap_token'],
                 'order_id' => $payment['order_id']
@@ -112,7 +122,7 @@ class PointController extends Controller
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ]);
-            
+
             return response()->json([
                 'success' => false,
                 'error' => 'Gagal membuat pembayaran: ' . $e->getMessage()

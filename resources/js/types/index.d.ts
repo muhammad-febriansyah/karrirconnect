@@ -17,7 +17,11 @@ export interface AboutUs {
         description: string;
         icon: string;
     }>;
-    features: string[];
+    features: Array<{
+        title: string;
+        description: string;
+        icon: string;
+    }>;
     stats: Array<{
         number: string;
         label: string;
@@ -26,7 +30,7 @@ export interface AboutUs {
     team: Array<{
         name: string;
         position: string;
-        bio: string;
+        description: string;
         image: string;
     }>;
     contact: {

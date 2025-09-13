@@ -166,12 +166,12 @@ export default function CompanyPointsIndex({ company, pointHistory, stats }: Pro
                 <div>
                   <p className="text-sm text-gray-600">Lowongan Aktif</p>
                   <p className="text-3xl font-bold text-purple-600">
-                    {stats.active_jobs}<span className="text-lg">/{stats.max_active_jobs}</span>
+                    {stats.active_jobs}
                   </p>
-                  <p className="text-xs text-gray-500 mt-1">batas maksimal</p>
+                  <p className="text-xs text-gray-500 mt-1">lowongan saat ini</p>
                 </div>
                 <div className="h-10 w-10 bg-purple-100 rounded-lg flex items-center justify-center">
-                  <span className="text-lg font-bold text-purple-600">{Math.round((stats.active_jobs / stats.max_active_jobs) * 100)}%</span>
+                  <TrendingUp className="h-5 w-5 text-purple-600" />
                 </div>
               </div>
             </CardContent>
@@ -229,80 +229,86 @@ export default function CompanyPointsIndex({ company, pointHistory, stats }: Pro
           </CardContent>
         </Card>
 
-        {/* Point History */}
+        {/* Point History Data Table */}
         <Card>
           <CardHeader>
             <CardTitle>Riwayat Transaksi</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              {pointHistory.data.map((transaction) => (
-                <div key={transaction.id} className="flex items-center justify-between p-4 border rounded-lg">
-                  <div className="flex items-center gap-4">
-                    <div className="flex items-center gap-2">
-                      {getStatusIcon(transaction.status)}
-                      {transaction.points > 0 ? (
-                        <TrendingUp className="h-4 w-4 text-green-600" />
-                      ) : (
-                        <TrendingDown className="h-4 w-4 text-red-600" />
-                      )}
-                    </div>
-                    
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <h4 className="font-medium">{transaction.description}</h4>
-                        <Badge className={getTypeColor(transaction.type)}>
-                          {getTypeLabel(transaction.type)}
-                        </Badge>
-                      </div>
-                      
-                      <div className="flex items-center gap-4 text-sm text-gray-600 mt-1">
-                        <span>{new Date(transaction.created_at).toLocaleDateString('id-ID', {
-                          day: 'numeric',
-                          month: 'long',
-                          year: 'numeric',
-                          hour: '2-digit',
-                          minute: '2-digit'
-                        })}</span>
-                        
-                        {transaction.point_package && (
-                          <span>• {transaction.point_package.name}</span>
-                        )}
-                        
-                        <span>• {getStatusLabel(transaction.status)}</span>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div className="text-right">
-                    <div className={`font-semibold ${transaction.points > 0 ? 'text-green-600' : 'text-red-600'}`}>
-                      {transaction.points > 0 ? '+' : ''}{transaction.points} poin
-                    </div>
-                    {transaction.amount && (
-                      <div className="text-sm text-gray-600">
-                        Rp {transaction.amount.toLocaleString('id-ID')}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              ))}
-              
-              {pointHistory.data.length === 0 && (
-                <div className="text-center py-8">
-                  <Clock className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-                  <h3 className="text-lg font-medium mb-2">Belum ada transaksi</h3>
-                  <p className="text-gray-600 mb-4">
-                    Riwayat pembelian dan penggunaan poin akan muncul di sini.
-                  </p>
-                  <Link href="/company/points/packages">
-                    <Button>
-                      <CreditCard className="h-4 w-4 mr-2" />
-                      Beli Poin Pertama
-                    </Button>
-                  </Link>
-                </div>
-              )}
-            </div>
+            {pointHistory.data.length > 0 ? (
+              <div className="overflow-x-auto">
+                <table className="w-full border-collapse">
+                  <thead>
+                    <tr className="border-b">
+                      <th className="text-left p-3 font-semibold">ID</th>
+                      <th className="text-left p-3 font-semibold">Deskripsi</th>
+                      <th className="text-left p-3 font-semibold">Tipe</th>
+                      <th className="text-left p-3 font-semibold">Poin</th>
+                      <th className="text-left p-3 font-semibold">Jumlah</th>
+                      <th className="text-left p-3 font-semibold">Status</th>
+                      <th className="text-left p-3 font-semibold">Tanggal</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {pointHistory.data.map((transaction) => (
+                      <tr key={transaction.id} className="border-b hover:bg-gray-50">
+                        <td className="p-3 font-mono text-sm">#{transaction.id}</td>
+                        <td className="p-3">
+                          <div className="font-medium">{transaction.description}</div>
+                          {transaction.point_package && (
+                            <div className="text-sm text-gray-600">{transaction.point_package.name}</div>
+                          )}
+                        </td>
+                        <td className="p-3">
+                          <Badge className={getTypeColor(transaction.type)}>
+                            {getTypeLabel(transaction.type)}
+                          </Badge>
+                        </td>
+                        <td className="p-3">
+                          <span className={`font-semibold ${
+                            transaction.points > 0 ? 'text-green-600' : 'text-red-600'
+                          }`}>
+                            {transaction.points > 0 ? '+' : ''}{transaction.points}
+                          </span>
+                        </td>
+                        <td className="p-3 font-medium">
+                          {transaction.amount ? `Rp ${transaction.amount.toLocaleString('id-ID')}` : '-'}
+                        </td>
+                        <td className="p-3">
+                          <div className="flex items-center gap-2">
+                            {getStatusIcon(transaction.status)}
+                            <span>{getStatusLabel(transaction.status)}</span>
+                          </div>
+                        </td>
+                        <td className="p-3 text-sm">
+                          {new Date(transaction.created_at).toLocaleDateString('id-ID', {
+                            day: '2-digit',
+                            month: 'short',
+                            year: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                          })}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <Clock className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+                <h3 className="text-lg font-medium mb-2">Belum ada transaksi</h3>
+                <p className="text-gray-600 mb-4">
+                  Riwayat pembelian dan penggunaan poin akan muncul di sini.
+                </p>
+                <Link href="/company/points/packages">
+                  <Button>
+                    <CreditCard className="h-4 w-4 mr-2" />
+                    Beli Poin Pertama
+                  </Button>
+                </Link>
+              </div>
+            )}
           </CardContent>
         </Card>
 
