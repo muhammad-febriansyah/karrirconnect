@@ -1,14 +1,14 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Head, Link } from '@inertiajs/react';
 import { motion } from 'framer-motion';
 import ModernNavbar from '@/components/modern-navbar';
 import ModernFooter from '@/components/modern-footer';
 import { FlickeringGrid } from '@/components/magicui/flickering-grid';
 import { NumberTicker } from '@/components/magicui/number-ticker';
-import { 
-    Briefcase, 
-    MapPin, 
-    Clock, 
+import {
+    Briefcase,
+    MapPin,
+    Clock,
     DollarSign,
     Calendar,
     ArrowLeft,
@@ -25,7 +25,9 @@ import {
     User,
     Home,
     Laptop,
-    Globe
+    Globe,
+    Bookmark,
+    BookmarkCheck
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -33,6 +35,7 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import axios from 'axios';
 
 interface Company {
     id: number;
@@ -94,9 +97,34 @@ interface JobShowProps {
     job: JobListing;
     relatedJobs: JobListing[];
     hasApplied: boolean;
+    isSaved?: boolean;
 }
 
-export default function JobShow({ job, relatedJobs, hasApplied }: JobShowProps) {
+export default function JobShow({ job, relatedJobs, hasApplied, isSaved = false }: JobShowProps) {
+    const [isJobSaved, setIsJobSaved] = useState(isSaved);
+    const [isSaving, setIsSaving] = useState(false);
+
+    const handleSaveJob = async () => {
+        try {
+            setIsSaving(true);
+
+            const response = await axios.post(`/api/v1/jobs/${job.slug}/save`, {}, {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+                },
+                withCredentials: true
+            });
+
+            setIsJobSaved(response.data.saved);
+        } catch (error) {
+            console.error('Error saving job:', error);
+            // You might want to show a toast notification here
+        } finally {
+            setIsSaving(false);
+        }
+    };
+
     const formatSalary = (min: number | null, max: number | null, currency: string = 'IDR', negotiable: boolean = false) => {
         if (negotiable) return 'Gaji dapat dinegosiasi';
         if (!min && !max) return 'Gaji tidak disebutkan';
@@ -120,8 +148,8 @@ export default function JobShow({ job, relatedJobs, hasApplied }: JobShowProps) 
 
     const formatEmploymentType = (type: string) => {
         const typeMap: { [key: string]: string } = {
-            'full-time': 'Full Time',
-            'part-time': 'Part Time',
+            'full_time': 'Full Time',
+            'part_time': 'Part Time',
             'contract': 'Kontrak',
             'internship': 'Magang',
             'freelance': 'Freelance'
@@ -131,7 +159,7 @@ export default function JobShow({ job, relatedJobs, hasApplied }: JobShowProps) 
 
     const formatWorkArrangement = (arrangement: string) => {
         const arrangementMap: { [key: string]: string } = {
-            'onsite': 'On-site',
+            'on_site': 'On-site',
             'remote': 'Remote',
             'hybrid': 'Hybrid'
         };
@@ -389,9 +417,30 @@ export default function JobShow({ job, relatedJobs, hasApplied }: JobShowProps) 
                                     )}
 
                                     {/* Action Buttons */}
-                                    <div className="flex justify-center px-4 sm:px-0">
+                                    <div className="flex flex-col sm:flex-row items-center justify-center gap-3 px-4 sm:px-0">
+                                        <Button
+                                            onClick={handleSaveJob}
+                                            disabled={isSaving}
+                                            variant="outline"
+                                            size="lg"
+                                            className={`w-full sm:w-auto border-2 transition-all duration-300 ${
+                                                isJobSaved
+                                                    ? 'bg-[#2347FA] text-white border-[#2347FA] hover:bg-[#1e40e0] hover:border-[#1e40e0]'
+                                                    : 'border-gray-300 hover:border-[#2347FA] hover:text-[#2347FA]'
+                                            }`}
+                                        >
+                                            {isSaving ? (
+                                                <div className="w-4 h-4 sm:w-5 sm:h-5 mr-2 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                                            ) : isJobSaved ? (
+                                                <BookmarkCheck className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
+                                            ) : (
+                                                <Bookmark className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
+                                            )}
+                                            {isJobSaved ? 'Tersimpan' : 'Simpan Lowongan'}
+                                        </Button>
+
                                         {hasApplied ? (
-                                            <Button 
+                                            <Button
                                                 size="lg"
                                                 disabled
                                                 className="bg-gray-400 text-white shadow-lg px-6 sm:px-8 w-full sm:w-auto cursor-not-allowed"
@@ -401,7 +450,7 @@ export default function JobShow({ job, relatedJobs, hasApplied }: JobShowProps) 
                                             </Button>
                                         ) : (
                                             <Link href={`/jobs/${job.slug}/apply`} className="w-full sm:w-auto">
-                                                <Button 
+                                                <Button
                                                     size="lg"
                                                     className="bg-gradient-to-r from-[#2347FA] to-[#3b56fc] hover:from-[#1e40e0] hover:to-[#2347FA] text-white shadow-lg transform transition-all duration-300 hover:scale-105 px-6 sm:px-8 w-full sm:w-auto"
                                                 >

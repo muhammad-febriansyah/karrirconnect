@@ -53,6 +53,11 @@ Route::get('/debug', function () {
     return Inertia::render('debug');
 })->name('debug');
 
+// Midtrans webhook - CRITICAL: Must be accessible without authentication
+Route::post('/webhook/midtrans', [App\Http\Controllers\Company\PointController::class, 'webhook'])
+    ->withoutMiddleware([\App\Http\Middleware\VerifyCsrfToken::class])
+    ->name('webhook.midtrans');
+
 // Favicon fallback
 Route::get('/favicon.ico', function () {
     $setting = \App\Models\Setting::first();

@@ -57,10 +57,32 @@ export default function PointPackages({ packages, company, serviceFee, formatted
   const [purchasingId, setPurchasingId] = useState<number | null>(null);
   const { toast } = useToast();
 
+  const getErrorMessage = (error: any): string => {
+    if (error.code === 'ECONNABORTED' || error.message?.includes('timeout')) {
+      return 'Koneksi timeout. Periksa internet Anda dan coba lagi.';
+    }
+    if (error.code === 'ERR_NETWORK' || error.message?.includes('Network Error')) {
+      return 'Koneksi internet bermasalah. Periksa koneksi Anda.';
+    }
+    if (error.response?.status === 422) {
+      return 'Data tidak valid. Silakan refresh halaman dan coba lagi.';
+    }
+    if (error.response?.status === 500) {
+      return 'Server sedang bermasalah. Silakan coba beberapa saat lagi.';
+    }
+    return error.response?.data?.error || error.message || 'Terjadi kesalahan tidak terduga';
+  };
+
   const handlePurchase = async (packageId: number) => {
     console.log('Attempting to purchase package:', packageId);
     setPurchasingId(packageId);
-    
+
+    // Show loading state immediately
+    toast({
+      title: '⏳ Memproses pembayaran...',
+      description: 'Sedang menyiapkan halaman pembayaran Anda'
+    });
+
     try {
       const response = await axios.post('/company/points/purchase', {
         package_id: packageId
@@ -69,39 +91,60 @@ export default function PointPackages({ packages, company, serviceFee, formatted
           'X-Inertia': 'true',
           'X-Inertia-Version': (window as any).Inertia?.version || '',
           'X-CSRF-TOKEN': (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content || ''
-        }
+        },
+        timeout: 30000 // 30 second timeout
       });
 
       if (response.data.success) {
         console.log('Payment created, opening Snap:', response.data.snap_token);
-        
-        // Open Midtrans Snap popup
+
+        // Check if snap is available
+        if (!window.snap) {
+          throw new Error('Payment gateway tidak tersedia. Silakan refresh halaman.');
+        }
+
+        // Open Midtrans Snap popup with improved callbacks
         window.snap.pay(response.data.snap_token, {
           onSuccess: (result: any) => {
             console.log('Payment success:', result);
             toast({
-              title: 'Pembayaran berhasil! Poin akan ditambahkan ke akun Anda.',
+              title: '🎉 Pembayaran Berhasil!',
+              description: 'Poin telah ditambahkan ke akun Anda.',
               variant: 'default'
             });
-            // Redirect to points dashboard
-            router.get('/company/points');
+            // Small delay before redirect for better UX
+            setTimeout(() => router.get('/company/points'), 1500);
           },
           onPending: (result: any) => {
             console.log('Payment pending:', result);
             toast({
-              title: 'Pembayaran sedang diproses. Kami akan mengkonfirmasi pembayaran Anda.'
+              title: '⏳ Pembayaran Sedang Diproses',
+              description: 'Kami akan mengkonfirmasi pembayaran Anda dalam beberapa menit.',
             });
-            router.get('/company/points');
+            setTimeout(() => router.get('/company/points'), 2000);
           },
           onError: (result: any) => {
             console.log('Payment error:', result);
+            let errorMsg = 'Pembayaran gagal diproses.';
+
+            if (result.status_code === '201') {
+              errorMsg = 'Transaksi dibatalkan. Silakan coba metode pembayaran lain.';
+            } else if (result.status_code === '400') {
+              errorMsg = 'Data pembayaran tidak valid. Silakan coba lagi.';
+            }
+
             toast({
-              title: 'Terjadi kesalahan saat memproses pembayaran.',
+              title: '❌ ' + errorMsg,
+              description: 'Pilih metode pembayaran lain atau hubungi customer service.',
               variant: 'destructive'
             });
           },
           onClose: () => {
             console.log('Payment popup closed');
+            toast({
+              title: 'ℹ️ Halaman Pembayaran Ditutup',
+              description: 'Anda dapat melanjutkan pembayaran kapan saja.',
+            });
           }
         });
       } else {
@@ -109,9 +152,11 @@ export default function PointPackages({ packages, company, serviceFee, formatted
       }
     } catch (error: any) {
       console.error('Purchase error:', error);
-      const errorMessage = error.response?.data?.error || error.message || 'Terjadi kesalahan saat membeli paket';
+      const errorMessage = getErrorMessage(error);
+
       toast({
-        title: 'Error: ' + errorMessage,
+        title: '❌ Pembayaran Gagal',
+        description: errorMessage,
         variant: 'destructive'
       });
     } finally {

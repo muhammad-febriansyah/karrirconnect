@@ -86,12 +86,8 @@ export function useMenuItems() {
                     title: 'Template WhatsApp',
                     href: '/admin/whatsapp-templates',
                     icon: MessageSquare,
-                },
-                {
-                    title: 'WhatsApp Massal',
-                    href: '/admin/whatsapp-broadcast',
-                    icon: MessageSquare,
                 }
+                // WhatsApp Massal hidden
             ]
         },
         {

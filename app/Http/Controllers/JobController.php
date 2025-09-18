@@ -54,6 +54,16 @@ class JobController extends Controller
                      ->paginate(15)
                      ->withQueryString();
 
+        // Add saved status for authenticated users
+        if (Auth::check()) {
+            $userSavedJobIds = Auth::user()->savedJobs()->pluck('job_listing_id')->toArray();
+
+            $jobs->getCollection()->transform(function ($job) use ($userSavedJobIds) {
+                $job->is_saved = in_array($job->id, $userSavedJobIds);
+                return $job;
+            });
+        }
+
         // Featured jobs
         $featuredJobs = JobListing::with(['company', 'category'])
             ->featured()
@@ -61,6 +71,14 @@ class JobController extends Controller
             ->orderBy('created_at', 'desc')
             ->limit(6)
             ->get();
+
+        // Add saved status for featured jobs too
+        if (Auth::check()) {
+            $featuredJobs->transform(function ($job) use ($userSavedJobIds) {
+                $job->is_saved = in_array($job->id, $userSavedJobIds);
+                return $job;
+            });
+        }
 
         // Job categories
         $categories = JobCategory::orderBy('name')->get();
@@ -93,8 +111,13 @@ class JobController extends Controller
 
         // Check if user already applied for this job
         $hasApplied = false;
+        $isSaved = false;
         if (Auth::check()) {
             $hasApplied = JobApplication::where('user_id', Auth::id())
+                ->where('job_listing_id', $job->id)
+                ->exists();
+
+            $isSaved = Auth::user()->savedJobs()
                 ->where('job_listing_id', $job->id)
                 ->exists();
         }
@@ -113,7 +136,8 @@ class JobController extends Controller
         return Inertia::render('jobs/show', [
             'job' => $job,
             'relatedJobs' => $relatedJobs,
-            'hasApplied' => $hasApplied
+            'hasApplied' => $hasApplied,
+            'isSaved' => $isSaved
         ]);
     }
 }

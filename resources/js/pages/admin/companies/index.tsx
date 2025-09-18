@@ -279,23 +279,7 @@ export default function CompaniesIndex({ companies, filters }: Props) {
                                             </Button>
                                         </div>
 
-                                        <Button
-                                            size="sm"
-                                            variant={company.is_verified ? 'outline' : 'default'}
-                                            onClick={() => toggleVerification(company)}
-                                        >
-                                            {company.is_verified ? (
-                                                <>
-                                                    <XCircle className="mr-2 h-4 w-4" />
-                                                    Batalkan Verifikasi
-                                                </>
-                                            ) : (
-                                                <>
-                                                    <CheckCircle className="mr-2 h-4 w-4" />
-                                                    Verifikasi
-                                                </>
-                                            )}
-                                        </Button>
+{/* Verification action hidden */}
 
                                         <Button size="sm" variant="outline" onClick={() => toggleStatus(company)}>
                                             {company.is_active ? 'Nonaktifkan' : 'Aktifkan'}

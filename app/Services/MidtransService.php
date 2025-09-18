@@ -91,16 +91,38 @@ class MidtransService
                 'phone' => $company->phone,
             ],
             'enabled_payments' => [
-                'credit_card',
+                // E-Wallets (Most Popular)
+                'gopay',
+                'shopeepay',
+                'dana',
+                'ovo',
+                'linkaja',
+
+                // QRIS (Universal QR)
+                'qris',
+
+                // Bank Transfer
                 'bca_va',
                 'bni_va',
                 'bri_va',
                 'mandiri_va',
                 'permata_va',
                 'other_va',
-                'gopay',
-                'shopeepay',
-                'dana'
+
+                // Convenience Store
+                'indomaret',
+                'alfamart',
+
+                // Credit Card
+                'credit_card',
+
+                // Installment
+                'bca_klikpay',
+                'bca_klikbca',
+                'mandiri_clickpay',
+                'mandiri_ecash',
+                'cimb_clicks',
+                'danamon_online',
             ],
             'callbacks' => [
                 'finish' => route('company.points.payment.finish'),
@@ -113,12 +135,29 @@ class MidtransService
         ];
 
         try {
+            Log::info('Payment initiated', [
+                'company_id' => $company->id,
+                'company_name' => $company->name,
+                'package_id' => $package->id,
+                'package_name' => $package->name,
+                'amount' => $totalAmount,
+                'order_id' => $orderId,
+                'step' => 'creating_snap_token'
+            ]);
+
             Log::info('Midtrans Snap Request', [
                 'params' => $params,
                 'server_key_prefix' => substr(Config::$serverKey, 0, 15),
             ]);
 
             $snapToken = Snap::getSnapToken($params);
+
+            Log::info('Snap token created successfully', [
+                'order_id' => $orderId,
+                'company_id' => $company->id,
+                'token_length' => strlen($snapToken),
+                'step' => 'snap_token_created'
+            ]);
 
             // Update transaction with snap token
             $transaction->update([
@@ -152,14 +191,38 @@ class MidtransService
             $orderId = $notification->order_id;
             $transactionStatus = $notification->transaction_status;
             $fraudStatus = $notification->fraud_status ?? null;
+            $paymentType = $notification->payment_type ?? null;
+
+            Log::info('Webhook notification received', [
+                'order_id' => $orderId,
+                'transaction_status' => $transactionStatus,
+                'fraud_status' => $fraudStatus,
+                'payment_type' => $paymentType,
+                'gross_amount' => $notification->gross_amount ?? null,
+                'step' => 'webhook_received'
+            ]);
 
             $transaction = PointTransaction::where('payment_reference', $orderId)->first();
 
             if (!$transaction) {
+                Log::error('Transaction not found in webhook', [
+                    'order_id' => $orderId,
+                    'transaction_status' => $transactionStatus,
+                    'step' => 'transaction_not_found'
+                ]);
                 return ['status' => 'error', 'message' => 'Transaction not found'];
             }
 
             $company = $transaction->company;
+
+            Log::info('Processing webhook for transaction', [
+                'transaction_id' => $transaction->id,
+                'company_id' => $company->id,
+                'current_status' => $transaction->status,
+                'new_status' => $transactionStatus,
+                'payment_type' => $paymentType,
+                'step' => 'processing_webhook'
+            ]);
 
             if ($transactionStatus == 'capture') {
                 if ($fraudStatus == 'challenge') {
@@ -213,7 +276,18 @@ class MidtransService
             'status' => 'completed',
             'metadata' => array_merge($transaction->metadata ?? [], [
                 'completed_at' => now()->toISOString(),
+                'points_added' => $transaction->points,
+                'previous_points' => $company->job_posting_points - $transaction->points,
+                'new_points' => $company->job_posting_points,
             ])
+        ]);
+
+        Log::info('Transaction completed successfully', [
+            'transaction_id' => $transaction->id,
+            'company_id' => $company->id,
+            'points_added' => $transaction->points,
+            'new_total_points' => $company->job_posting_points,
+            'step' => 'transaction_completed'
         ]);
 
         // Send WhatsApp notification for successful payment

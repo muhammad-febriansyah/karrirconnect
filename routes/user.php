@@ -16,6 +16,9 @@ Route::middleware(['auth', 'verified', 'user.role'])->prefix('user')->name('user
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update.patch');
     Route::patch('/profile/password', [ProfileController::class, 'updatePassword'])->name('profile.password.update');
     
+    // Saved Jobs
+    Route::get('/saved-jobs', [DashboardController::class, 'savedJobs'])->name('saved-jobs');
+
     // Notifications
     Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
     Route::post('/notifications/{notification}/mark-as-read', [NotificationController::class, 'markAsRead'])->name('notifications.mark-as-read');

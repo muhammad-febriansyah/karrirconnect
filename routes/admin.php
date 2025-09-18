@@ -69,6 +69,9 @@ Route::middleware(['auth', 'verified', 'admin.role'])->prefix('admin')->name('ad
     // Applications - Super admin read-only access (index & show only)
     Route::get('/applications', [ApplicationManagementController::class, 'index'])->name('applications.index');
     Route::get('/applications/{application}', [ApplicationManagementController::class, 'show'])->name('applications.show');
+    Route::get('/applications/{application}/download/resume', [ApplicationManagementController::class, 'downloadResume'])->name('applications.download.resume');
+    Route::get('/applications/{application}/download/document/{index}', [ApplicationManagementController::class, 'downloadDocument'])->name('applications.download.document');
+    Route::patch('/applications/{application}/status', [ApplicationManagementController::class, 'updateStatus'])->name('applications.update-status');
 
     // Transaction History - Both super_admin and company_admin can access
     Route::get('/transactions', [TransactionController::class, 'index'])->name('transactions.index');
@@ -193,6 +196,5 @@ Route::middleware(['auth', 'verified', 'company.admin'])->prefix('admin')->name(
     Route::post('/job-listings/{jobListing}/toggle-status', [JobListingsController::class, 'toggleStatus'])->name('job-listings.toggle-status');
 
     // Applications Management - Only for company admin (update operations)
-    Route::patch('/applications/{application}/status', [ApplicationManagementController::class, 'updateStatus'])->name('applications.update-status');
     Route::post('/applications/bulk-action', [ApplicationManagementController::class, 'bulkAction'])->name('applications.bulk-action');
 });

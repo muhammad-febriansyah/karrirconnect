@@ -21,6 +21,7 @@ import ModernFooter from '@/components/modern-footer';
 
 interface JobListing {
     id?: number;
+    slug?: string;
     title?: string;
     company?: {
         name?: string;
@@ -38,10 +39,8 @@ interface JobApplication {
     jobListing?: JobListing;
 }
 
-interface SavedJob {
-    id: number;
-    created_at: string;
-    jobListing?: JobListing;
+interface SavedJob extends JobListing {
+    saved_at?: string;
 }
 
 interface DashboardProps {
@@ -79,10 +78,21 @@ const getStatusText = (status: string) => {
     }
 };
 
-export default function UserDashboard({ 
-    stats = { applications: 0, saved_jobs: 0, pending_applications: 0, interview_applications: 0 }, 
-    recentApplications = [], 
-    savedJobs = [] 
+const getEmploymentTypeText = (type: string) => {
+    switch (type) {
+        case 'full_time': return 'Penuh Waktu';
+        case 'part_time': return 'Paruh Waktu';
+        case 'contract': return 'Kontrak';
+        case 'internship': return 'Magang';
+        case 'freelance': return 'Freelance';
+        default: return type || 'Tipe Kerja';
+    }
+};
+
+export default function UserDashboard({
+    stats = { applications: 0, saved_jobs: 0, pending_applications: 0, interview_applications: 0 },
+    recentApplications = [],
+    savedJobs = []
 }: DashboardProps) {
     return (
         <>
@@ -210,30 +220,41 @@ export default function UserDashboard({
                                                     <div key={application.id} className="flex items-start justify-between p-4 bg-gray-50 rounded-lg">
                                                         <div className="flex-1">
                                                             <h4 className="font-semibold text-gray-900">
-                                                                {application.jobListing?.title || 'Lowongan Tidak Tersedia'}
+                                                                {application.jobListing?.title || 'Lowongan Telah Dihapus'}
                                                             </h4>
                                                             <p className="text-sm text-gray-600 flex items-center gap-1 mt-1">
-                                                                <span>{application.jobListing?.company?.name || 'Perusahaan'}</span>
-                                                                <span>•</span>
-                                                                <MapPin className="h-3 w-3" />
-                                                                <span>{application.jobListing?.location || 'Lokasi tidak tersedia'}</span>
+                                                                <span>{application.jobListing?.company?.name || 'Perusahaan tidak tersedia'}</span>
+                                                                {application.jobListing?.location && (
+                                                                    <>
+                                                                        <span>•</span>
+                                                                        <MapPin className="h-3 w-3" />
+                                                                        <span>{application.jobListing.location}</span>
+                                                                    </>
+                                                                )}
                                                             </p>
                                                             <p className="text-xs text-gray-500 flex items-center gap-1 mt-2">
                                                                 <Calendar className="h-3 w-3" />
-                                                                {new Date(application.created_at).toLocaleDateString('id-ID')}
+                                                                Dilamar pada {new Date(application.created_at).toLocaleDateString('id-ID')}
                                                             </p>
                                                         </div>
                                                         <div className="flex flex-col items-end gap-2">
                                                             <Badge variant={getStatusBadgeVariant(application.status)}>
                                                                 {getStatusText(application.status)}
                                                             </Badge>
-                                                            <Link 
-                                                                href={`/jobs/${application.jobListing?.id || '#'}`}
-                                                                className="text-blue-600 hover:text-blue-700 text-xs flex items-center gap-1"
-                                                            >
-                                                                <Eye className="h-3 w-3" />
-                                                                Lihat
-                                                            </Link>
+                                                            {application.jobListing ? (
+                                                                <Link
+                                                                    href={`/jobs/${application.jobListing.slug || application.jobListing.id}`}
+                                                                    className="text-blue-600 hover:text-blue-700 text-xs flex items-center gap-1"
+                                                                >
+                                                                    <Eye className="h-3 w-3" />
+                                                                    Lihat
+                                                                </Link>
+                                                            ) : (
+                                                                <span className="text-gray-400 text-xs flex items-center gap-1">
+                                                                    <Eye className="h-3 w-3" />
+                                                                    Tidak tersedia
+                                                                </span>
+                                                            )}
                                                         </div>
                                                     </div>
                                                 ))}
@@ -285,25 +306,25 @@ export default function UserDashboard({
                                                     <div key={savedJob.id} className="flex items-start justify-between p-4 bg-gray-50 rounded-lg">
                                                         <div className="flex-1">
                                                             <h4 className="font-semibold text-gray-900">
-                                                                {savedJob.jobListing?.title || 'Lowongan Tidak Tersedia'}
+                                                                {savedJob.title || 'Lowongan Tidak Tersedia'}
                                                             </h4>
                                                             <p className="text-sm text-gray-600 flex items-center gap-1 mt-1">
-                                                                <span>{savedJob.jobListing?.company?.name || 'Perusahaan'}</span>
+                                                                <span>{savedJob.company?.name || 'Perusahaan'}</span>
                                                                 <span>•</span>
                                                                 <MapPin className="h-3 w-3" />
-                                                                <span>{savedJob.jobListing?.location || 'Lokasi tidak tersedia'}</span>
+                                                                <span>{savedJob.location || 'Lokasi tidak tersedia'}</span>
                                                             </p>
                                                             <p className="text-xs text-gray-500 flex items-center gap-1 mt-2">
                                                                 <Calendar className="h-3 w-3" />
-                                                                Disimpan {new Date(savedJob.created_at).toLocaleDateString('id-ID')}
+                                                                Disimpan {new Date(savedJob.created_at || '').toLocaleDateString('id-ID')}
                                                             </p>
                                                         </div>
                                                         <div className="flex flex-col items-end gap-2">
                                                             <Badge variant="secondary">
-                                                                {savedJob.jobListing?.employment_type || 'Tipe Kerja'}
+                                                                {getEmploymentTypeText(savedJob.employment_type || '')}
                                                             </Badge>
-                                                            <Link 
-                                                                href={`/jobs/${savedJob.jobListing?.id || '#'}`}
+                                                            <Link
+                                                                href={`/jobs/${savedJob.slug || savedJob.id || '#'}`}
                                                                 className="text-blue-600 hover:text-blue-700 text-xs flex items-center gap-1"
                                                             >
                                                                 <Eye className="h-3 w-3" />

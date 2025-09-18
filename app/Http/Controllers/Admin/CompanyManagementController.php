@@ -115,7 +115,12 @@ class CompanyManagementController extends Controller
 
     public function toggleVerification(Company $company)
     {
-        $company->update(['is_verified' => !$company->is_verified]);
+        $newVerificationStatus = !$company->is_verified;
+
+        $company->update([
+            'is_verified' => $newVerificationStatus,
+            'verification_status' => $newVerificationStatus ? 'verified' : 'pending'
+        ]);
 
         return back()->with('success', $company->is_verified ? 'Perusahaan berhasil diverifikasi.' : 'Verifikasi perusahaan berhasil dibatalkan.');
     }

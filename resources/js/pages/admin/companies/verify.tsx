@@ -253,16 +253,14 @@ export default function CompanyVerification({ company }: Props) {
                             <CheckCircle2 className="mr-1 h-4 w-4" />
                             Verified Badge
                         </Badge>
-                    ) : company.verification_status === 'pending' ? (
-                        <Badge variant="outline" className="text-blue-600 border-blue-600">
-                            <AlertCircle className="mr-1 h-4 w-4" />
-                            Menunggu Review
-                        </Badge>
                     ) : company.verification_status === 'rejected' ? (
                         <Badge variant="outline" className="text-red-600 border-red-600">
                             <AlertCircle className="mr-1 h-4 w-4" />
                             Ditolak
                         </Badge>
+                    ) : company.verification_status === 'pending' ? (
+                        // Menunggu Review badge hidden for better upload experience
+                        null
                     ) : (
                         <Badge variant="outline" className="text-gray-600 border-gray-600">
                             <Shield className="mr-1 h-4 w-4" />
@@ -281,14 +279,7 @@ export default function CompanyVerification({ company }: Props) {
                     </Alert>
                 )}
 
-                {company.verification_status === 'pending' && (
-                    <Alert className="border-blue-200 bg-blue-50">
-                        <AlertCircle className="h-4 w-4 text-blue-600" />
-                        <AlertDescription className="text-blue-800">
-                            Dokumen verifikasi Anda sedang dalam proses review. Tim kami akan menghubungi Anda dalam 1-3 hari kerja.
-                        </AlertDescription>
-                    </Alert>
-                )}
+                {/* Pending notification and alert hidden for better upload experience */}
 
                 {company.verification_status === 'rejected' && (
                     <Alert className="border-red-200 bg-red-50">

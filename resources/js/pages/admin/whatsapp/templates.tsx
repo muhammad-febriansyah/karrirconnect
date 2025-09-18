@@ -14,7 +14,7 @@ interface WhatsAppTemplate {
     title: string;
     message: string;
     type: 'notification' | 'marketing' | 'system' | 'alert';
-    variables: string[];
+    variables: string[] | null | undefined;
     description: string;
     is_active: boolean;
     use_emoji: boolean;
@@ -154,7 +154,7 @@ export default function WhatsAppTemplates({ templates }: Props) {
                                     </p>
                                 </div>
 
-                                {template.variables?.length > 0 && (
+                                {Array.isArray(template.variables) && template.variables.length > 0 && (
                                     <div>
                                         <p className="text-sm font-medium text-muted-foreground">Variabel</p>
                                         <div className="flex flex-wrap gap-1 mt-1">

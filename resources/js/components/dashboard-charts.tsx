@@ -282,12 +282,96 @@ export default function DashboardCharts({ role, data }: DashboardChartsProps) {
           </motion.div>
         )}
 
+        {/* Applications Trend - Full Width */}
+        {data.applicationsStats && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.4 }}
+            className="lg:col-span-2"
+          >
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <FileText className="h-5 w-5 text-blue-600" />
+                  Tren Lamaran Bulanan
+                </CardTitle>
+                <p className="text-sm text-gray-600 mt-1">
+                  Perkembangan jumlah lamaran kerja dalam 12 bulan terakhir
+                </p>
+              </CardHeader>
+              <CardContent>
+                <div className="h-96">
+                  <Line
+                    options={{
+                      ...chartOptions,
+                      plugins: {
+                        ...chartOptions.plugins,
+                        legend: {
+                          position: 'top' as const,
+                          labels: {
+                            usePointStyle: true,
+                            padding: 20,
+                          },
+                        },
+                      },
+                      scales: {
+                        ...chartOptions.scales,
+                        x: {
+                          grid: {
+                            display: true,
+                            color: 'rgba(0, 0, 0, 0.1)',
+                          },
+                        },
+                        y: {
+                          beginAtZero: true,
+                          grid: {
+                            color: 'rgba(0, 0, 0, 0.1)',
+                          },
+                        },
+                      },
+                      elements: {
+                        point: {
+                          radius: 6,
+                          hoverRadius: 8,
+                        },
+                        line: {
+                          tension: 0.4,
+                        },
+                      },
+                    }}
+                    data={{
+                      labels: months,
+                      datasets: [
+                        {
+                          label: 'Total Lamaran',
+                          data: data.applicationsStats.monthly,
+                          borderColor: 'rgb(59, 130, 246)',
+                          backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                          borderWidth: 3,
+                          fill: true,
+                          pointBackgroundColor: 'rgb(59, 130, 246)',
+                          pointBorderColor: '#fff',
+                          pointBorderWidth: 2,
+                          pointHoverBackgroundColor: '#fff',
+                          pointHoverBorderColor: 'rgb(59, 130, 246)',
+                          pointHoverBorderWidth: 3,
+                        },
+                      ],
+                    }}
+                  />
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        )}
+
         {/* Companies Growth - Full Width */}
         {data.companiesStats && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.4 }}
+            transition={{ duration: 0.5, delay: 0.5 }}
             className="lg:col-span-2"
           >
             <Card>
@@ -549,7 +633,7 @@ export default function DashboardCharts({ role, data }: DashboardChartsProps) {
         </motion.div>
       )}
 
-      {/* Monthly Applications */}
+      {/* Monthly Applications - Enhanced */}
       {data.companyApplicationsStats && (
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -559,23 +643,69 @@ export default function DashboardCharts({ role, data }: DashboardChartsProps) {
           <Card className="lg:col-span-2">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <FileText className="h-5 w-5 text-indigo-600" />
+                <FileText className="h-5 w-5 text-blue-600" />
                 Tren Lamaran Bulanan
               </CardTitle>
+              <p className="text-sm text-gray-600 mt-1">
+                Perkembangan lamaran untuk lowongan perusahaan Anda dalam 12 bulan terakhir
+              </p>
             </CardHeader>
             <CardContent>
-              <div className="h-64">
-                <Bar
-                  options={chartOptions}
+              <div className="h-96">
+                <Line
+                  options={{
+                    ...chartOptions,
+                    plugins: {
+                      ...chartOptions.plugins,
+                      legend: {
+                        position: 'top' as const,
+                        labels: {
+                          usePointStyle: true,
+                          padding: 20,
+                        },
+                      },
+                    },
+                    scales: {
+                      ...chartOptions.scales,
+                      x: {
+                        grid: {
+                          display: true,
+                          color: 'rgba(0, 0, 0, 0.1)',
+                        },
+                      },
+                      y: {
+                        beginAtZero: true,
+                        grid: {
+                          color: 'rgba(0, 0, 0, 0.1)',
+                        },
+                      },
+                    },
+                    elements: {
+                      point: {
+                        radius: 6,
+                        hoverRadius: 8,
+                      },
+                      line: {
+                        tension: 0.4,
+                      },
+                    },
+                  }}
                   data={{
                     labels: months,
                     datasets: [
                       {
                         label: 'Lamaran Masuk',
                         data: data.companyApplicationsStats.monthly,
-                        backgroundColor: 'rgba(99, 102, 241, 0.8)',
-                        borderColor: 'rgba(99, 102, 241, 1)',
-                        borderWidth: 1,
+                        borderColor: 'rgb(59, 130, 246)',
+                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                        borderWidth: 3,
+                        fill: true,
+                        pointBackgroundColor: 'rgb(59, 130, 246)',
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2,
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: 'rgb(59, 130, 246)',
+                        pointHoverBorderWidth: 3,
                       },
                     ],
                   }}

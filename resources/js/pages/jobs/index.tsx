@@ -1,14 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Head, Link, router } from '@inertiajs/react';
 import { motion } from 'framer-motion';
 import ModernNavbar from '@/components/modern-navbar';
 import { FlickeringGrid } from '@/components/magicui/flickering-grid';
 import { NumberTicker } from '@/components/magicui/number-ticker';
 import ModernFooter from '@/components/modern-footer';
-import { 
-    Search, 
-    MapPin, 
-    Building2, 
+import {
+    Search,
+    MapPin,
+    Building2,
     Filter,
     SlidersHorizontal,
     Clock,
@@ -24,7 +24,9 @@ import {
     Calendar,
     DollarSign,
     Globe,
-    Shield
+    Shield,
+    Bookmark,
+    BookmarkCheck
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -38,6 +40,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
+import axios from 'axios';
 
 interface Company {
     id: number;
@@ -73,6 +76,7 @@ interface JobListing {
     positions_available: number;
     remaining_positions: number;
     description: string;
+    is_saved?: boolean;
 }
 
 interface JobsIndexProps {
@@ -100,6 +104,29 @@ export default function JobsIndex({ jobs, categories, filters, totalJobs, featur
     const [selectedCategory, setSelectedCategory] = useState(filters.category || '');
     const [selectedEmploymentType, setSelectedEmploymentType] = useState(filters.employment_type || '');
     const [selectedWorkArrangement, setSelectedWorkArrangement] = useState(filters.work_arrangement || '');
+    const [savedJobs, setSavedJobs] = useState<Set<number>>(new Set());
+    const [savingJobs, setSavingJobs] = useState<Set<number>>(new Set());
+
+    // Initialize savedJobs state from backend data
+    useEffect(() => {
+        const initialSavedJobs = new Set<number>();
+
+        // Check jobs data
+        jobs.data.forEach(job => {
+            if (job.is_saved) {
+                initialSavedJobs.add(job.id);
+            }
+        });
+
+        // Check featured jobs data
+        featuredJobs.forEach(job => {
+            if (job.is_saved) {
+                initialSavedJobs.add(job.id);
+            }
+        });
+
+        setSavedJobs(initialSavedJobs);
+    }, [jobs, featuredJobs]);
 
     const formatSalary = (min: number | null, max: number | null, currency: string, negotiable: boolean) => {
         if (negotiable) return "Negotiable";
@@ -150,6 +177,39 @@ export default function JobsIndex({ jobs, categories, filters, totalJobs, featur
         setSelectedEmploymentType('');
         setSelectedWorkArrangement('');
         router.get('/jobs');
+    };
+
+    const handleSaveJob = async (jobId: number, jobSlug: string) => {
+        try {
+            setSavingJobs(prev => new Set(prev).add(jobId));
+
+            const response = await axios.post(`/api/v1/jobs/${jobSlug}/save`, {}, {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+                },
+                withCredentials: true
+            });
+
+            if (response.data.saved) {
+                setSavedJobs(prev => new Set(prev).add(jobId));
+            } else {
+                setSavedJobs(prev => {
+                    const newSet = new Set(prev);
+                    newSet.delete(jobId);
+                    return newSet;
+                });
+            }
+        } catch (error) {
+            console.error('Error saving job:', error);
+            // You might want to show a toast notification here
+        } finally {
+            setSavingJobs(prev => {
+                const newSet = new Set(prev);
+                newSet.delete(jobId);
+                return newSet;
+            });
+        }
     };
 
     const getFilterQueryString = () => {
@@ -338,7 +398,7 @@ export default function JobsIndex({ jobs, categories, filters, totalJobs, featur
                                         <SelectItem value="part_time">Part Time</SelectItem>
                                         <SelectItem value="contract">Contract</SelectItem>
                                         <SelectItem value="freelance">Freelance</SelectItem>
-                                        <SelectItem value="internship">Magang</SelectItem>
+                                        <SelectItem value="internship">Internship</SelectItem>
                                     </SelectContent>
                                 </Select>
                                 
@@ -348,7 +408,7 @@ export default function JobsIndex({ jobs, categories, filters, totalJobs, featur
                                     </SelectTrigger>
                                     <SelectContent>
                                         <SelectItem value="all">Semua</SelectItem>
-                                        <SelectItem value="onsite">Onsite</SelectItem>
+                                        <SelectItem value="on_site">On-site</SelectItem>
                                         <SelectItem value="remote">Remote</SelectItem>
                                         <SelectItem value="hybrid">Hybrid</SelectItem>
                                     </SelectContent>
@@ -433,9 +493,10 @@ export default function JobsIndex({ jobs, categories, filters, totalJobs, featur
                                                             </span>
                                                             <span className="flex items-center bg-blue-100 px-3 py-1 rounded-full">
                                                                 <Briefcase className="w-4 h-4 mr-2" />
-                                                                {job.employment_type === 'full_time' ? 'Full Time' : 
+                                                                {job.employment_type === 'full_time' ? 'Full Time' :
                                                                  job.employment_type === 'part_time' ? 'Part Time' :
-                                                                 job.employment_type === 'contract' ? 'Contract' : job.employment_type}
+                                                                 job.employment_type === 'contract' ? 'Contract' :
+                                                                 job.employment_type === 'internship' ? 'Internship' : job.employment_type}
                                                             </span>
                                                             <span className="flex items-center bg-green-100 px-3 py-1 rounded-full">
                                                                 <Calendar className="w-4 h-4 mr-2" />
@@ -446,9 +507,9 @@ export default function JobsIndex({ jobs, categories, filters, totalJobs, featur
                                                         {/* Work arrangement badge */}
                                                         {job.work_arrangement && (
                                                             <Badge variant="outline" className="mb-3 border-green-200 text-green-700 bg-green-50">
-                                                                {job.work_arrangement === 'remote' ? 'Remote' : 
-                                                                 job.work_arrangement === 'hybrid' ? 'Hybrid' : 
-                                                                 job.work_arrangement === 'onsite' ? 'On-site' : job.work_arrangement}
+                                                                {job.work_arrangement === 'remote' ? 'Remote' :
+                                                                 job.work_arrangement === 'hybrid' ? 'Hybrid' :
+                                                                 job.work_arrangement === 'on_site' ? 'On-site' : job.work_arrangement}
                                                             </Badge>
                                                         )}
                                                         
@@ -469,6 +530,23 @@ export default function JobsIndex({ jobs, categories, filters, totalJobs, featur
                                                         </div>
 
                                                         <div className="flex items-center space-x-3">
+                                                            <Button
+                                                                onClick={() => handleSaveJob(job.id, job.slug)}
+                                                                disabled={savingJobs.has(job.id)}
+                                                                variant="outline"
+                                                                size="sm"
+                                                                className={`border-gray-300 hover:border-[#2347FA] transition-all duration-300 ${
+                                                                    savedJobs.has(job.id) ? 'bg-[#2347FA] text-white border-[#2347FA]' : ''
+                                                                }`}
+                                                            >
+                                                                {savingJobs.has(job.id) ? (
+                                                                    <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                                                                ) : savedJobs.has(job.id) ? (
+                                                                    <BookmarkCheck className="w-4 h-4" />
+                                                                ) : (
+                                                                    <Bookmark className="w-4 h-4" />
+                                                                )}
+                                                            </Button>
                                                             <Link href={`/jobs/${job.slug}`} className="flex-1">
                                                                 <Button className="w-full bg-gradient-to-r from-[#2347FA] to-[#3b56fc] hover:from-[#1a3af0] hover:to-[#2d47f5] text-white rounded-xl shadow-md hover:shadow-lg transition-all duration-300">
                                                                     Lamar Sekarang
@@ -572,9 +650,10 @@ export default function JobsIndex({ jobs, categories, filters, totalJobs, featur
                                                             <span className="flex items-center bg-blue-100 px-3 py-1 rounded-full">
                                                                 <Briefcase className="w-4 h-4 mr-2 text-blue-600" />
                                                                 <span className="text-blue-700">
-                                                                    {job.employment_type === 'full_time' ? 'Full Time' : 
+                                                                    {job.employment_type === 'full_time' ? 'Full Time' :
                                                                      job.employment_type === 'part_time' ? 'Part Time' :
-                                                                     job.employment_type === 'contract' ? 'Contract' : job.employment_type}
+                                                                     job.employment_type === 'contract' ? 'Contract' :
+                                                                     job.employment_type === 'internship' ? 'Internship' : job.employment_type}
                                                                 </span>
                                                             </span>
                                                             <span className="flex items-center bg-green-100 px-3 py-1 rounded-full">
@@ -586,9 +665,9 @@ export default function JobsIndex({ jobs, categories, filters, totalJobs, featur
                                                             </Badge>
                                                             {job.work_arrangement && (
                                                                 <Badge variant="outline" className="border-green-200 text-green-700 bg-green-50">
-                                                                    {job.work_arrangement === 'remote' ? 'Remote' : 
-                                                                     job.work_arrangement === 'hybrid' ? 'Hybrid' : 
-                                                                     job.work_arrangement === 'onsite' ? 'On-site' : job.work_arrangement}
+                                                                    {job.work_arrangement === 'remote' ? 'Remote' :
+                                                                     job.work_arrangement === 'hybrid' ? 'Hybrid' :
+                                                                     job.work_arrangement === 'on_site' ? 'On-site' : job.work_arrangement}
                                                                 </Badge>
                                                             )}
                                                         </div>
@@ -613,13 +692,32 @@ export default function JobsIndex({ jobs, categories, filters, totalJobs, featur
                                                                     </div>
                                                                     <div>{job.remaining_positions} posisi tersisa</div>
                                                                 </div>
-                                                                
-                                                                <Link href={`/jobs/${job.slug}`} className="w-full sm:w-auto">
-                                                                    <Button className="w-full sm:w-auto bg-gradient-to-r from-[#2347FA] to-[#3b56fc] hover:from-[#1a3af0] hover:to-[#2d47f5] text-white rounded-xl px-6 shadow-md hover:shadow-lg transition-all duration-300">
-                                                                        Lamar Sekarang
-                                                                        <ArrowRight className="w-4 h-4 ml-2" />
+
+                                                                <div className="flex items-center space-x-3 w-full sm:w-auto">
+                                                                    <Button
+                                                                        onClick={() => handleSaveJob(job.id, job.slug)}
+                                                                        disabled={savingJobs.has(job.id)}
+                                                                        variant="outline"
+                                                                        size="sm"
+                                                                        className={`border-gray-300 hover:border-[#2347FA] transition-all duration-300 ${
+                                                                            savedJobs.has(job.id) ? 'bg-[#2347FA] text-white border-[#2347FA]' : ''
+                                                                        }`}
+                                                                    >
+                                                                        {savingJobs.has(job.id) ? (
+                                                                            <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                                                                        ) : savedJobs.has(job.id) ? (
+                                                                            <BookmarkCheck className="w-4 h-4" />
+                                                                        ) : (
+                                                                            <Bookmark className="w-4 h-4" />
+                                                                        )}
                                                                     </Button>
-                                                                </Link>
+                                                                    <Link href={`/jobs/${job.slug}`} className="flex-1">
+                                                                        <Button className="w-full bg-gradient-to-r from-[#2347FA] to-[#3b56fc] hover:from-[#1a3af0] hover:to-[#2d47f5] text-white rounded-xl px-6 shadow-md hover:shadow-lg transition-all duration-300">
+                                                                            Lamar Sekarang
+                                                                            <ArrowRight className="w-4 h-4 ml-2" />
+                                                                        </Button>
+                                                                    </Link>
+                                                                </div>
                                                             </div>
                                                         </div>
 

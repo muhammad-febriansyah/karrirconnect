@@ -10,6 +10,8 @@ import { Head, router } from '@inertiajs/react';
 import { formatDistanceToNow } from 'date-fns';
 import { Briefcase, Building2, Calendar, Clock, Eye, FileText, MapPin, Search, User } from 'lucide-react';
 import { useState } from 'react';
+import { DataTable } from '@/components/applications-data-table';
+import { toast } from 'sonner';
 
 interface ExtendedJobApplication extends JobApplication {
     user?: {
@@ -115,9 +117,20 @@ export default function ApplicationsIndex({ applications, filters, userRole }: P
             },
             {
                 onSuccess: () => {
+                    toast.success('Status lamaran berhasil diperbarui!', {
+                        description: `Status untuk ${application.user?.name || 'pelamar'} telah diubah menjadi ${getStatusLabel(newStatus)}`,
+                        duration: 4000,
+                    });
                     setSelectedApp(null);
                     setAdminNotes('');
                     router.reload();
+                },
+                onError: (errors) => {
+                    console.error('Update failed:', errors);
+                    toast.error('Gagal memperbarui status lamaran', {
+                        description: 'Silakan coba lagi beberapa saat.',
+                        duration: 4000,
+                    });
                 },
             },
         );
@@ -244,91 +257,18 @@ export default function ApplicationsIndex({ applications, filters, userRole }: P
                     </CardContent>
                 </Card>
 
-                {/* Applications List */}
-                <div className="grid gap-4">
-                    {applications.data.map((application) => (
-                        <Card key={application.id}>
-                            <CardContent className="p-6">
-                                <div className="flex items-start justify-between">
-                                    <div className="flex-1">
-                                        <div className="mb-2 flex items-center gap-3">
-                                            <h3 className="text-lg font-semibold">{application.user?.name || 'N/A'}</h3>
-                                            <Badge variant="outline" className={getStatusColor(application.status)}>
-                                                {getStatusLabel(application.status)}
-                                            </Badge>
-                                        </div>
-
-                                        <div className="mb-3 space-y-2 text-sm text-gray-600">
-                                            <div className="flex items-center gap-4">
-                                                <div className="flex items-center gap-2">
-                                                    <Briefcase className="h-4 w-4" />
-                                                    <span className="font-medium">{application.jobListing?.title || 'N/A'}</span>
-                                                </div>
-                                                <div className="flex items-center gap-2">
-                                                    <Building2 className="h-4 w-4" />
-                                                    <span>{application.jobListing?.company?.name || 'N/A'}</span>
-                                                </div>
-                                            </div>
-
-                                            <div className="flex items-center gap-4">
-                                                <div className="flex items-center gap-2">
-                                                    <User className="h-4 w-4" />
-                                                    <span>{application.user?.email || 'N/A'}</span>
-                                                </div>
-                                                {application.user?.profile?.location && (
-                                                    <div className="flex items-center gap-2">
-                                                        <MapPin className="h-4 w-4" />
-                                                        <span>{application.user.profile.location}</span>
-                                                    </div>
-                                                )}
-                                            </div>
-
-                                            <div className="flex items-center gap-4 text-xs text-gray-500">
-                                                <span className="flex items-center gap-1">
-                                                    <Calendar className="h-3 w-3" />
-                                                    Melamar {formatDistanceToNow(new Date(application.created_at), { addSuffix: true })}
-                                                </span>
-                                                {application.reviewed_at && (
-                                                    <span>
-                                                        Ditinjau {formatDistanceToNow(new Date(application.reviewed_at), { addSuffix: true })}
-                                                    </span>
-                                                )}
-                                            </div>
-
-                                            {application.admin_notes && (
-                                                <div className="mt-2 rounded bg-gray-50 p-2 text-sm">
-                                                    <strong>Catatan Admin:</strong> {application.admin_notes}
-                                                </div>
-                                            )}
-                                        </div>
-                                    </div>
-
-                                    {userRole === 'company_admin' && (
-                                        <div className="ml-4 flex flex-col gap-2">
-                                            <Button size="sm" variant="outline" onClick={() => openStatusModal(application)}>
-                                                Perbarui Status
-                                            </Button>
-                                        </div>
-                                    )}
-                                </div>
-                            </CardContent>
-                        </Card>
-                    ))}
-                </div>
-
-                {applications.data.length === 0 && (
-                    <Card>
-                        <CardContent className="p-12 text-center">
-                            <FileText className="mx-auto mb-4 h-12 w-12 text-gray-400" />
-                            <h3 className="mb-2 text-lg font-medium">Tidak ada lamaran ditemukan</h3>
-                            <p className="text-gray-600">
-                                {Object.values(filters).some((f) => f)
-                                    ? 'Coba sesuaikan filter Anda untuk melihat lebih banyak hasil.'
-                                    : 'Belum ada lamaran kerja yang diajukan.'}
-                            </p>
-                        </CardContent>
-                    </Card>
-                )}
+                {/* Data Table */}
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Daftar Lamaran</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <DataTable
+                            data={applications.data}
+                            onStatusUpdate={openStatusModal}
+                        />
+                    </CardContent>
+                </Card>
 
                 {/* Status Update Modal */}
                 {selectedApp && (
@@ -337,7 +277,7 @@ export default function ApplicationsIndex({ applications, filters, userRole }: P
                             <CardHeader>
                                 <CardTitle>Perbarui Status Lamaran</CardTitle>
                                 <p className="text-sm text-gray-600">
-                                    {selectedApp.user?.name || 'N/A'} - {selectedApp.jobListing?.title || 'N/A'}
+                                    {selectedApp.user?.name || 'Nama tidak tersedia'} - {selectedApp.jobListing?.title || 'Posisi tidak tersedia'}
                                 </p>
                             </CardHeader>
                             <CardContent className="space-y-4">

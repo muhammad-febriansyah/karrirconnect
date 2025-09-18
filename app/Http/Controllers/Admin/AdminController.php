@@ -263,21 +263,80 @@ class AdminController extends Controller
             })
             ->toArray();
 
-        // Applications stats
+        // Enhanced Applications stats with detailed breakdown
         $applicationsMonthly = [];
+        $applicationsMonthlyByStatus = [];
+
         for ($i = 11; $i >= 0; $i--) {
             $date = now()->subMonths($i);
-            $applicationsMonthly[] = JobApplication::whereYear('created_at', $date->year)
+
+            // Total applications
+            $totalApps = JobApplication::whereYear('created_at', $date->year)
                 ->whereMonth('created_at', $date->month)
                 ->count();
+
+            $applicationsMonthly[] = $totalApps;
+
+            // Applications by status for each month
+            $applicationsMonthlyByStatus[] = [
+                'month' => $date->format('M Y'),
+                'pending' => JobApplication::where('status', 'pending')
+                    ->whereYear('created_at', $date->year)
+                    ->whereMonth('created_at', $date->month)
+                    ->count(),
+                'reviewing' => JobApplication::where('status', 'reviewing')
+                    ->whereYear('created_at', $date->year)
+                    ->whereMonth('created_at', $date->month)
+                    ->count(),
+                'shortlisted' => JobApplication::where('status', 'shortlisted')
+                    ->whereYear('created_at', $date->year)
+                    ->whereMonth('created_at', $date->month)
+                    ->count(),
+                'interview' => JobApplication::where('status', 'interview')
+                    ->whereYear('created_at', $date->year)
+                    ->whereMonth('created_at', $date->month)
+                    ->count(),
+                'hired' => JobApplication::where('status', 'hired')
+                    ->whereYear('created_at', $date->year)
+                    ->whereMonth('created_at', $date->month)
+                    ->count(),
+                'rejected' => JobApplication::where('status', 'rejected')
+                    ->whereYear('created_at', $date->year)
+                    ->whereMonth('created_at', $date->month)
+                    ->count(),
+                'total' => $totalApps,
+            ];
         }
 
         $applicationsByStatus = [
-            ['status' => 'Pending', 'count' => JobApplication::where('status', 'pending')->count()],
-            ['status' => 'Under Review', 'count' => JobApplication::where('status', 'reviewing')->count()],
-            ['status' => 'Accepted', 'count' => JobApplication::where('status', 'hired')->count()],
-            ['status' => 'Rejected', 'count' => JobApplication::where('status', 'rejected')->count()],
+            ['status' => 'Menunggu Review', 'count' => JobApplication::where('status', 'pending')->count(), 'color' => '#F59E0B'],
+            ['status' => 'Sedang Ditinjau', 'count' => JobApplication::where('status', 'reviewing')->count(), 'color' => '#3B82F6'],
+            ['status' => 'Shortlist', 'count' => JobApplication::where('status', 'shortlisted')->count(), 'color' => '#8B5CF6'],
+            ['status' => 'Interview', 'count' => JobApplication::where('status', 'interview')->count(), 'color' => '#6366F1'],
+            ['status' => 'Diterima', 'count' => JobApplication::where('status', 'hired')->count(), 'color' => '#10B981'],
+            ['status' => 'Ditolak', 'count' => JobApplication::where('status', 'rejected')->count(), 'color' => '#EF4444'],
         ];
+
+        // Application success rate by month
+        $applicationSuccessRate = [];
+        for ($i = 11; $i >= 0; $i--) {
+            $date = now()->subMonths($i);
+            $totalMonth = JobApplication::whereYear('created_at', $date->year)
+                ->whereMonth('created_at', $date->month)
+                ->count();
+            $hiredMonth = JobApplication::where('status', 'hired')
+                ->whereYear('created_at', $date->year)
+                ->whereMonth('created_at', $date->month)
+                ->count();
+
+            $rate = $totalMonth > 0 ? round(($hiredMonth / $totalMonth) * 100, 2) : 0;
+            $applicationSuccessRate[] = [
+                'month' => $date->format('M Y'),
+                'rate' => $rate,
+                'hired' => $hiredMonth,
+                'total' => $totalMonth
+            ];
+        }
 
         return [
             'usersStats' => [
@@ -299,7 +358,9 @@ class AdminController extends Controller
             'applicationsStats' => [
                 'total' => JobApplication::count(),
                 'monthly' => $applicationsMonthly,
+                'monthlyByStatus' => $applicationsMonthlyByStatus,
                 'byStatus' => $applicationsByStatus,
+                'successRate' => $applicationSuccessRate,
             ],
         ];
     }
@@ -316,16 +377,63 @@ class AdminController extends Controller
                 ->count();
         }
 
-        // Applications stats
+        // Enhanced Applications stats for company
         $applicationsMonthly = [];
+        $applicationsMonthlyByStatus = [];
+
         for ($i = 11; $i >= 0; $i--) {
             $date = now()->subMonths($i);
-            $applicationsMonthly[] = JobApplication::whereHas('jobListing', function($q) use ($companyId) {
+
+            $totalApps = JobApplication::whereHas('jobListing', function($q) use ($companyId) {
                 $q->where('company_id', $companyId);
             })
             ->whereYear('created_at', $date->year)
             ->whereMonth('created_at', $date->month)
             ->count();
+
+            $applicationsMonthly[] = $totalApps;
+
+            // Applications by status for each month (company specific)
+            $applicationsMonthlyByStatus[] = [
+                'month' => $date->format('M Y'),
+                'pending' => JobApplication::whereHas('jobListing', function($q) use ($companyId) {
+                    $q->where('company_id', $companyId);
+                })->where('status', 'pending')
+                    ->whereYear('created_at', $date->year)
+                    ->whereMonth('created_at', $date->month)
+                    ->count(),
+                'reviewing' => JobApplication::whereHas('jobListing', function($q) use ($companyId) {
+                    $q->where('company_id', $companyId);
+                })->where('status', 'reviewing')
+                    ->whereYear('created_at', $date->year)
+                    ->whereMonth('created_at', $date->month)
+                    ->count(),
+                'shortlisted' => JobApplication::whereHas('jobListing', function($q) use ($companyId) {
+                    $q->where('company_id', $companyId);
+                })->where('status', 'shortlisted')
+                    ->whereYear('created_at', $date->year)
+                    ->whereMonth('created_at', $date->month)
+                    ->count(),
+                'interview' => JobApplication::whereHas('jobListing', function($q) use ($companyId) {
+                    $q->where('company_id', $companyId);
+                })->where('status', 'interview')
+                    ->whereYear('created_at', $date->year)
+                    ->whereMonth('created_at', $date->month)
+                    ->count(),
+                'hired' => JobApplication::whereHas('jobListing', function($q) use ($companyId) {
+                    $q->where('company_id', $companyId);
+                })->where('status', 'hired')
+                    ->whereYear('created_at', $date->year)
+                    ->whereMonth('created_at', $date->month)
+                    ->count(),
+                'rejected' => JobApplication::whereHas('jobListing', function($q) use ($companyId) {
+                    $q->where('company_id', $companyId);
+                })->where('status', 'rejected')
+                    ->whereYear('created_at', $date->year)
+                    ->whereMonth('created_at', $date->month)
+                    ->count(),
+                'total' => $totalApps,
+            ];
         }
 
         $applicationsByJob = JobListing::where('company_id', $companyId)
@@ -365,6 +473,7 @@ class AdminController extends Controller
                     $q->where('company_id', $companyId);
                 })->where('status', 'rejected')->count(),
                 'monthly' => $applicationsMonthly,
+                'monthlyByStatus' => $applicationsMonthlyByStatus,
                 'byJob' => $applicationsByJob,
             ],
         ];

@@ -37,7 +37,7 @@ Route::group(['prefix' => 'v1'], function () {
     Route::get('companies/{company}/jobs', [CompanyController::class, 'jobs'])->name('api.companies.jobs');
     
     // Protected routes requiring authentication
-    Route::middleware('auth:sanctum')->group(function () {
+    Route::middleware(['auth:web', 'web'])->group(function () {
         // Job Applications
         Route::post('jobs/{jobListing}/apply', [JobListingController::class, 'apply']);
         Route::post('jobs/{jobListing}/save', [JobListingController::class, 'toggleSave']);

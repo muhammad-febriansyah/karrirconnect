@@ -117,7 +117,8 @@ export default function ShowCompany({ company, userRole }: Props) {
                                     </Badge>
                                 ) : (
                                     <Badge variant="secondary" className="text-gray-600">
-                                        Belum Diverifikasi
+                                        {company.verification_status === 'pending' ? 'Menunggu Review' :
+                                         company.verification_status === 'rejected' ? 'Ditolak' : 'Belum Diverifikasi'}
                                     </Badge>
                                 )}
 
@@ -193,6 +194,44 @@ export default function ShowCompany({ company, userRole }: Props) {
                                 )}
                             </CardContent>
                         </Card>
+
+                        {/* Verification Information */}
+                        {(company.verification_status || company.is_verified) && (
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle>Status Verifikasi</CardTitle>
+                                </CardHeader>
+                                <CardContent className="space-y-4">
+                                    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                                        <div>
+                                            <label className="text-sm font-medium text-gray-500">Status Verifikasi</label>
+                                            <div className="flex items-center gap-2 mt-1">
+                                                {company.is_verified ? (
+                                                    <>
+                                                        <CheckCircle className="h-4 w-4 text-green-600" />
+                                                        <span className="text-green-600 font-medium">Terverifikasi</span>
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <XCircle className="h-4 w-4 text-gray-500" />
+                                                        <span className="text-gray-600">
+                                                            {company.verification_status === 'pending' ? 'Menunggu Review' :
+                                                             company.verification_status === 'rejected' ? 'Ditolak' : 'Belum Diverifikasi'}
+                                                        </span>
+                                                    </>
+                                                )}
+                                            </div>
+                                        </div>
+                                        {company.verification_status && (
+                                            <div>
+                                                <label className="text-sm font-medium text-gray-500">Verification Status</label>
+                                                <p className="text-base capitalize">{company.verification_status}</p>
+                                            </div>
+                                        )}
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        )}
 
                         {/* Contact Information */}
                         <Card>

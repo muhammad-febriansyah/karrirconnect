@@ -235,6 +235,18 @@ export default function AdminDashboard({
                     </Alert>
                 )}
 
+                {/* Company Verification Pending Alert - Hidden for better user experience */}
+
+                {/* Company Verification Rejected Alert */}
+                {userRole === 'company_admin' && company && company.verification_status === 'rejected' && (
+                    <Alert className="border-red-200 bg-red-50">
+                        <AlertTriangle className="h-4 w-4 text-red-600" />
+                        <AlertDescription className="text-red-800">
+                            Dokumen verifikasi Anda ditolak. Silakan periksa email untuk detail dan kirim ulang dokumen yang diperlukan.
+                        </AlertDescription>
+                    </Alert>
+                )}
+
                 {/* Company Verification Success Alert */}
                 {userRole === 'company_admin' && company && company.is_verified && company.verification_status === 'verified' && (
                     <Alert className="border-green-200 bg-green-100">
