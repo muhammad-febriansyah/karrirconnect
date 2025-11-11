@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ArrowLeft, Save, Eye, Plus, X } from 'lucide-react';
+import { route } from 'ziggy-js';
 
 export default function CreateEmailTemplate() {
   const [name, setName] = useState('');

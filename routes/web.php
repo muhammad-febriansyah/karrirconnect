@@ -10,6 +10,15 @@ Route::get('/about', [App\Http\Controllers\AboutController::class, 'index'])->na
 Route::get('/jobs', [App\Http\Controllers\JobController::class, 'index'])->name('jobs');
 Route::get('/jobs/{job}', [App\Http\Controllers\JobController::class, 'show'])->name('jobs.show');
 
+// Public media streaming for files on the 'public' disk (bypasses symlink issues)
+Route::get('/media/{path}', function (string $path) {
+    $disk = \Illuminate\Support\Facades\Storage::disk('public');
+    if (!$disk->exists($path)) {
+        abort(404);
+    }
+    return $disk->response($path);
+})->where('path', '.*')->name('media.public');
+
 // Job application routes
 Route::get('/jobs/{job}/apply', [App\Http\Controllers\JobApplicationController::class, 'create'])->name('jobs.apply');
 Route::post('/jobs/{job}/apply', [App\Http\Controllers\JobApplicationController::class, 'store']);
@@ -26,11 +35,11 @@ Route::get('/pasang-lowongan', [App\Http\Controllers\PasangLowonganController::c
     ->middleware(['auth', 'company.admin'])
     ->name('pasang-lowongan');
 
-// User login routes (regular users only)
+// Redirect /masuk to /login for consistency
 Route::middleware('guest')->group(function () {
-    Route::get('/masuk', [App\Http\Controllers\UserLoginController::class, 'create'])
-        ->name('user.login');
-    Route::post('/masuk', [App\Http\Controllers\UserLoginController::class, 'store']);
+    Route::get('/masuk', function () {
+        return redirect()->route('login');
+    })->name('user.login');
 });
 
 

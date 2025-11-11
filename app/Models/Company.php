@@ -4,6 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\JobListing;
+use App\Models\JobInvitation;
 
 class Company extends Model
 {
@@ -31,7 +33,12 @@ class Company extends Model
         'job_posting_points',
         'total_job_posts',
         'active_job_posts',
+        'max_active_jobs',
         'points_last_updated',
+    ];
+
+    protected $appends = [
+        'logo_url',
     ];
 
     protected function casts(): array
@@ -71,42 +78,102 @@ class Company extends Model
         return $this->hasMany(PointTransaction::class);
     }
 
+    public function jobInvitations()
+    {
+        return $this->hasMany(JobInvitation::class);
+    }
+
     public function completedPointTransactions()
     {
         return $this->pointTransactions()->completed();
     }
 
-    public function canCreateJobListing($positions = 1)
+    public function subscriptions()
     {
-        $pointsNeeded = $positions > 1 ? $positions - 1 : 0; // First position is free
-        return $this->job_posting_points >= $pointsNeeded; // Removed max_active_jobs limit
+        return $this->hasMany(CompanySubscription::class);
     }
 
-    public function deductJobPostingPoint($positions = 1)
+    public function activeSubscription()
     {
-        $pointsNeeded = $positions > 1 ? $positions - 1 : 0; // First position is free
-        
-        if ($this->job_posting_points >= $pointsNeeded) {
-            if ($pointsNeeded > 0) {
-                $this->decrement('job_posting_points', $pointsNeeded);
-                
-                // Record the transaction only if points were deducted
-                $this->pointTransactions()->create([
-                    'type' => 'usage',
-                    'points' => -$pointsNeeded,
-                    'description' => "Menggunakan {$pointsNeeded} poin untuk {$positions} posisi lowongan (1 posisi gratis)",
-                    'reference_type' => 'job_listing',
-                    'status' => 'completed',
-                ]);
-            }
-            
+        return $this->hasOne(CompanySubscription::class)
+            ->where('status', 'active')
+            ->where('end_date', '>=', now())
+            ->latest('end_date');
+    }
+
+    public function hasAvailablePoints(int $points = 1): bool
+    {
+        return $this->job_posting_points >= $points;
+    }
+
+    public function canCreateJobListing(): bool
+    {
+        return $this->hasAvailablePoints() && $this->isVerified();
+    }
+
+    public function isVerified(): bool
+    {
+        return $this->verification_status === 'verified';
+    }
+
+    public function canPostJob(): bool
+    {
+        return $this->isVerified() && $this->hasAvailablePoints();
+    }
+
+    public function usePoints(int $points, string $description, ?string $referenceType = null, ?int $referenceId = null, array $metadata = []): bool
+    {
+        if (!$this->hasAvailablePoints($points)) {
+            return false;
+        }
+
+        $this->decrement('job_posting_points', $points);
+        $this->update(['points_last_updated' => now()]);
+
+        $this->pointTransactions()->create([
+            'type' => 'usage',
+            'points' => -$points,
+            'description' => $description,
+            'reference_type' => $referenceType,
+            'reference_id' => $referenceId,
+            'status' => 'completed',
+            'metadata' => $metadata,
+        ]);
+
+        return true;
+    }
+
+    public function deductJobPostingPoint(?JobListing $jobListing = null): bool
+    {
+        $used = $this->usePoints(
+            1,
+            'Menggunakan 1 poin untuk memposting lowongan',
+            'job_listing',
+            $jobListing?->id
+        );
+
+        if ($used) {
             $this->increment('total_job_posts');
             $this->increment('active_job_posts');
-            
-            return true;
+
+            if ($jobListing && !$jobListing->points_deducted_at) {
+                $jobListing->forceFill([
+                    'points_deducted_at' => now(),
+                ])->save();
+            }
         }
-        
-        return false;
+
+        return $used;
+    }
+
+    public function deductJobInvitationPoint(?JobInvitation $invitation = null): bool
+    {
+        return $this->usePoints(
+            1,
+            'Menggunakan 1 poin untuk mengirim job invitation',
+            'job_invitation',
+            $invitation?->id
+        );
     }
 
     public function addPoints($points, $description = '', $metadata = [])
@@ -126,5 +193,96 @@ class Company extends Model
     public function getPointsBalanceAttribute()
     {
         return $this->job_posting_points;
+    }
+
+    /**
+     * Get the full URL for the company logo
+     */
+    public function getLogoUrlAttribute()
+    {
+        if ($this->logo) {
+            return asset('storage/' . $this->logo);
+        }
+        return null;
+    }
+
+    /**
+     * Check if company has an active premium subscription
+     */
+    public function hasPremiumSubscription(): bool
+    {
+        $subscription = $this->activeSubscription;
+        return $subscription && $subscription->isActive();
+    }
+
+    /**
+     * Get current subscription plan
+     */
+    public function getCurrentPlan(): ?SubscriptionPlan
+    {
+        $subscription = $this->activeSubscription;
+        return $subscription ? $subscription->subscriptionPlan : null;
+    }
+
+    /**
+     * Check if company can auto-promote jobs
+     */
+    public function canAutoPromote(): bool
+    {
+        $plan = $this->getCurrentPlan();
+        return $plan && $plan->auto_promote;
+    }
+
+    /**
+     * Check if company has premium badge
+     */
+    public function hasPremiumBadge(): bool
+    {
+        $plan = $this->getCurrentPlan();
+        return $plan && $plan->premium_badge;
+    }
+
+    /**
+     * Check if company has analytics access
+     */
+    public function hasAnalyticsAccess(): bool
+    {
+        $plan = $this->getCurrentPlan();
+        return $plan && $plan->analytics_access;
+    }
+
+    /**
+     * Check if company can post more jobs
+     */
+    public function canPostMoreJobs(): bool
+    {
+        $plan = $this->getCurrentPlan();
+
+        if (!$plan) {
+            // Free tier - use existing points system
+            return $this->hasAvailablePoints();
+        }
+
+        // Check if unlimited
+        if ($plan->job_posting_limit === null) {
+            return true;
+        }
+
+        // Check against limit
+        return $this->active_job_posts < $plan->job_posting_limit;
+    }
+
+    /**
+     * Get remaining job posts
+     */
+    public function getRemainingJobPostsAttribute(): ?int
+    {
+        $plan = $this->getCurrentPlan();
+
+        if (!$plan || $plan->job_posting_limit === null) {
+            return null; // Unlimited or no plan
+        }
+
+        return max(0, $plan->job_posting_limit - $this->active_job_posts);
     }
 }

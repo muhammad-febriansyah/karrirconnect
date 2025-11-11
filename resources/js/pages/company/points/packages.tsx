@@ -74,7 +74,6 @@ export default function PointPackages({ packages, company, serviceFee, formatted
   };
 
   const handlePurchase = async (packageId: number) => {
-    console.log('Attempting to purchase package:', packageId);
     setPurchasingId(packageId);
 
     // Show loading state immediately
@@ -96,7 +95,6 @@ export default function PointPackages({ packages, company, serviceFee, formatted
       });
 
       if (response.data.success) {
-        console.log('Payment created, opening Snap:', response.data.snap_token);
 
         // Check if snap is available
         if (!window.snap) {
@@ -106,9 +104,8 @@ export default function PointPackages({ packages, company, serviceFee, formatted
         // Open Midtrans Snap popup with improved callbacks
         window.snap.pay(response.data.snap_token, {
           onSuccess: (result: any) => {
-            console.log('Payment success:', result);
             toast({
-              title: '🎉 Pembayaran Berhasil!',
+              title: 'Pembayaran Berhasil!',
               description: 'Poin telah ditambahkan ke akun Anda.',
               variant: 'default'
             });
@@ -116,7 +113,6 @@ export default function PointPackages({ packages, company, serviceFee, formatted
             setTimeout(() => router.get('/company/points'), 1500);
           },
           onPending: (result: any) => {
-            console.log('Payment pending:', result);
             toast({
               title: '⏳ Pembayaran Sedang Diproses',
               description: 'Kami akan mengkonfirmasi pembayaran Anda dalam beberapa menit.',
@@ -124,7 +120,6 @@ export default function PointPackages({ packages, company, serviceFee, formatted
             setTimeout(() => router.get('/company/points'), 2000);
           },
           onError: (result: any) => {
-            console.log('Payment error:', result);
             let errorMsg = 'Pembayaran gagal diproses.';
 
             if (result.status_code === '201') {
@@ -134,15 +129,14 @@ export default function PointPackages({ packages, company, serviceFee, formatted
             }
 
             toast({
-              title: '❌ ' + errorMsg,
+              title: errorMsg,
               description: 'Pilih metode pembayaran lain atau hubungi customer service.',
               variant: 'destructive'
             });
           },
           onClose: () => {
-            console.log('Payment popup closed');
             toast({
-              title: 'ℹ️ Halaman Pembayaran Ditutup',
+              title: 'Halaman Pembayaran Ditutup',
               description: 'Anda dapat melanjutkan pembayaran kapan saja.',
             });
           }
@@ -155,7 +149,7 @@ export default function PointPackages({ packages, company, serviceFee, formatted
       const errorMessage = getErrorMessage(error);
 
       toast({
-        title: '❌ Pembayaran Gagal',
+        title: 'Pembayaran Gagal',
         description: errorMessage,
         variant: 'destructive'
       });
@@ -353,9 +347,9 @@ export default function PointPackages({ packages, company, serviceFee, formatted
                 Semua harga paket sudah termasuk biaya layanan sebesar <strong>{formattedServiceFee}</strong>.
               </div>
               <div className="text-blue-700">
-                ✓ Biaya administrasi dan pemeliharaan sistem<br/>
-                ✓ Dukungan teknis 24/7<br/>
-                ✓ Keamanan transaksi terjamin
+                • Biaya administrasi dan pemeliharaan sistem<br/>
+                • Dukungan teknis 24/7<br/>
+                • Keamanan transaksi terjamin
               </div>
             </CardContent>
           </Card>
@@ -364,7 +358,7 @@ export default function PointPackages({ packages, company, serviceFee, formatted
         {/* Info Cards */}
         <Card className="mt-8">
           <CardHeader>
-            <CardTitle className="text-lg">💡 Tips Memilih Paket</CardTitle>
+            <CardTitle className="text-lg">Tips Memilih Paket</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3 text-sm">
             <div>

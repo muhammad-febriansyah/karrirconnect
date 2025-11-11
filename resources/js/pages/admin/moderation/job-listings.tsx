@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Textarea } from '@/components/ui/textarea';
 import { Eye, Search, Filter, CheckCircle, XCircle, Clock } from 'lucide-react';
+import { route } from 'ziggy-js';
 
 interface JobListing {
   id: number;

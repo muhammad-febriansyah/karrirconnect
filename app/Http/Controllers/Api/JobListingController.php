@@ -232,7 +232,7 @@ class JobListingController extends Controller
             'additional_documents' => $request->get('additional_documents', []),
         ]);
 
-        $jobListing->incrementApplications();
+        // Note: applications_count is automatically incremented by JobApplication model events
 
         return response()->json(
             $application->load(['user.profile', 'jobListing']),
@@ -243,7 +243,15 @@ class JobListingController extends Controller
     public function toggleSave(JobListing $jobListing)
     {
         $user = auth()->user();
-        
+
+        // Check if user profile is complete
+        if (!$this->isProfileComplete($user)) {
+            return response()->json([
+                'error' => 'profile_incomplete',
+                'message' => 'Lengkapi profil Anda terlebih dahulu untuk menyimpan lowongan'
+            ], 422);
+        }
+
         if ($user->savedJobs()->where('job_listing_id', $jobListing->id)->exists()) {
             $user->savedJobs()->detach($jobListing->id);
             $saved = false;
@@ -256,5 +264,20 @@ class JobListingController extends Controller
             'saved' => $saved,
             'message' => $saved ? 'Job saved successfully' : 'Job removed from saved list'
         ]);
+    }
+
+    private function isProfileComplete($user)
+    {
+        if (!$user || !$user->userProfile) {
+            return false;
+        }
+
+        $profile = $user->userProfile;
+
+        // Check for essential profile fields
+        return !empty($profile->first_name) &&
+               !empty($profile->last_name) &&
+               !empty($profile->phone) &&
+               !empty($profile->location);
     }
 }

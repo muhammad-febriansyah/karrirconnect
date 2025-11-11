@@ -49,7 +49,7 @@ interface FormData {
     team: Array<{
         name: string;
         position: string;
-        bio: string;
+        description: string;
         image: string | File;
     }>;
     contact: {
@@ -147,7 +147,11 @@ export default function EditAboutUs({ aboutUs }: Props) {
         features: aboutUs.features || [],
         stats: aboutUs.stats || [],
         team: aboutUs.team || [],
-        contact: aboutUs.contact || { email: [], phone: [], address: [] },
+        contact: {
+            email: Array.isArray(aboutUs.contact?.email) ? aboutUs.contact.email : [aboutUs.contact?.email || ''],
+            phone: Array.isArray(aboutUs.contact?.phone) ? aboutUs.contact.phone : [aboutUs.contact?.phone || ''],
+            address: Array.isArray(aboutUs.contact?.address) ? aboutUs.contact.address : [aboutUs.contact?.address || ''],
+        },
         cta_title: aboutUs.cta_title || '',
         cta_description: aboutUs.cta_description || '',
         is_active: aboutUs.is_active ?? true,
@@ -219,7 +223,7 @@ export default function EditAboutUs({ aboutUs }: Props) {
     };
 
     const addTeamMember = () => {
-        setData('team', [...data.team, { name: '', position: '', bio: '', image: '' }]);
+        setData('team', [...data.team, { name: '', position: '', description: '', image: '' }]);
     };
 
     const removeTeamMember = (index: number) => {
@@ -629,11 +633,11 @@ export default function EditAboutUs({ aboutUs }: Props) {
                                             </div>
                                         </div>
                                         <div className="grid gap-2">
-                                            <Label>Bio</Label>
+                                            <Label>Deskripsi</Label>
                                             <Textarea
-                                                value={member.bio}
-                                                onChange={(e) => updateTeamMember(index, 'bio', e.target.value)}
-                                                placeholder="Bio singkat"
+                                                value={member.description}
+                                                onChange={(e) => updateTeamMember(index, 'description', e.target.value)}
+                                                placeholder="Deskripsi singkat tentang anggota tim"
                                                 rows={2}
                                             />
                                         </div>

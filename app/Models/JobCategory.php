@@ -31,7 +31,12 @@ class JobCategory extends Model
 
     public function activeJobs()
     {
-        return $this->jobListings()->where('status', 'published');
+        return $this->jobListings()
+            ->where('status', 'published')
+            ->where(function ($q) {
+                $q->whereNull('application_deadline')
+                  ->orWhere('application_deadline', '>=', now());
+            });
     }
 
     public function getRouteKeyName()

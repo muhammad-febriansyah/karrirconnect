@@ -53,19 +53,15 @@ export default function PaymentPage({ snapToken, orderId, package: pkg, transact
       if (window.snap && snapToken) {
         window.snap.pay(snapToken, {
           onSuccess: function(result: any) {
-            console.log('Payment success:', result);
             window.location.href = `/company/points/payment/finish?order_id=${orderId}&result_type=success`;
           },
           onPending: function(result: any) {
-            console.log('Payment pending:', result);
             window.location.href = `/company/points/payment/finish?order_id=${orderId}&result_type=pending`;
           },
           onError: function(result: any) {
-            console.log('Payment error:', result);
             window.location.href = `/company/points/payment/finish?order_id=${orderId}&result_type=error`;
           },
           onClose: function() {
-            console.log('Payment popup closed');
             window.location.href = `/company/points/packages`;
           }
         });
@@ -123,7 +119,7 @@ export default function PaymentPage({ snapToken, orderId, package: pkg, transact
               {pkg.bonus_points > 0 && (
                 <div className="bg-green-50 border border-green-200 rounded-lg p-3">
                   <p className="text-sm text-green-800">
-                    🎉 Bonus: Dapatkan {pkg.bonus_points} poin tambahan gratis!
+                    Bonus: Dapatkan {pkg.bonus_points} poin tambahan gratis!
                   </p>
                 </div>
               )}

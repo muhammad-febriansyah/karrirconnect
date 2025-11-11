@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { Head, Link } from '@inertiajs/react';
 import { motion } from 'framer-motion';
-import ModernNavbar from '@/components/modern-navbar';
-import ModernFooter from '@/components/modern-footer';
+// import ModernNavbar from '@/components/modern-navbar';
+// import ModernFooter from '@/components/modern-footer';
 import { FlickeringGrid } from '@/components/magicui/flickering-grid';
 import { NumberTicker } from '@/components/magicui/number-ticker';
 import {
@@ -38,6 +38,7 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import axios from 'axios';
+import MainLayout from '@/layouts/main-layout';
 
 interface Company {
     id: number;
@@ -153,11 +154,8 @@ export default function SavedJobs({ savedJobs }: SavedJobsProps) {
     );
 
     return (
-        <>
+        <MainLayout currentPage="saved-jobs">
             <Head title="Lowongan Tersimpan" />
-
-            <div className="min-h-screen bg-gray-50">
-                <ModernNavbar currentPage="saved-jobs" />
 
                 {/* Hero Section */}
                 <section className="relative bg-white pt-32 pb-16 lg:pt-40 lg:pb-20 overflow-hidden">
@@ -349,9 +347,10 @@ export default function SavedJobs({ savedJobs }: SavedJobsProps) {
                                                             )}
                                                         </div>
 
-                                                        <p className="text-gray-600 text-sm line-clamp-2 mb-4 leading-relaxed">
-                                                            {job.description}
-                                                        </p>
+                                                        <div
+                                                            className="text-gray-600 text-sm line-clamp-2 mb-4 leading-relaxed"
+                                                            dangerouslySetInnerHTML={{ __html: job.description }}
+                                                        />
 
                                                         <div className="flex items-center justify-between text-sm text-gray-500 mb-4">
                                                             <span className="flex items-center">
@@ -434,8 +433,6 @@ export default function SavedJobs({ savedJobs }: SavedJobsProps) {
                     </div>
                 </section>
 
-                <ModernFooter />
-            </div>
-        </>
+            </MainLayout>
     );
 }

@@ -1,85 +1,93 @@
 import React from 'react';
-import { Head, Link, router } from '@inertiajs/react';
+import { Head, router } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, Edit, Eye, MapPin, Clock, Building2, Users, Calendar, DollarSign, Briefcase } from 'lucide-react';
+import { route } from 'ziggy-js';
+import {
+  MapPin,
+  Users,
+  Clock,
+  DollarSign,
+  Calendar,
+  Building2,
+  Briefcase,
+  Eye,
+  UserPlus,
+  Edit,
+  ToggleLeft,
+  ToggleRight,
+  Monitor,
+  Star
+} from 'lucide-react';
 
 interface JobListing {
   id: number;
+  slug: string;
   title: string;
   description: string;
   requirements: string;
-  benefits?: string[];
+  benefits: string[] | string;
+  banner_image?: string;
+  banner_image_url?: string;
   employment_type: string;
   work_arrangement: string;
   experience_level: string;
   salary_min?: number;
   salary_max?: number;
+  salary_currency: string;
+  salary_negotiable: boolean;
   location: string;
+  application_deadline?: string;
+  positions_available: number;
   status: string;
+  featured: boolean;
   views_count: number;
   applications_count: number;
   created_at: string;
-  application_deadline?: string;
   company: {
     id: number;
     name: string;
-    logo?: string;
     description?: string;
+    logo?: string;
+    logo_url?: string;
+    industry?: string;
+    size?: string;
+    location?: string;
   };
   category: {
     id: number;
     name: string;
+    slug: string;
   };
   creator: {
     id: number;
     name: string;
+    email: string;
   };
   skills?: Array<{
     id: number;
     name: string;
+    category?: string;
   }>;
 }
 
 interface Props {
   jobListing: JobListing;
-  userRole?: string;
+  userRole: string;
 }
 
-export default function ShowJobListing({ jobListing, userRole }: Props) {
-  const getStatusColor = (status: string) => {
-    const statusColors = {
-      draft: 'bg-gray-100 text-gray-800',
-      published: 'bg-green-100 text-green-800',
-      closed: 'bg-red-100 text-red-800',
-      archived: 'bg-blue-100 text-blue-800',
-    };
-    
-    return statusColors[status as keyof typeof statusColors] || 'bg-gray-100 text-gray-800';
-  };
-
-  const getStatusLabel = (status: string) => {
-    const statusLabels = {
-      draft: 'Draft',
-      published: 'Dipublikasi',
-      closed: 'Ditutup',
-      archived: 'Diarsip',
-    };
-    
-    return statusLabels[status as keyof typeof statusLabels] || status;
-  };
-
+export default function Show({ jobListing, userRole }: Props) {
   const getEmploymentTypeLabel = (type: string) => {
     const typeLabels = {
       full_time: 'Full Time',
       part_time: 'Part Time',
-      contract: 'Kontrak',
-      internship: 'Magang',
+      contract: 'Contract',
+      internship: 'Internship',
       freelance: 'Freelance',
     };
-    
+
     return typeLabels[type as keyof typeof typeLabels] || type;
   };
 
@@ -89,7 +97,7 @@ export default function ShowJobListing({ jobListing, userRole }: Props) {
       remote: 'Remote',
       hybrid: 'Hybrid',
     };
-    
+
     return arrangementLabels[arrangement as keyof typeof arrangementLabels] || arrangement;
   };
 
@@ -100,13 +108,13 @@ export default function ShowJobListing({ jobListing, userRole }: Props) {
       senior: 'Senior Level',
       executive: 'Executive',
     };
-    
+
     return levelLabels[level as keyof typeof levelLabels] || level;
   };
 
   const formatSalary = (min?: number, max?: number) => {
     const formatNumber = (num: number) => new Intl.NumberFormat('id-ID').format(num);
-    
+
     if (min && max) {
       return `Rp ${formatNumber(min)} - Rp ${formatNumber(max)}`;
     } else if (min) {
@@ -118,7 +126,7 @@ export default function ShowJobListing({ jobListing, userRole }: Props) {
   };
 
   const toggleStatus = () => {
-    router.post(route('admin.job-listings.toggle-status', jobListing.id), {}, {
+    router.post(route('admin.job-listings.toggle-status', jobListing.slug), {}, {
       onSuccess: () => {
         // Handle success
       },
@@ -128,258 +136,316 @@ export default function ShowJobListing({ jobListing, userRole }: Props) {
   return (
     <AppLayout>
       <Head title={`Detail Lowongan - ${jobListing.title}`} />
-      
-      <div className="space-y-6 p-6">
-        <div className="flex flex-col gap-4">
-          <Button
-            variant="outline"
-            onClick={() => router.get(route('admin.job-listings.index'))}
-            className="w-fit"
-          >
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Kembali ke Lowongan
-          </Button>
-          
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold">{jobListing.title}</h1>
-              <p className="text-gray-600">{jobListing.company.name}</p>
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        {/* Header Section */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden mb-8">
+          {/* Banner Image */}
+          {jobListing.banner_image_url && (
+            <div className="h-48 md:h-64 bg-gradient-to-r from-blue-600 to-purple-600 relative">
+              <img
+                src={jobListing.banner_image_url}
+                alt={`Banner ${jobListing.title}`}
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  e.currentTarget.style.display = 'none';
+                }}
+              />
+            </div>
+          )}
+
+          {/* Job Header */}
+          <div className="p-6 md:p-8">
+            <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
+              {/* Left Section */}
+              <div className="flex gap-4">
+                {/* Company Logo */}
+                <div className="w-16 h-16 md:w-20 md:h-20 flex-shrink-0">
+                  {jobListing.company.logo_url || jobListing.company.logo ? (
+                    <img
+                      src={jobListing.company.logo_url || `/storage/${jobListing.company.logo}`}
+                      alt={jobListing.company.name}
+                      className="w-full h-full object-contain bg-gray-50 rounded-lg p-2 border"
+                      onError={(e) => {
+                        e.currentTarget.style.display = 'none';
+                        e.currentTarget.nextElementSibling!.style.display = 'flex';
+                      }}
+                    />
+                  ) : null}
+                  <div className="w-full h-full bg-gray-100 rounded-lg flex items-center justify-center border" style={{display: jobListing.company.logo_url || jobListing.company.logo ? 'none' : 'flex'}}>
+                    <Building2 className="w-8 h-8 text-gray-400" />
+                  </div>
+                </div>
+
+                {/* Job Info */}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Badge
+                      variant={jobListing.status === 'published' ? 'default' : 'secondary'}
+                      className="text-xs"
+                    >
+                      {jobListing.status === 'published' ? 'Aktif' : 'Draft'}
+                    </Badge>
+                    {jobListing.featured && (
+                      <Badge className="text-xs bg-yellow-100 text-yellow-800 border-yellow-200">
+                        <Star className="w-3 h-3 mr-1" />
+                        Featured
+                      </Badge>
+                    )}
+                  </div>
+
+                  <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">
+                    {jobListing.title}
+                  </h1>
+
+                  <p className="text-lg font-medium text-gray-700 mb-3">
+                    {jobListing.company.name}
+                  </p>
+
+                  <div className="flex flex-wrap gap-4 text-sm text-gray-600">
+                    <div className="flex items-center gap-1">
+                      <MapPin className="w-4 h-4" />
+                      <span>{jobListing.location}</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <Briefcase className="w-4 h-4" />
+                      <span>{getEmploymentTypeLabel(jobListing.employment_type)}</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <Monitor className="w-4 h-4" />
+                      <span>{getWorkArrangementLabel(jobListing.work_arrangement)}</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <Users className="w-4 h-4" />
+                      <span>{getExperienceLevelLabel(jobListing.experience_level)}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Right Section - Actions */}
+              <div className="flex gap-3">
+                <Button
+                  variant="outline"
+                  onClick={() => router.get(route('admin.job-listings.edit', jobListing.slug))}
+                >
+                  <Edit className="w-4 h-4 mr-2" />
+                  Edit
+                </Button>
+                <Button
+                  variant={jobListing.status === 'published' ? 'destructive' : 'default'}
+                  onClick={toggleStatus}
+                >
+                  {jobListing.status === 'published' ? (
+                    <>
+                      <ToggleLeft className="w-4 h-4 mr-2" />
+                      Tutup
+                    </>
+                  ) : (
+                    <>
+                      <ToggleRight className="w-4 h-4 mr-2" />
+                      Publikasi
+                    </>
+                  )}
+                </Button>
+              </div>
             </div>
 
-            <div className="flex items-center gap-3">
-              <Badge className={getStatusColor(jobListing.status)}>
-                {getStatusLabel(jobListing.status)}
-              </Badge>
-              
-              {userRole === 'company_admin' && (
-                <>
-                  <Link href={route('admin.job-listings.edit', jobListing.id)}>
-                    <Button variant="outline">
-                      <Edit className="h-4 w-4 mr-2" />
-                      Edit Lowongan
-                    </Button>
-                  </Link>
-
-                  <Button 
-                    variant="outline"
-                    onClick={toggleStatus}
-                  >
-                    {jobListing.status === 'published' ? 'Tutup Lowongan' : 'Publikasi Lowongan'}
-                  </Button>
-                </>
+            {/* Stats */}
+            <div className="flex flex-wrap gap-6 mt-6 pt-6 border-t border-gray-200">
+              <div className="flex items-center gap-2 text-sm text-gray-600">
+                <Eye className="w-4 h-4" />
+                <span>{jobListing.views_count} views</span>
+              </div>
+              <div className="flex items-center gap-2 text-sm text-gray-600">
+                <UserPlus className="w-4 h-4" />
+                <span>{jobListing.applications_count} aplikasi</span>
+              </div>
+              <div className="flex items-center gap-2 text-sm text-gray-600">
+                <DollarSign className="w-4 h-4" />
+                <span>{formatSalary(jobListing.salary_min, jobListing.salary_max)}</span>
+              </div>
+              {jobListing.application_deadline && (
+                <div className="flex items-center gap-2 text-sm text-gray-600">
+                  <Calendar className="w-4 h-4" />
+                  <span>Deadline: {new Date(jobListing.application_deadline).toLocaleDateString('id-ID')}</span>
+                </div>
               )}
             </div>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Content Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
           {/* Main Content */}
-          <div className="lg:col-span-2 space-y-6">
-            {/* Job Overview */}
-            <Card>
+          <div className="lg:col-span-3">
+            <Card className="shadow-sm border-gray-200">
               <CardHeader>
-                <CardTitle>Ringkasan Lowongan</CardTitle>
+                <CardTitle className="text-xl">Detail Lowongan</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <div className="flex items-center gap-2">
-                    <Clock className="h-4 w-4 text-gray-400" />
-                    <div className="text-sm">
-                      <p className="text-gray-600">Tipe</p>
-                      <p className="font-medium">{getEmploymentTypeLabel(jobListing.employment_type)}</p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <MapPin className="h-4 w-4 text-gray-400" />
-                    <div className="text-sm">
-                      <p className="text-gray-600">Lokasi</p>
-                      <p className="font-medium">{jobListing.location}</p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <Briefcase className="h-4 w-4 text-gray-400" />
-                    <div className="text-sm">
-                      <p className="text-gray-600">Pengaturan</p>
-                      <p className="font-medium">{getWorkArrangementLabel(jobListing.work_arrangement)}</p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <Users className="h-4 w-4 text-gray-400" />
-                    <div className="text-sm">
-                      <p className="text-gray-600">Level</p>
-                      <p className="font-medium">{getExperienceLevelLabel(jobListing.experience_level)}</p>
-                    </div>
-                  </div>
+              <CardContent className="prose prose-gray max-w-none">
+                {/* Description */}
+                <div className="mb-8">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Deskripsi Pekerjaan</h3>
+                  <div
+                    className="text-gray-700 leading-relaxed"
+                    dangerouslySetInnerHTML={{ __html: jobListing.description }}
+                  />
                 </div>
 
-                <div className="flex items-center gap-2">
-                  <DollarSign className="h-4 w-4 text-gray-400" />
-                  <div className="text-sm">
-                    <p className="text-gray-600">Gaji</p>
-                    <p className="font-medium">{formatSalary(jobListing.salary_min, jobListing.salary_max)}</p>
-                  </div>
+                {/* Requirements */}
+                <div className="mb-8">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Persyaratan</h3>
+                  <div
+                    className="text-gray-700 leading-relaxed"
+                    dangerouslySetInnerHTML={{ __html: jobListing.requirements }}
+                  />
                 </div>
-              </CardContent>
-            </Card>
 
-            {/* Job Description */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Deskripsi Pekerjaan</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div 
-                  className="prose max-w-none prose-sm"
-                  dangerouslySetInnerHTML={{ __html: jobListing.description }}
-                />
-              </CardContent>
-            </Card>
+                {/* Benefits */}
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Benefit & Fasilitas</h3>
+                  {(() => {
+                    // Debug: Log the benefits data to understand its format
 
-            {/* Requirements */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Kualifikasi & Persyaratan</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div 
-                  className="prose max-w-none prose-sm"
-                  dangerouslySetInnerHTML={{ __html: jobListing.requirements }}
-                />
-              </CardContent>
-            </Card>
+                    // Check if benefits is a non-empty array
+                    if (Array.isArray(jobListing.benefits) && jobListing.benefits.length > 0) {
+                      return (
+                        <ul className="space-y-2">
+                          {jobListing.benefits.map((benefit, index) => (
+                            <li key={index} className="flex items-start gap-3 text-gray-700">
+                              <div className="w-2 h-2 bg-green-500 rounded-full mt-2 flex-shrink-0"></div>
+                              <span>{benefit}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      );
+                    }
 
-            {/* Skills */}
-            {jobListing.skills && jobListing.skills.length > 0 && (
-              <Card>
-                <CardHeader>
-                  <CardTitle>Skill yang Dibutuhkan</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {jobListing.skills && Array.isArray(jobListing.skills) && jobListing.skills.length > 0 ? (
+                    // Check if benefits is a non-empty string
+                    if (typeof jobListing.benefits === 'string' && jobListing.benefits.trim()) {
+                      return (
+                        <div
+                          className="prose prose-sm max-w-none text-gray-700"
+                          dangerouslySetInnerHTML={{ __html: jobListing.benefits }}
+                        />
+                      );
+                    }
+
+                    // All other cases: null, undefined, empty array, empty string
+                    return (
+                      <div className="text-gray-500 italic">
+                        Tidak ada informasi benefit yang tersedia
+                      </div>
+                    );
+                  })()}
+                </div>
+
+                {/* Skills */}
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Skills yang Dibutuhkan</h3>
+                  {jobListing.skills && jobListing.skills.length > 0 ? (
                     <div className="flex flex-wrap gap-2">
                       {jobListing.skills.map((skill) => (
-                        <Badge key={skill.id} variant="outline">
+                        <span
+                          key={skill.id}
+                          className="inline-flex items-center px-3 py-1.5 bg-blue-100 text-blue-800 rounded-full text-sm font-medium"
+                        >
                           {skill.name}
-                        </Badge>
+                        </span>
                       ))}
                     </div>
                   ) : (
-                    <p className="text-gray-500">Tidak ada skill yang disebutkan.</p>
+                    <div className="text-gray-500 italic">
+                      Tidak ada skills khusus yang diperlukan
+                    </div>
                   )}
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Benefits */}
-            {jobListing.benefits && jobListing.benefits.length > 0 && (
-              <Card>
-                <CardHeader>
-                  <CardTitle>Benefit & Fasilitas</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {jobListing.benefits && Array.isArray(jobListing.benefits) && jobListing.benefits.length > 0 ? (
-                    <ul className="space-y-2">
-                      {jobListing.benefits.map((benefit, index) => (
-                        <li key={index} className="flex items-center gap-2">
-                          <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                          {benefit}
-                        </li>
-                      ))}
-                    </ul>
-                  ) : (
-                    <p className="text-gray-500">Tidak ada benefit yang disebutkan.</p>
-                  )}
-                </CardContent>
-              </Card>
-            )}
+                </div>
+              </CardContent>
+            </Card>
           </div>
 
           {/* Sidebar */}
           <div className="space-y-6">
-            {/* Stats */}
-            <Card>
+            {/* Company Info - Hidden */}
+            {/* <Card className="shadow-sm border-gray-200">
               <CardHeader>
-                <CardTitle>Statistik</CardTitle>
+                <CardTitle className="text-lg">Tentang Perusahaan</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-start gap-4 mb-4">
+                  <div className="w-12 h-12 flex-shrink-0">
+                    {jobListing.company.logo_url || jobListing.company.logo ? (
+                      <img
+                        src={jobListing.company.logo_url || `/storage/${jobListing.company.logo}`}
+                        alt={jobListing.company.name}
+                        className="w-full h-full object-contain bg-gray-50 rounded-lg p-1 border"
+                        onError={(e) => {
+                          e.currentTarget.style.display = 'none';
+                          e.currentTarget.nextElementSibling!.style.display = 'flex';
+                        }}
+                      />
+                    ) : null}
+                    <div className="w-full h-full bg-gray-100 rounded-lg flex items-center justify-center border" style={{display: jobListing.company.logo_url || jobListing.company.logo ? 'none' : 'flex'}}>
+                      <Building2 className="w-6 h-6 text-gray-400" />
+                    </div>
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <h4 className="font-semibold text-gray-900 mb-1">
+                      {jobListing.company.name}
+                    </h4>
+                    {jobListing.company.industry && (
+                      <p className="text-sm text-gray-600">{jobListing.company.industry}</p>
+                    )}
+                  </div>
+                </div>
+
+                {jobListing.company.description && (
+                  <p className="text-sm text-gray-700 leading-relaxed">
+                    {jobListing.company.description}
+                  </p>
+                )}
+              </CardContent>
+            </Card> */}
+
+            {/* Job Details */}
+            <Card className="shadow-sm border-gray-200">
+              <CardHeader>
+                <CardTitle className="text-lg">Detail Posisi</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Eye className="h-4 w-4 text-gray-400" />
-                    <span className="text-sm">Views</span>
-                  </div>
-                  <span className="font-medium">{jobListing.views_count}</span>
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Users className="h-4 w-4 text-gray-400" />
-                    <span className="text-sm">Aplikasi</span>
-                  </div>
-                  <span className="font-medium">{jobListing.applications_count}</span>
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Calendar className="h-4 w-4 text-gray-400" />
-                    <span className="text-sm">Dibuat</span>
-                  </div>
-                  <span className="font-medium text-sm">{new Date(jobListing.created_at).toLocaleDateString('id-ID')}</span>
-                </div>
-
-                {jobListing.application_deadline && (
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <Clock className="h-4 w-4 text-gray-400" />
-                      <span className="text-sm">Deadline</span>
-                    </div>
-                    <span className="font-medium text-sm">{new Date(jobListing.application_deadline).toLocaleDateString('id-ID')}</span>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-
-            {/* Company Info */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Informasi Perusahaan</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <div className="flex items-center gap-3">
-                  <Building2 className="h-8 w-8 text-gray-400" />
+                <div className="grid grid-cols-1 gap-4">
                   <div>
-                    <p className="font-medium">{jobListing.company.name}</p>
-                    <p className="text-sm text-gray-600">Perusahaan</p>
+                    <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">Kategori</label>
+                    <p className="mt-1">
+                      <Badge variant="outline">{jobListing.category.name}</Badge>
+                    </p>
                   </div>
-                </div>
-                
-                {jobListing.company.description && (
-                  <p className="text-sm text-gray-600">{jobListing.company.description}</p>
-                )}
-              </CardContent>
-            </Card>
 
-            {/* Meta Info */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Informasi Tambahan</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3 text-sm">
-                <div>
-                  <span className="text-gray-600">Kategori:</span>
-                  <span className="ml-2 font-medium">{jobListing.category.name}</span>
-                </div>
-                
-                <div>
-                  <span className="text-gray-600">Dibuat oleh:</span>
-                  <span className="ml-2 font-medium">{jobListing.creator.name}</span>
-                </div>
-                
-                <div>
-                  <span className="text-gray-600">ID Lowongan:</span>
-                  <span className="ml-2 font-mono">{jobListing.id}</span>
+                  <div>
+                    <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">Posisi Tersedia</label>
+                    <p className="mt-1 font-semibold text-gray-900">{jobListing.positions_available} posisi</p>
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">Gaji</label>
+                    <p className="mt-1 font-semibold text-gray-900">
+                      {formatSalary(jobListing.salary_min, jobListing.salary_max)}
+                    </p>
+                  </div>
+
+                  {jobListing.application_deadline && (
+                    <div>
+                      <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">Batas Lamaran</label>
+                      <p className="mt-1 font-semibold text-gray-900">
+                        {new Date(jobListing.application_deadline).toLocaleDateString('id-ID', {
+                          day: 'numeric',
+                          month: 'long',
+                          year: 'numeric'
+                        })}
+                      </p>
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>

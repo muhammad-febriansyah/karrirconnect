@@ -1,7 +1,7 @@
 import { Head, Link } from '@inertiajs/react';
 import { motion } from 'framer-motion';
-import ModernNavbar from '@/components/modern-navbar';
-import ModernFooter from '@/components/modern-footer';
+// import ModernNavbar from '@/components/modern-navbar';
+// import ModernFooter from '@/components/modern-footer';
 import { FlickeringGrid } from '@/components/magicui/flickering-grid';
 import { 
     ArrowLeft, 
@@ -24,6 +24,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
+import MainLayout from '@/layouts/main-layout';
 
 interface BlogPost {
     id: number;
@@ -75,11 +76,8 @@ export default function BlogShow({ post, relatedPosts }: BlogShowProps) {
     };
 
     return (
-        <>
+        <MainLayout currentPage="blog">
             <Head title={`${post.title} - Blog KarirConnect`} />
-            
-            <div className="min-h-screen bg-white">
-                <ModernNavbar currentPage="blog" />
 
                 {/* Hero Section */}
                 <section className="relative bg-white pt-32 pb-8 lg:pt-40 lg:pb-12 overflow-hidden">
@@ -101,7 +99,7 @@ export default function BlogShow({ post, relatedPosts }: BlogShowProps) {
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ duration: 0.6 }}
-                            className="flex items-center space-x-2 text-sm text-gray-600 mb-8"
+                            className="flex flex-wrap items-center gap-2 text-sm text-gray-600 mb-8"
                         >
                             <Link href="/" className="hover:text-[#2347FA] transition-colors">Home</Link>
                             <ChevronRight className="w-4 h-4" />
@@ -139,7 +137,7 @@ export default function BlogShow({ post, relatedPosts }: BlogShowProps) {
                                 </Badge>
                                 {post.is_featured && (
                                     <Badge className="bg-gradient-to-r from-orange-500 to-red-500 text-white border-0 px-4 py-2 rounded-full font-semibold">
-                                        ⭐ Featured
+                                        Featured
                                     </Badge>
                                 )}
                             </motion.div>
@@ -175,7 +173,7 @@ export default function BlogShow({ post, relatedPosts }: BlogShowProps) {
                                 <div className="flex items-center space-x-3">
                                     <Avatar className="h-12 w-12 ring-2 ring-gray-100">
                                         <AvatarImage
-                                            src={post.author.avatar ? `/storage/${post.author.avatar}` : undefined}
+                                            src={post.author.avatar_url}
                                             alt={post.author.name}
                                         />
                                         <AvatarFallback className="bg-gradient-to-br from-[#2347FA] to-blue-600 text-white font-bold text-lg">
@@ -191,7 +189,7 @@ export default function BlogShow({ post, relatedPosts }: BlogShowProps) {
                                 <Separator orientation="vertical" className="h-12 hidden md:block" />
 
                                 {/* Date & Reading Time */}
-                                <div className="flex items-center space-x-6">
+                                <div className="flex flex-wrap items-center gap-3 sm:gap-6">
                                     <div className="flex items-center space-x-2">
                                         <Calendar className="w-4 h-4 text-[#2347FA]" />
                                         <span className="font-medium">{formatDate(post.published_at)}</span>
@@ -433,7 +431,7 @@ export default function BlogShow({ post, relatedPosts }: BlogShowProps) {
                                             <Share2 className="w-5 h-5 text-[#2347FA]" />
                                             <span className="font-semibold text-gray-900">Bagikan artikel ini:</span>
                                         </div>
-                                        <div className="flex items-center space-x-3">
+                                        <div className="flex flex-wrap items-center justify-center md:justify-end gap-2 sm:gap-3">
                                             <a 
                                                 href={shareLinks.facebook} 
                                                 target="_blank" 
@@ -496,7 +494,7 @@ export default function BlogShow({ post, relatedPosts }: BlogShowProps) {
                                         }}
                                         className="group cursor-pointer"
                                     >
-                                        <Card className="overflow-hidden border border-gray-200 bg-white shadow-md hover:shadow-lg transition-all duration-300 hover:scale-[1.02] group-hover:shadow-[#2347FA]/10 h-full flex flex-col">
+                                        <Card className="overflow-hidden border border-gray-200 bg-white shadow-md hover:shadow-lg transition-all duration-300 md:hover:scale-[1.02] transform-gpu group-hover:shadow-[#2347FA]/10 h-full flex flex-col">
                                             {relatedPost.featured_image ? (
                                                 <div className="aspect-[16/10] overflow-hidden">
                                                     <img
@@ -558,9 +556,6 @@ export default function BlogShow({ post, relatedPosts }: BlogShowProps) {
                         </div>
                     </section>
                 )}
-
-                <ModernFooter />
-            </div>
-        </>
+        </MainLayout>
     );
 }

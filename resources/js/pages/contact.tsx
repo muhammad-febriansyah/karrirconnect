@@ -1,8 +1,8 @@
 import { Head, Link, useForm } from '@inertiajs/react';
 import SEOHead from '@/components/seo-head';
 import { motion } from 'framer-motion';
-import ModernNavbar from '@/components/modern-navbar';
-import ModernFooter from '@/components/modern-footer';
+// import ModernNavbar from '@/components/modern-navbar';
+// import ModernFooter from '@/components/modern-footer';
 import { FlickeringGrid } from '@/components/magicui/flickering-grid';
 import { 
     Mail, 
@@ -21,6 +21,8 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { useState } from 'react';
+import { route } from 'ziggy-js';
+import MainLayout from '@/layouts/main-layout';
 
 interface Settings {
     id: number;
@@ -66,18 +68,14 @@ export default function Contact({ title, settings }: ContactProps) {
     };
 
     return (
-        <>
-            <SEOHead 
+        <MainLayout currentPage="contact">
+            <SEOHead
                 title={`${title} | ${settings.site_name}`}
                 description={`Hubungi tim ${settings.site_name} untuk bantuan, pertanyaan, atau kemitraan. Dapatkan respon cepat dari tim profesional kami dalam 2-4 jam kerja.`}
                 keywords={`kontak ${settings.site_name}, hubungi kami, customer service, bantuan, support`}
                 siteName={settings.site_name}
                 type="website"
             />
-            
-            <div className="min-h-screen bg-white">
-                {/* Modern Navbar */}
-                <ModernNavbar currentPage="contact" />
 
                 {/* Hero Section */}
                 <section className="relative bg-white pt-32 pb-16 lg:pt-40 lg:pb-20 overflow-hidden">
@@ -133,7 +131,7 @@ export default function Contact({ title, settings }: ContactProps) {
                 {/* Contact Form & Info */}
                 <section className="py-20 bg-gray-50">
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                        <div className="grid lg:grid-cols-2 gap-12">
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
                             {/* Contact Form */}
                             <motion.div
                                 initial={{ opacity: 0, x: -20 }}
@@ -462,11 +460,11 @@ export default function Contact({ title, settings }: ContactProps) {
                                                 {/* Decorative background */}
                                                 <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-blue-100/50 to-transparent rounded-bl-full"></div>
                                                 <CardContent className="p-8 relative">
-                                                    <div className="flex items-start space-x-4">
+                                                    <div className="flex flex-col sm:flex-row items-start gap-3 sm:gap-4">
                                                         <div className="w-16 h-16 bg-gradient-to-br from-[#2347FA] to-blue-600 rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
                                                             <Mail className="h-8 w-8 text-white" />
                                                         </div>
-                                                        <div className="flex-1">
+                                                        <div className="flex-1 min-w-0">
                                                             <div className="flex items-center mb-2">
                                                                 <h3 className="text-xl font-bold text-gray-900">Email Kami</h3>
                                                                 <div className="ml-2 w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
@@ -474,7 +472,7 @@ export default function Contact({ title, settings }: ContactProps) {
                                                             <p className="text-gray-600 mb-3">Dapatkan balasan dalam 2-4 jam kerja</p>
                                                             <a 
                                                                 href={`mailto:${settings.email}`} 
-                                                                className="inline-flex items-center text-[#2347FA] hover:text-blue-600 font-semibold text-lg transition-colors group/link"
+                                                                className="inline-flex items-center flex-wrap break-words whitespace-normal text-[#2347FA] hover:text-blue-600 font-semibold text-lg transition-colors group/link"
                                                             >
                                                                 {settings.email}
                                                                 <svg className="w-4 h-4 ml-2 group-hover/link:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -497,11 +495,11 @@ export default function Contact({ title, settings }: ContactProps) {
                                             <Card className="border-0 shadow-xl hover:shadow-2xl transition-all duration-300 bg-gradient-to-br from-emerald-50 via-white to-teal-50 group overflow-hidden relative">
                                                 <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-emerald-100/50 to-transparent rounded-bl-full"></div>
                                                 <CardContent className="p-8 relative">
-                                                    <div className="flex items-start space-x-4">
+                                                    <div className="flex flex-col sm:flex-row items-start gap-3 sm:gap-4">
                                                         <div className="w-16 h-16 bg-gradient-to-br from-emerald-500 to-emerald-700 rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
                                                             <Phone className="h-8 w-8 text-white" />
                                                         </div>
-                                                        <div className="flex-1">
+                                                        <div className="flex-1 min-w-0">
                                                             <div className="flex items-center mb-2">
                                                                 <h3 className="text-xl font-bold text-gray-900">Hubungi Langsung</h3>
                                                                 <div className="ml-2 w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
@@ -509,7 +507,7 @@ export default function Contact({ title, settings }: ContactProps) {
                                                             <p className="text-gray-600 mb-3">Senin - Jumat, 09:00 - 18:00 WIB</p>
                                                             <a 
                                                                 href={`tel:${settings.phone}`} 
-                                                                className="inline-flex items-center text-emerald-600 hover:text-emerald-700 font-semibold text-lg transition-colors group/link"
+                                                                className="inline-flex items-center flex-wrap break-words whitespace-normal text-emerald-600 hover:text-emerald-700 font-semibold text-lg transition-colors group/link"
                                                             >
                                                                 {settings.phone}
                                                                 <svg className="w-4 h-4 ml-2 group-hover/link:rotate-12 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -532,14 +530,14 @@ export default function Contact({ title, settings }: ContactProps) {
                                             <Card className="border-0 shadow-xl hover:shadow-2xl transition-all duration-300 bg-gradient-to-br from-purple-50 via-white to-indigo-50 group overflow-hidden relative">
                                                 <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-purple-100/50 to-transparent rounded-bl-full"></div>
                                                 <CardContent className="p-8 relative">
-                                                    <div className="flex items-start space-x-4">
+                                                    <div className="flex flex-col sm:flex-row items-start gap-3 sm:gap-4">
                                                         <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-purple-700 rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
                                                             <MapPin className="h-8 w-8 text-white" />
                                                         </div>
-                                                        <div className="flex-1">
+                                                        <div className="flex-1 min-w-0">
                                                             <h3 className="text-xl font-bold text-gray-900 mb-2">Lokasi Kantor</h3>
                                                             <p className="text-gray-600 mb-3">Kunjungi kantor kami untuk konsultasi langsung</p>
-                                                            <p className="text-purple-600 font-semibold text-lg leading-relaxed">
+                                                            <p className="text-purple-600 font-semibold text-lg leading-relaxed break-words whitespace-normal">
                                                                 {settings.address}
                                                             </p>
                                                         </div>
@@ -580,10 +578,6 @@ export default function Contact({ title, settings }: ContactProps) {
                         </div>
                     </div>
                 </section>
-
-                {/* Modern Footer */}
-                <ModernFooter />
-            </div>
-        </>
+        </MainLayout>
     );
 }

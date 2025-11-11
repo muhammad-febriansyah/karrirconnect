@@ -54,10 +54,10 @@ export default function EditWhatsAppTemplate({ template }: Props) {
     });
 
     const typeEmojis = {
-        notification: '🔔',
-        marketing: '📢',
-        system: '🔧',
-        alert: '⚠️',
+        notification: '',
+        marketing: '',
+        system: '',
+        alert: '',
     };
 
     const addVariable = () => {
@@ -106,7 +106,7 @@ export default function EditWhatsAppTemplate({ template }: Props) {
         });
 
         // Add action URL sample
-        message += '\n\n🔗 Link: https://karirconnect.com/sample-action';
+        message += '\n\nLink: https://karirconnect.com/sample-action';
 
         // Add signature if enabled
         if (data.include_signature) {
@@ -189,10 +189,10 @@ export default function EditWhatsAppTemplate({ template }: Props) {
                                                 <SelectValue />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                <SelectItem value="notification">🔔 Notification</SelectItem>
-                                                <SelectItem value="marketing">📢 Marketing</SelectItem>
-                                                <SelectItem value="system">🔧 System</SelectItem>
-                                                <SelectItem value="alert">⚠️ Alert</SelectItem>
+                                                <SelectItem value="notification">Notification</SelectItem>
+                                                <SelectItem value="marketing">Marketing</SelectItem>
+                                                <SelectItem value="system">System</SelectItem>
+                                                <SelectItem value="alert">Alert</SelectItem>
                                             </SelectContent>
                                         </Select>
                                         {errors.type && <p className="text-sm text-red-600">{errors.type}</p>}

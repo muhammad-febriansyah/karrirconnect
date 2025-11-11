@@ -11,11 +11,16 @@ export function NavAdmin({ groups = [] }: { groups: NavGroup[] }) {
     const page = usePage();
 
     // Better active state logic - exact match first, then starts with for parent routes
-    const isActive = (itemHref: string) => {
+    const isActive = (item: NavItem) => {
+        const itemHref = item.href;
         const currentUrl = page.url;
         
         // Exact match first
         if (currentUrl === itemHref) {
+            // Special case: avoid activating "Dashboard" when it shares the same href as another item (e.g., /company/jobs)
+            if (itemHref === '/company/jobs' && item.title.toLowerCase() === 'dashboard') {
+                return false;
+            }
             return true;
         }
         
@@ -32,6 +37,11 @@ export function NavAdmin({ groups = [] }: { groups: NavGroup[] }) {
                 return false; // /company/points should not be active when on /company/points/packages
             }
             
+            // Avoid activating "Dashboard" when on nested /company/jobs/* pages
+            if (itemHref === '/company/jobs' && item.title.toLowerCase() === 'dashboard') {
+                return false;
+            }
+
             // For other routes, use startsWith but ensure it's followed by / or end of string
             return currentUrl === itemHref || currentUrl.startsWith(itemHref + '/');
         }
@@ -47,7 +57,7 @@ export function NavAdmin({ groups = [] }: { groups: NavGroup[] }) {
                     <SidebarMenu>
                         {group.items.map((item) => (
                             <SidebarMenuItem key={item.title}>
-                                <SidebarMenuButton asChild isActive={isActive(item.href)} tooltip={{ children: item.title }} className="group">
+                                <SidebarMenuButton asChild isActive={isActive(item)} tooltip={{ children: item.title }} className="group">
                                     <Link href={item.href} prefetch>
                                         {item.icon && <item.icon className="h-4 w-4 group-data-[state=collapsed]:h-5 group-data-[state=collapsed]:w-5" />}
                                         <span>{item.title}</span>

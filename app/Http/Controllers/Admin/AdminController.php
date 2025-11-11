@@ -76,7 +76,7 @@ class AdminController extends Controller
 
     private function companyAdminDashboard($user)
     {
-        $company = $user->company;
+        $company = Company::find($user->company_id);
         
         $stats = [
             'total_jobs' => JobListing::where('company_id', $user->company_id)->count(),
@@ -109,6 +109,7 @@ class AdminController extends Controller
             ->latest()
             ->limit(10)
             ->get();
+
 
         $monthlyStats = $this->getCompanyMonthlyStats($user->company_id);
         $chartData = $this->getCompanyAdminChartData($user->company_id);

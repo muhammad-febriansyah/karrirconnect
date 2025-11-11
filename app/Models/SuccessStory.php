@@ -58,8 +58,13 @@ class SuccessStory extends Model
 
     public function getSalaryIncreasePercentageAttribute()
     {
-        if (!$this->salary_before || !$this->salary_after) {
+        if (!$this->salary_after) {
             return null;
+        }
+
+        // Handle fresh graduate case (salary_before = 0)
+        if (!$this->salary_before || $this->salary_before == 0) {
+            return null; // or return 100 to indicate "new job"
         }
 
         return round((($this->salary_after - $this->salary_before) / $this->salary_before) * 100);

@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { ArrowLeft, Save, Send, Users, Calendar, Eye } from 'lucide-react';
+import { route } from 'ziggy-js';
 
 interface EmailTemplate {
   id: number;

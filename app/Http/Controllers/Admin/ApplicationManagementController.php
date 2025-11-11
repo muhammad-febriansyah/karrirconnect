@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\JobApplication;
+use App\Events\JobApplicationStatusChanged;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Auth;
@@ -151,16 +152,19 @@ class ApplicationManagementController extends Controller
     public function updateStatus(Request $request, JobApplication $application)
     {
         $user = Auth::user();
-        
+
         // Company admin can only update applications for their company's job listings
         if ($user->role === 'company_admin' && $application->jobListing->company_id !== $user->company_id) {
             abort(403, 'Unauthorized');
         }
-        
+
         $request->validate([
             'status' => 'required|in:pending,reviewing,shortlisted,interview,hired,rejected',
             'admin_notes' => 'nullable|string',
         ]);
+
+        // Store old status before updating
+        $oldStatus = $application->status;
 
         $application->update([
             'status' => $request->status,
@@ -169,44 +173,67 @@ class ApplicationManagementController extends Controller
             'reviewed_by' => Auth::id(),
         ]);
 
+        // Fire event if status changed
+        if ($oldStatus !== $request->status) {
+            event(new JobApplicationStatusChanged($application->fresh(['user', 'jobListing.company']), $oldStatus, $request->status));
+        }
+
         return back()->with('success', 'Application status updated successfully.');
     }
 
     public function bulkAction(Request $request)
     {
         $user = Auth::user();
-        
+
         $request->validate([
             'action' => 'required|in:approve,reject,delete',
             'application_ids' => 'required|array',
             'application_ids.*' => 'exists:job_applications,id',
         ]);
 
-        $applications = JobApplication::whereIn('id', $request->application_ids)
+        $applications = JobApplication::with(['user', 'jobListing.company'])
+            ->whereIn('id', $request->application_ids)
             ->when($user->role === 'company_admin' && $user->company_id, function ($q) use ($user) {
                 // Company admin can only bulk action their company's applications
                 $q->whereHas('jobListing', function ($jobQuery) use ($user) {
                     $jobQuery->where('company_id', $user->company_id);
                 });
-            });
+            })
+            ->get();
 
         switch ($request->action) {
             case 'approve':
-                $applications->update([
-                    'status' => 'reviewed',
-                    'reviewed_at' => now(),
-                    'reviewed_by' => Auth::id(),
-                ]);
+                foreach ($applications as $application) {
+                    $oldStatus = $application->status;
+                    $application->update([
+                        'status' => 'reviewed',
+                        'reviewed_at' => now(),
+                        'reviewed_by' => Auth::id(),
+                    ]);
+
+                    // Fire event if status changed
+                    if ($oldStatus !== 'reviewed') {
+                        event(new JobApplicationStatusChanged($application, $oldStatus, 'reviewed'));
+                    }
+                }
                 break;
             case 'reject':
-                $applications->update([
-                    'status' => 'rejected',
-                    'reviewed_at' => now(),
-                    'reviewed_by' => Auth::id(),
-                ]);
+                foreach ($applications as $application) {
+                    $oldStatus = $application->status;
+                    $application->update([
+                        'status' => 'rejected',
+                        'reviewed_at' => now(),
+                        'reviewed_by' => Auth::id(),
+                    ]);
+
+                    // Fire event if status changed
+                    if ($oldStatus !== 'rejected') {
+                        event(new JobApplicationStatusChanged($application, $oldStatus, 'rejected'));
+                    }
+                }
                 break;
             case 'delete':
-                $applications->delete();
+                $applications->each->delete();
                 break;
         }
 

@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { DataTable } from '@/components/ui/data-table';
 import { transactionsColumns, type Transaction } from '@/components/tables/transactions-columns';
 import { ArrowLeft, Search, Filter, Eye, TrendingUp, TrendingDown, DollarSign, Clock } from 'lucide-react';
+import { route } from 'ziggy-js';
 
 interface Company {
   id: number;

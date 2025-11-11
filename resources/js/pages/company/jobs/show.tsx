@@ -222,7 +222,10 @@ export default function ShowJob({ job }: Props) {
               </CardHeader>
               <CardContent>
                 <div className="prose max-w-none">
-                  <p className="whitespace-pre-wrap">{job.description}</p>
+                  <div
+                    className="whitespace-pre-wrap"
+                    dangerouslySetInnerHTML={{ __html: job.description }}
+                  />
                 </div>
               </CardContent>
             </Card>
@@ -235,7 +238,10 @@ export default function ShowJob({ job }: Props) {
                 </CardHeader>
                 <CardContent>
                   <div className="prose max-w-none">
-                    <p className="whitespace-pre-wrap">{job.requirements}</p>
+                    <div
+                      className="whitespace-pre-wrap"
+                      dangerouslySetInnerHTML={{ __html: job.requirements }}
+                    />
                   </div>
                 </CardContent>
               </Card>
@@ -249,7 +255,10 @@ export default function ShowJob({ job }: Props) {
                 </CardHeader>
                 <CardContent>
                   <div className="prose max-w-none">
-                    <p className="whitespace-pre-wrap">{job.benefits}</p>
+                    <div
+                      className="whitespace-pre-wrap"
+                      dangerouslySetInnerHTML={{ __html: job.benefits }}
+                    />
                   </div>
                 </CardContent>
               </Card>

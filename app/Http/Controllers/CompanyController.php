@@ -49,8 +49,16 @@ class CompanyController extends Controller
 
         $companies = $query->orderBy('is_verified', 'desc')
                           ->orderBy('active_jobs_count', 'desc')
-                          ->paginate(12)
+                          ->paginate(6) // 6 items per page for optimal 2x3 or 3x2 grid layout
                           ->withQueryString();
+
+        // Transform company logos to full asset URLs
+        $companies->getCollection()->transform(function ($company) {
+            if ($company->logo) {
+                $company->logo = asset('storage/' . $company->logo);
+            }
+            return $company;
+        });
 
         // Featured companies (verified companies with most active jobs)
         $featuredCompanies = Company::where('is_active', true)
@@ -67,7 +75,13 @@ class CompanyController extends Controller
             ->having('active_jobs_count', '>', 0)
             ->orderBy('active_jobs_count', 'desc')
             ->limit(9)
-            ->get();
+            ->get()
+            ->map(function ($company) {
+                if ($company->logo) {
+                    $company->logo = asset('storage/' . $company->logo);
+                }
+                return $company;
+            });
 
         // Get distinct industries
         $industries = Company::where('is_active', true)
@@ -104,6 +118,11 @@ class CompanyController extends Controller
                   ->with('category')
                   ->orderBy('created_at', 'desc');
         }]);
+
+        // Transform logo to full asset URL
+        if ($company->logo) {
+            $company->logo = asset('storage/' . $company->logo);
+        }
 
         return Inertia::render('companies/show', [
             'company' => $company

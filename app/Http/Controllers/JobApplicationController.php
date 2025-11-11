@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\JobApplication;
 use App\Models\JobListing;
 use App\Models\Notification;
+use App\Services\EmailService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -20,7 +21,7 @@ class JobApplicationController extends Controller
     {
         // Check if user is authenticated
         if (!Auth::check()) {
-            return redirect()->route('user.login')->with('error', 'Silakan login terlebih dahulu untuk melamar pekerjaan.');
+            return redirect()->route('login')->with('error', 'Silakan login terlebih dahulu untuk melamar pekerjaan.');
         }
 
         $user = Auth::user();
@@ -68,7 +69,7 @@ class JobApplicationController extends Controller
     {
         // Check if user is authenticated
         if (!Auth::check()) {
-            return redirect()->route('user.login')->with('error', 'Silakan login terlebih dahulu untuk melamar pekerjaan.');
+            return redirect()->route('login')->with('error', 'Silakan login terlebih dahulu untuk melamar pekerjaan.');
         }
 
         $user = Auth::user();
@@ -137,12 +138,17 @@ class JobApplicationController extends Controller
                 'status' => 'pending'
             ]);
 
+            // Note: applications_count is automatically incremented by JobApplication model events
+
             // Create notification for company admins
             try {
                 Notification::createJobApplication($application);
             } catch (\Exception $e) {
                 \Log::warning('Failed to create job application notification: ' . $e->getMessage());
             }
+
+            // Send email notifications
+            $this->sendApplicationEmails($application);
 
             DB::commit();
 
@@ -166,6 +172,49 @@ class JobApplicationController extends Controller
             \Log::error('Job application submission failed: ' . $e->getMessage());
 
             return back()->with('error', 'Terjadi kesalahan saat mengirim lamaran. Silakan coba lagi.');
+        }
+    }
+
+    /**
+     * Send email notifications for job application
+     */
+    private function sendApplicationEmails(JobApplication $application): void
+    {
+        $application->load(['user.profile', 'jobListing.company']);
+
+        $job = $application->jobListing;
+        $user = $application->user;
+        $company = $job->company;
+
+        // Send email to company about new application
+        try {
+            EmailService::send('employer-application-received', $company->email, [
+                'company_name' => $company->name,
+                'job_title' => $job->title,
+                'applicant_name' => $user->name,
+                'applicant_email' => $user->email,
+                'applicant_phone' => $user->profile->phone ?? '-',
+                'application_date' => $application->created_at->format('d M Y'),
+                'application_url' => route('company.jobs.show', $job->id), // Company can see applications in job detail
+            ]);
+            \Log::info("Application received email sent to company: {$company->email}");
+        } catch (\Exception $e) {
+            \Log::error("Failed to send application received email to company: " . $e->getMessage());
+        }
+
+        // Send confirmation email to applicant
+        try {
+            EmailService::send('employee-application-status', $user->email, [
+                'user_name' => $user->name,
+                'job_title' => $job->title,
+                'company_name' => $company->name,
+                'status' => 'Sedang Direview',
+                'application_date' => $application->created_at->format('d M Y'),
+                'application_url' => route('user.dashboard'), // User can see applications in dashboard
+            ]);
+            \Log::info("Application status email sent to user: {$user->email}");
+        } catch (\Exception $e) {
+            \Log::error("Failed to send application status email to user: " . $e->getMessage());
         }
     }
 }

@@ -12,20 +12,17 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('users', function (Blueprint $table) {
+            // Add google_id column first if it doesn't exist
+            if (!Schema::hasColumn('users', 'google_id')) {
+                $table->string('google_id')->nullable()->after('avatar')->index();
+            }
+            
             // Only add columns that don't exist yet
             if (!Schema::hasColumn('users', 'auth_provider')) {
-                $table->string('auth_provider')->default('email')->after('avatar'); // 'email' or 'google'
+                $table->string('auth_provider')->default('email')->after('google_id')->index(); // 'email' or 'google'
             }
             if (!Schema::hasColumn('users', 'google_created_at')) {
                 $table->timestamp('google_created_at')->nullable()->after('auth_provider');
-            }
-            
-            // Add indexes
-            if (!Schema::hasIndex('users', ['google_id'])) {
-                $table->index(['google_id']);
-            }
-            if (!Schema::hasIndex('users', ['auth_provider'])) {
-                $table->index(['auth_provider']);
             }
         });
     }
@@ -36,7 +33,12 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('users', function (Blueprint $table) {
+            if (Schema::hasColumn('users', 'google_id')) {
+                $table->dropIndex(['google_id']);
+                $table->dropColumn(['google_id']);
+            }
             if (Schema::hasColumn('users', 'auth_provider')) {
+                $table->dropIndex(['auth_provider']);
                 $table->dropColumn(['auth_provider']);
             }
             if (Schema::hasColumn('users', 'google_created_at')) {

@@ -8,6 +8,7 @@ use App\Models\Company;
 use App\Models\UserProfile;
 use App\Models\WhatsappTemplate;
 use App\Http\Controllers\WaGatewayController;
+use App\Services\EmailService;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -43,7 +44,7 @@ class CompanyRegistrationController extends Controller
             'company_location' => 'required|string|max:255',
             'company_address' => 'nullable|string|max:500',
             'company_description' => 'nullable|string|max:1000',
-            'company_website' => 'nullable|url|max:255',
+            'company_website' => 'nullable|string|max:255',
             'admin_name' => 'required|string|max:255',
             'admin_email' => 'required|string|lowercase|email|max:255|unique:users,email',
             'admin_phone' => 'required|string|max:20',
@@ -80,7 +81,7 @@ class CompanyRegistrationController extends Controller
                 'logo' => null,
                 'is_active' => true,
                 'is_verified' => false, // Companies need admin verification
-                'verification_status' => 'pending',
+                'verification_status' => 'unverified',
                 'verification_documents' => null,
                 // Initialize points system
                 'job_posting_points' => 5, // Give 5 points for new companies
@@ -119,10 +120,13 @@ class CompanyRegistrationController extends Controller
 
             Auth::login($user);
 
+            // Send welcome email to company
+            $this->sendWelcomeEmail($company);
+
             // Send WhatsApp notification to admin KarirConnect
             $this->sendAdminNotification($company, $user, $request);
 
-            return redirect()->route('admin.dashboard')->with('success', 
+            return redirect()->route('admin.dashboard')->with('success',
                 'Akun perusahaan berhasil dibuat! Perusahaan Anda sedang menunggu verifikasi admin.'
             );
 
@@ -132,6 +136,23 @@ class CompanyRegistrationController extends Controller
             return back()->withErrors([
                 'general' => 'Terjadi kesalahan saat membuat akun perusahaan. Silakan coba lagi.'
             ])->withInput();
+        }
+    }
+
+    /**
+     * Send welcome email to company
+     */
+    private function sendWelcomeEmail(Company $company): void
+    {
+        try {
+            EmailService::send('employer-registration-success', $company->email, [
+                'company_name' => $company->name,
+                'verification_url' => route('admin.dashboard'), // Company will see verification status in dashboard
+            ]);
+
+            \Log::info("Welcome email sent to company: {$company->name}");
+        } catch (\Exception $e) {
+            \Log::error("Failed to send welcome email to company: " . $e->getMessage());
         }
     }
 
@@ -167,14 +188,14 @@ class CompanyRegistrationController extends Controller
 
             // Send to admin KarirConnect (hardcoded admin number)
             $adminPhoneNumber = '081295916567'; // Replace with actual admin number
-            
+
             $waGateway = new WaGatewayController();
-            
+
             // Use reflection to access protected method
             $reflection = new \ReflectionClass($waGateway);
             $method = $reflection->getMethod('sendWhatsAppMessage');
             $method->setAccessible(true);
-            
+
             $method->invoke($waGateway, $adminPhoneNumber, $message);
 
             \Log::info("Company registration notification sent to admin for company: {$company->name}");

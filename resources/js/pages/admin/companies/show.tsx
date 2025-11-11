@@ -5,7 +5,8 @@ import AppLayout from '@/layouts/app-layout';
 import type { Company } from '@/types';
 import { Head, router } from '@inertiajs/react';
 import { formatDistanceToNow } from 'date-fns';
-import { ArrowLeft, Briefcase, CheckCircle, Edit, Mail, MapPin, Phone, Trash2, Users, Globe, XCircle } from 'lucide-react';
+import { ArrowLeft, Briefcase, CheckCircle, Edit, Mail, MapPin, Phone, Trash2, Users, Globe, XCircle, Building2, Hash, Coins, FileText, ExternalLink, User, ImageIcon } from 'lucide-react';
+import { FaLinkedin, FaTwitter, FaFacebook, FaInstagram } from 'react-icons/fa';
 import { toast } from 'sonner';
 
 const getCompanySizeLabel = (size: string) => {
@@ -136,7 +137,6 @@ export default function ShowCompany({ company, userRole }: Props) {
                         <p className="text-gray-600">Detail informasi perusahaan</p>
                     </div>
                     
-                    {userRole !== 'company_admin' && (
                     <div className="flex gap-2">
                         <Button
                             variant="outline"
@@ -145,15 +145,16 @@ export default function ShowCompany({ company, userRole }: Props) {
                             <Edit className="mr-2 h-4 w-4" />
                             Edit
                         </Button>
-                        <Button
-                            variant="outline"
-                            onClick={deleteCompany}
-                        >
-                            <Trash2 className="mr-2 h-4 w-4" />
-                            Hapus
-                        </Button>
+                        {userRole !== 'company_admin' && (
+                            <Button
+                                variant="outline"
+                                onClick={deleteCompany}
+                            >
+                                <Trash2 className="mr-2 h-4 w-4" />
+                                Hapus
+                            </Button>
+                        )}
                     </div>
-                    )}
                 </div>
 
                 <div className="grid gap-6 md:grid-cols-3">
@@ -165,12 +166,29 @@ export default function ShowCompany({ company, userRole }: Props) {
                                 <CardTitle>Informasi Dasar</CardTitle>
                             </CardHeader>
                             <CardContent className="space-y-4">
+                                {/* Logo Section */}
+                                {company.logo && (
+                                    <div className="flex justify-center md:justify-start mb-6">
+                                        <div className="relative">
+                                            <img
+                                                src={`/storage/${company.logo}`}
+                                                alt={`${company.name} logo`}
+                                                className="h-24 w-24 object-cover rounded-lg border shadow-sm"
+                                                onError={(e) => {
+                                                    (e.target as HTMLImageElement).style.display = 'none';
+                                                }}
+                                            />
+                                            <ImageIcon className="h-6 w-6 text-gray-400 absolute inset-0 m-auto" />
+                                        </div>
+                                    </div>
+                                )}
+
                                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                                     <div>
                                         <label className="text-sm font-medium text-gray-500">Nama Perusahaan</label>
                                         <p className="text-base font-medium">{company.name}</p>
                                     </div>
-                                    
+
                                     {company.industry && (
                                         <div>
                                             <label className="text-sm font-medium text-gray-500">Industri</label>
@@ -178,10 +196,30 @@ export default function ShowCompany({ company, userRole }: Props) {
                                         </div>
                                     )}
 
+                                    {company.location && (
+                                        <div>
+                                            <label className="text-sm font-medium text-gray-500">Lokasi</label>
+                                            <div className="flex items-center gap-2">
+                                                <Building2 className="h-4 w-4 text-gray-500" />
+                                                <p className="text-base">{company.location}</p>
+                                            </div>
+                                        </div>
+                                    )}
+
                                     {company.company_size && (
-                                        <div className="md:col-span-2">
+                                        <div>
                                             <label className="text-sm font-medium text-gray-500">Ukuran Perusahaan</label>
                                             <p className="text-base">{getCompanySizeLabel(company.company_size)}</p>
+                                        </div>
+                                    )}
+
+                                    {company.slug && (
+                                        <div className="md:col-span-2">
+                                            <label className="text-sm font-medium text-gray-500">Slug</label>
+                                            <div className="flex items-center gap-2">
+                                                <Hash className="h-4 w-4 text-gray-500" />
+                                                <p className="text-base font-mono text-gray-600">{company.slug}</p>
+                                            </div>
                                         </div>
                                     )}
                                 </div>
@@ -190,6 +228,86 @@ export default function ShowCompany({ company, userRole }: Props) {
                                     <div>
                                         <label className="text-sm font-medium text-gray-500">Deskripsi</label>
                                         <p className="text-base text-gray-700 whitespace-pre-wrap">{company.description}</p>
+                                    </div>
+                                )}
+                            </CardContent>
+                        </Card>
+
+                        {/* Admin User Information */}
+                        {company.admin_user_id && (
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle>Admin Perusahaan Ditetapkan</CardTitle>
+                                </CardHeader>
+                                <CardContent>
+                                    <div className="p-3 border rounded-lg">
+                                        <div className="flex items-center gap-3">
+                                            <User className="h-8 w-8 text-blue-600 bg-blue-50 rounded-full p-1.5" />
+                                            <div className="flex-1">
+                                                {(company as any).admin_user ? (
+                                                    <>
+                                                        <p className="font-medium">{(company as any).admin_user.name}</p>
+                                                        <p className="text-sm text-gray-600">{(company as any).admin_user.email}</p>
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <p className="font-medium">Admin Ditetapkan</p>
+                                                        <p className="text-sm text-gray-600">User ID: {company.admin_user_id}</p>
+                                                    </>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        )}
+
+                        {/* Points & Job Management System */}
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>Sistem Poin & Lowongan</CardTitle>
+                            </CardHeader>
+                            <CardContent className="space-y-4">
+                                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                                    <div className="flex items-center gap-3">
+                                        <Coins className="h-4 w-4 text-yellow-600" />
+                                        <div>
+                                            <label className="text-sm font-medium text-gray-500">Poin Posting</label>
+                                            <p className="text-base font-bold">{company.job_posting_points || 0}</p>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex items-center gap-3">
+                                        <Briefcase className="h-4 w-4 text-blue-600" />
+                                        <div>
+                                            <label className="text-sm font-medium text-gray-500">Total Job Posts</label>
+                                            <p className="text-base">{company.total_job_posts || 0}</p>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex items-center gap-3">
+                                        <CheckCircle className="h-4 w-4 text-green-600" />
+                                        <div>
+                                            <label className="text-sm font-medium text-gray-500">Job Aktif</label>
+                                            <p className="text-base">{company.active_job_posts || 0}</p>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex items-center gap-3">
+                                        <FileText className="h-4 w-4 text-purple-600" />
+                                        <div>
+                                            <label className="text-sm font-medium text-gray-500">Max Job Aktif</label>
+                                            <p className="text-base">{company.max_active_jobs || 0}</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {company.points_last_updated && (
+                                    <div>
+                                        <label className="text-sm font-medium text-gray-500">Poin Terakhir Update</label>
+                                        <p className="text-sm text-gray-600">
+                                            {formatDistanceToNow(new Date(company.points_last_updated), { addSuffix: true })}
+                                        </p>
                                     </div>
                                 )}
                             </CardContent>
@@ -226,6 +344,99 @@ export default function ShowCompany({ company, userRole }: Props) {
                                             <div>
                                                 <label className="text-sm font-medium text-gray-500">Verification Status</label>
                                                 <p className="text-base capitalize">{company.verification_status}</p>
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    {company.verification_documents && (
+                                        <div>
+                                            <label className="text-sm font-medium text-gray-500">Dokumen Verifikasi</label>
+                                            <p className="text-sm text-blue-600 cursor-pointer hover:underline">
+                                                Dokumen tersedia
+                                            </p>
+                                        </div>
+                                    )}
+                                </CardContent>
+                            </Card>
+                        )}
+
+                        {/* Social Media Links */}
+                        {company.social_links && Object.keys(company.social_links).length > 0 && (
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle>Social Media</CardTitle>
+                                </CardHeader>
+                                <CardContent>
+                                    <div className="grid grid-cols-1 gap-3">
+                                        {company.social_links.linkedin && (
+                                            <div className="flex items-center gap-3">
+                                                <FaLinkedin className="h-5 w-5 text-blue-600" />
+                                                <div>
+                                                    <label className="text-sm font-medium text-gray-500">LinkedIn</label>
+                                                    <a
+                                                        href={company.social_links.linkedin}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="text-base text-blue-600 hover:underline flex items-center gap-1"
+                                                    >
+                                                        {company.social_links.linkedin}
+                                                        <ExternalLink className="h-3 w-3" />
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {company.social_links.twitter && (
+                                            <div className="flex items-center gap-3">
+                                                <FaTwitter className="h-5 w-5 text-sky-500" />
+                                                <div>
+                                                    <label className="text-sm font-medium text-gray-500">Twitter</label>
+                                                    <a
+                                                        href={company.social_links.twitter}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="text-base text-blue-600 hover:underline flex items-center gap-1"
+                                                    >
+                                                        {company.social_links.twitter}
+                                                        <ExternalLink className="h-3 w-3" />
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {company.social_links.facebook && (
+                                            <div className="flex items-center gap-3">
+                                                <FaFacebook className="h-5 w-5 text-blue-700" />
+                                                <div>
+                                                    <label className="text-sm font-medium text-gray-500">Facebook</label>
+                                                    <a
+                                                        href={company.social_links.facebook}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="text-base text-blue-600 hover:underline flex items-center gap-1"
+                                                    >
+                                                        {company.social_links.facebook}
+                                                        <ExternalLink className="h-3 w-3" />
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {company.social_links.instagram && (
+                                            <div className="flex items-center gap-3">
+                                                <FaInstagram className="h-5 w-5 text-pink-600" />
+                                                <div>
+                                                    <label className="text-sm font-medium text-gray-500">Instagram</label>
+                                                    <a
+                                                        href={company.social_links.instagram}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="text-base text-blue-600 hover:underline flex items-center gap-1"
+                                                    >
+                                                        {company.social_links.instagram}
+                                                        <ExternalLink className="h-3 w-3" />
+                                                    </a>
+                                                </div>
                                             </div>
                                         )}
                                     </div>
@@ -324,8 +535,7 @@ export default function ShowCompany({ company, userRole }: Props) {
 
                     {/* Sidebar */}
                     <div className="space-y-6">
-                        {/* Statistics - Hidden for Company Admin */}
-                        {userRole !== 'company_admin' && (
+                        {/* Statistics */}
                         <Card>
                             <CardHeader>
                                 <CardTitle>Statistik</CardTitle>
@@ -335,10 +545,10 @@ export default function ShowCompany({ company, userRole }: Props) {
                                     <Users className="h-8 w-8 text-blue-600" />
                                     <div>
                                         <p className="text-2xl font-bold">{company.users_count || 0}</p>
-                                        <p className="text-sm text-gray-600">Pengguna</p>
+                                        <p className="text-sm text-gray-600">Karyawan</p>
                                     </div>
                                 </div>
-                                
+
                                 <div className="flex items-center gap-3">
                                     <Briefcase className="h-8 w-8 text-green-600" />
                                     <div>
@@ -348,13 +558,12 @@ export default function ShowCompany({ company, userRole }: Props) {
                                 </div>
                             </CardContent>
                         </Card>
-                        )}
 
-                        {/* Company Admins - Hidden for Company Admin */}
-                        {userRole !== 'company_admin' && company.users && company.users.length > 0 && (
+                        {/* Company Users */}
+                        {company.users && company.users.length > 0 && (
                             <Card>
                                 <CardHeader>
-                                    <CardTitle>Admin Perusahaan</CardTitle>
+                                    <CardTitle>Daftar Karyawan</CardTitle>
                                 </CardHeader>
                                 <CardContent>
                                     <div className="space-y-3">
@@ -375,41 +584,50 @@ export default function ShowCompany({ company, userRole }: Props) {
                             </Card>
                         )}
 
-                        {/* Actions - Hidden for Company Admin */}
-                        {userRole !== 'company_admin' && (
+                        {/* Actions */}
                         <Card>
                             <CardHeader>
                                 <CardTitle>Tindakan</CardTitle>
                             </CardHeader>
                             <CardContent className="space-y-3">
-                                <Button
-                                    className="w-full"
-                                    variant={company.is_verified ? 'outline' : 'default'}
-                                    onClick={toggleVerification}
-                                >
-                                    {company.is_verified ? (
-                                        <>
-                                            <XCircle className="mr-2 h-4 w-4" />
-                                            Batalkan Verifikasi
-                                        </>
-                                    ) : (
-                                        <>
-                                            <CheckCircle className="mr-2 h-4 w-4" />
-                                            Verifikasi
-                                        </>
-                                    )}
-                                </Button>
+                                {userRole !== 'company_admin' && (
+                                    <>
+                                        <Button
+                                            className="w-full"
+                                            variant={company.is_verified ? 'outline' : 'default'}
+                                            onClick={toggleVerification}
+                                        >
+                                            {company.is_verified ? (
+                                                <>
+                                                    <XCircle className="mr-2 h-4 w-4" />
+                                                    Batalkan Verifikasi
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <CheckCircle className="mr-2 h-4 w-4" />
+                                                    Verifikasi
+                                                </>
+                                            )}
+                                        </Button>
 
-                                <Button
-                                    className="w-full"
-                                    variant="outline"
-                                    onClick={toggleStatus}
-                                >
-                                    {company.is_active ? 'Nonaktifkan' : 'Aktifkan'}
-                                </Button>
+                                        <Button
+                                            className="w-full"
+                                            variant="outline"
+                                            onClick={toggleStatus}
+                                        >
+                                            {company.is_active ? 'Nonaktifkan' : 'Aktifkan'}
+                                        </Button>
+                                    </>
+                                )}
+
+                                {/* Actions available for Company Admin */}
+                                {userRole === 'company_admin' && (
+                                    <div className="text-center py-4">
+                                        <p className="text-sm text-gray-500">Hubungi Super Admin untuk mengubah status verifikasi perusahaan</p>
+                                    </div>
+                                )}
                             </CardContent>
                         </Card>
-                        )}
 
                         {/* Timeline */}
                         <Card>

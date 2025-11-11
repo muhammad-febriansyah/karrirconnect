@@ -24,6 +24,7 @@ import {
     TrendingUp
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { route } from 'ziggy-js';
 
 interface User {
     id: number;
@@ -165,45 +166,45 @@ export default function ShowSkill({ skill }: Props) {
             
             <div className="space-y-6 p-6">
                 {/* Header */}
-                <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-4">
-                        <Link 
-                            href={route('admin.skills.index')} 
-                            className="flex items-center text-gray-600 hover:text-gray-900"
-                        >
-                            <ArrowLeft className="h-5 w-5 mr-1" />
-                            Kembali
-                        </Link>
+                <div className="flex flex-col gap-4">
+                    <Link
+                        href={route('admin.skills.index')}
+                        className="flex items-center text-gray-600 hover:text-gray-900 w-fit"
+                    >
+                        <ArrowLeft className="h-5 w-5 mr-1" />
+                        Kembali
+                    </Link>
+                    <div className="flex items-center justify-between">
                         <div>
                             <h1 className="text-2xl font-semibold text-gray-900">{skill.name}</h1>
                             <p className="text-gray-600">
                                 Detail skill dan pengguna yang menggunakannya
                             </p>
                         </div>
-                    </div>
-                    <div className="flex items-center gap-3">
-                        <Button
-                            variant="outline"
-                            onClick={handleToggleStatus}
-                        >
-                            {skill.is_active ? (
-                                <>
-                                    <XCircle className="h-4 w-4 mr-2" />
-                                    Nonaktifkan
-                                </>
-                            ) : (
-                                <>
-                                    <CheckCircle className="h-4 w-4 mr-2" />
-                                    Aktifkan
-                                </>
-                            )}
-                        </Button>
-                        <Link href={route('admin.skills.edit', skill.id)}>
-                            <Button>
-                                <Edit className="h-4 w-4 mr-2" />
-                                Edit Skill
+                        <div className="flex items-center gap-3">
+                            <Button
+                                variant="outline"
+                                onClick={handleToggleStatus}
+                            >
+                                {skill.is_active ? (
+                                    <>
+                                        <XCircle className="h-4 w-4 mr-2" />
+                                        Nonaktifkan
+                                    </>
+                                ) : (
+                                    <>
+                                        <CheckCircle className="h-4 w-4 mr-2" />
+                                        Aktifkan
+                                    </>
+                                )}
                             </Button>
-                        </Link>
+                            <Link href={route('admin.skills.edit', skill.id)}>
+                                <Button>
+                                    <Edit className="h-4 w-4 mr-2" />
+                                    Edit Skill
+                                </Button>
+                            </Link>
+                        </div>
                     </div>
                 </div>
 
@@ -224,22 +225,22 @@ export default function ShowSkill({ skill }: Props) {
                                         <label className="text-sm font-medium text-gray-500">Nama Skill</label>
                                         <p className="text-lg font-semibold">{skill.name}</p>
                                     </div>
-                                    <div>
+                                    {/* <div>
                                         <label className="text-sm font-medium text-gray-500">Kategori</label>
                                         <div className="mt-1">
                                             {getCategoryBadge(skill.category)}
                                         </div>
-                                    </div>
+                                    </div> */}
                                     <div>
                                         <label className="text-sm font-medium text-gray-500">Status</label>
                                         <div className="mt-1">
                                             {getStatusBadge(skill.is_active)}
                                         </div>
                                     </div>
-                                    <div>
+                                    {/* <div>
                                         <label className="text-sm font-medium text-gray-500">Total Pengguna</label>
                                         <p className="text-lg font-semibold">{skill.users_count || 0}</p>
-                                    </div>
+                                    </div> */}
                                 </div>
                                 
                                 {skill.description && (
@@ -299,9 +300,9 @@ export default function ShowSkill({ skill }: Props) {
                                                         <TableCell>
                                                             <div className="flex items-center gap-3">
                                                                 <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
-                                                                    {user.avatar ? (
-                                                                        <img 
-                                                                            src={`/storage/${user.avatar}`} 
+                                                                    {user.avatar_url ? (
+                                                                        <img
+                                                                            src={user.avatar_url}
                                                                             alt={user.name}
                                                                             className="w-8 h-8 rounded-full object-cover"
                                                                         />
@@ -343,8 +344,8 @@ export default function ShowSkill({ skill }: Props) {
 
                     {/* Sidebar */}
                     <div className="space-y-6">
-                        {/* Quick Stats */}
-                        <Card>
+                        {/* Quick Stats - Hidden */}
+                        {/* <Card>
                             <CardHeader>
                                 <CardTitle className="text-lg">Statistik Cepat</CardTitle>
                             </CardHeader>
@@ -358,7 +359,7 @@ export default function ShowSkill({ skill }: Props) {
                                         <p className="text-sm text-gray-500">Total Pengguna</p>
                                     </div>
                                 </div>
-                                
+
                                 {experienceStats && (
                                     <>
                                         <div className="flex items-center gap-3">
@@ -370,7 +371,7 @@ export default function ShowSkill({ skill }: Props) {
                                                 <p className="text-sm text-gray-500">Rata-rata Pengalaman</p>
                                             </div>
                                         </div>
-                                        
+
                                         <div className="flex items-center gap-3">
                                             <div className="p-2 bg-purple-100 rounded-lg">
                                                 <Clock className="h-4 w-4 text-purple-600" />
@@ -383,7 +384,7 @@ export default function ShowSkill({ skill }: Props) {
                                     </>
                                 )}
                             </CardContent>
-                        </Card>
+                        </Card> */}
 
                         {/* Proficiency Distribution */}
                         {Object.keys(proficiencyStats).length > 0 && (
@@ -417,8 +418,8 @@ export default function ShowSkill({ skill }: Props) {
                             </Card>
                         )}
 
-                        {/* Timestamps */}
-                        <Card>
+                        {/* Timestamps - Hidden */}
+                        {/* <Card>
                             <CardHeader>
                                 <CardTitle className="text-lg">Informasi Waktu</CardTitle>
                             </CardHeader>
@@ -430,7 +431,7 @@ export default function ShowSkill({ skill }: Props) {
                                         <p className="text-sm text-gray-500">
                                             {new Date(skill.created_at).toLocaleDateString('id-ID', {
                                                 year: 'numeric',
-                                                month: 'long', 
+                                                month: 'long',
                                                 day: 'numeric',
                                                 hour: '2-digit',
                                                 minute: '2-digit'
@@ -454,7 +455,7 @@ export default function ShowSkill({ skill }: Props) {
                                     </div>
                                 </div>
                             </CardContent>
-                        </Card>
+                        </Card> */}
                     </div>
                 </div>
             </div>

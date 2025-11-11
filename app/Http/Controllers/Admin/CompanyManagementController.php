@@ -4,8 +4,11 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Company;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 
@@ -42,7 +45,15 @@ class CompanyManagementController extends Controller
 
     public function create()
     {
-        return Inertia::render('admin/companies/create');
+        // Get users with company_admin role
+        $users = User::where('role', 'company_admin')
+                    ->select('id', 'name', 'email', 'role')
+                    ->orderBy('name')
+                    ->get();
+
+        return Inertia::render('admin/companies/create', [
+            'users' => $users
+        ]);
     }
 
     public function store(Request $request)
@@ -50,17 +61,61 @@ class CompanyManagementController extends Controller
         $request->validate([
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
-            'website' => 'nullable|url|max:255',
+            'website' => 'nullable|string|max:255',
             'email' => 'nullable|email|max:255',
             'phone' => 'nullable|string|max:255',
             'address' => 'nullable|string|max:500',
+            'location' => 'required|string|max:255',
             'industry' => 'nullable|string|max:255',
             'company_size' => 'nullable|in:startup,small,medium,large,enterprise',
+            'logo' => 'nullable|file|image|max:2048',
+            'social_links.linkedin' => 'nullable|string|max:255',
+            'social_links.twitter' => 'nullable|string|max:255',
+            'social_links.facebook' => 'nullable|string|max:255',
+            'social_links.instagram' => 'nullable|string|max:255',
+            'admin_user_id' => 'nullable|exists:users,id',
+            'verification_status' => 'nullable|in:unverified,pending,verified,rejected',
             'is_verified' => 'boolean',
             'is_active' => 'boolean',
+        ], [
+            'name.required' => 'Nama perusahaan wajib diisi.',
+            'location.required' => 'Lokasi perusahaan wajib diisi.',
+            'email.email' => 'Format email tidak valid.',
+            'logo.image' => 'File logo harus berupa gambar.',
+            'logo.max' => 'File logo maksimal 2MB.',
+            'admin_user_id.exists' => 'User admin tidak valid.',
         ]);
 
-        Company::create($request->all());
+        $companyData = $request->all();
+
+        // Set initial verification status if not provided
+        if (!isset($companyData['verification_status'])) {
+            $companyData['verification_status'] = 'unverified';
+        }
+
+        // Handle logo upload
+        if ($request->hasFile('logo')) {
+            $logoPath = $request->file('logo')->store('company-logos', 'public');
+            $companyData['logo'] = $logoPath;
+        }
+
+        // Process social links - remove empty values
+        if (isset($companyData['social_links']) && is_array($companyData['social_links'])) {
+            $socialLinks = array_filter($companyData['social_links'], function($value) {
+                return !empty(trim($value));
+            });
+            $companyData['social_links'] = !empty($socialLinks) ? $socialLinks : null;
+        }
+
+        // Generate slug from company name
+        $companyData['slug'] = Str::slug($companyData['name']) . '-' . Str::random(6);
+
+        // Map company_size to size for database compatibility
+        if (isset($companyData['company_size'])) {
+            $companyData['size'] = $companyData['company_size'];
+        }
+
+        Company::create($companyData);
 
         return redirect()->route('admin.companies.index')
             ->with('success', 'Perusahaan berhasil dibuat.');
@@ -71,6 +126,23 @@ class CompanyManagementController extends Controller
         $user = Auth::user();
         $company->load(['users', 'jobListings']);
 
+        // Get additional company data
+        $company->job_listings_count = $company->jobListings()->count();
+        $company->users_count = $company->users()->count();
+
+        // Load admin user data if admin_user_id exists
+        if ($company->admin_user_id) {
+            $adminUser = User::find($company->admin_user_id);
+            if ($adminUser) {
+                $company->admin_user = [
+                    'id' => $adminUser->id,
+                    'name' => $adminUser->name,
+                    'email' => $adminUser->email,
+                    'role' => $adminUser->role
+                ];
+            }
+        }
+
         return Inertia::render('admin/companies/show', [
             'company' => $company,
             'userRole' => $user->role,
@@ -79,8 +151,15 @@ class CompanyManagementController extends Controller
 
     public function edit(Company $company)
     {
+        // Get users with company_admin role
+        $users = User::where('role', 'company_admin')
+                    ->select('id', 'name', 'email', 'role')
+                    ->orderBy('name')
+                    ->get();
+
         return Inertia::render('admin/companies/edit', [
             'company' => $company,
+            'users' => $users
         ]);
     }
 
@@ -89,17 +168,58 @@ class CompanyManagementController extends Controller
         $request->validate([
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
-            'website' => 'nullable|url|max:255',
+            'website' => 'nullable|string|max:255',
             'email' => 'nullable|email|max:255',
             'phone' => 'nullable|string|max:255',
             'address' => 'nullable|string|max:500',
+            'location' => 'required|string|max:255',
             'industry' => 'nullable|string|max:255',
             'company_size' => 'nullable|in:startup,small,medium,large,enterprise',
+            'logo' => 'nullable|file|image|max:2048',
+            'social_links.linkedin' => 'nullable|string|max:255',
+            'social_links.twitter' => 'nullable|string|max:255',
+            'social_links.facebook' => 'nullable|string|max:255',
+            'social_links.instagram' => 'nullable|string|max:255',
+            'admin_user_id' => 'nullable|exists:users,id',
+            'verification_status' => 'nullable|in:unverified,pending,verified,rejected',
             'is_verified' => 'boolean',
             'is_active' => 'boolean',
+        ], [
+            'name.required' => 'Nama perusahaan wajib diisi.',
+            'location.required' => 'Lokasi perusahaan wajib diisi.',
+            'email.email' => 'Format email tidak valid.',
+            'logo.image' => 'File logo harus berupa gambar.',
+            'logo.max' => 'File logo maksimal 2MB.',
+            'admin_user_id.exists' => 'User admin tidak valid.',
         ]);
 
-        $company->update($request->all());
+        $updateData = $request->except(['logo']);
+
+        // Handle logo upload
+        if ($request->hasFile('logo')) {
+            // Delete old logo if exists
+            if ($company->logo) {
+                Storage::disk('public')->delete($company->logo);
+            }
+
+            $logoPath = $request->file('logo')->store('company-logos', 'public');
+            $updateData['logo'] = $logoPath;
+        }
+
+        // Process social links - remove empty values
+        if (isset($updateData['social_links']) && is_array($updateData['social_links'])) {
+            $socialLinks = array_filter($updateData['social_links'], function($value) {
+                return !empty(trim($value));
+            });
+            $updateData['social_links'] = !empty($socialLinks) ? $socialLinks : null;
+        }
+
+        // Map company_size to size for database compatibility
+        if (isset($updateData['company_size'])) {
+            $updateData['size'] = $updateData['company_size'];
+        }
+
+        $company->update($updateData);
 
         return redirect()->route('admin.companies.index')
             ->with('success', 'Perusahaan berhasil diperbarui.');
@@ -119,7 +239,7 @@ class CompanyManagementController extends Controller
 
         $company->update([
             'is_verified' => $newVerificationStatus,
-            'verification_status' => $newVerificationStatus ? 'verified' : 'pending'
+            'verification_status' => $newVerificationStatus ? 'verified' : 'unverified'
         ]);
 
         return back()->with('success', $company->is_verified ? 'Perusahaan berhasil diverifikasi.' : 'Verifikasi perusahaan berhasil dibatalkan.');
@@ -143,6 +263,11 @@ class CompanyManagementController extends Controller
 
         if ($company->is_verified) {
             return redirect()->route('admin.dashboard')->with('info', 'Perusahaan Anda sudah terverifikasi.');
+        }
+
+        // Set initial verification status if null
+        if (is_null($company->verification_status)) {
+            $company->update(['verification_status' => 'unverified']);
         }
 
         return Inertia::render('admin/companies/verify', [
@@ -271,7 +396,7 @@ class CompanyManagementController extends Controller
             'business_entity_type' => 'required|string|max:50',
             'office_address' => 'required|string|max:1000',
             'work_email' => 'required|email|max:255',
-            'website' => 'nullable|url|max:255',
+            'website' => 'nullable|string|max:255',
             'company_description' => 'nullable|string|max:800',
             'industry' => 'nullable|string|max:100',
             'team_size' => 'nullable|string|max:20',
@@ -323,7 +448,7 @@ class CompanyManagementController extends Controller
             'legal_company_name' => 'required|string|max:255',
             'office_address' => 'required|string|max:1000',
             'work_email' => 'required|email|max:255',
-            'website' => 'nullable|url|max:255',
+            'website' => 'nullable|string|max:255',
             'company_description' => 'nullable|string|max:800',
             'industry' => 'nullable|string|max:100',
             'team_size' => 'nullable|string|max:20',

@@ -66,15 +66,15 @@ class PasswordResetLinkController extends Controller
                 if ($userPhone) {
                     try {
                         $whatsAppService->sendPasswordResetNotification($user, $resetUrl);
-                        Log::info("📱 WhatsApp password reset sent to: {$user->email} (phone: {$userPhone})");
+                        Log::info("WhatsApp password reset sent to: {$user->email} (phone: {$userPhone})");
                     } catch (\Exception $e) {
-                        Log::error("❌ Failed to send WhatsApp password reset: " . $e->getMessage(), [
+                        Log::error("Failed to send WhatsApp password reset: " . $e->getMessage(), [
                             'user_email' => $user->email,
                             'user_phone' => $userPhone,
                         ]);
                     }
                 } else {
-                    Log::info("⚠️ No phone number in profile for user: {$user->email}, skipping WhatsApp notification");
+                    Log::info("No phone number in profile for user: {$user->email}, skipping WhatsApp notification");
                 }
             }
         );

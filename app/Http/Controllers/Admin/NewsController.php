@@ -35,7 +35,7 @@ class NewsController extends Controller
             }
         }
 
-        $news = $query->latest()->paginate(10)->withQueryString();
+        $news = $query->latest()->paginate(6)->withQueryString();
 
         return Inertia::render('admin/news/index', [
             'news' => $news,

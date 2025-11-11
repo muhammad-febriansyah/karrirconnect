@@ -7,6 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import { ArrowLeft, Save, Bell, Mail, MessageSquare, Smartphone, Users } from 'lucide-react';
+import { route } from 'ziggy-js';
 
 export default function CreateNotificationSetting() {
   const [name, setName] = useState('');

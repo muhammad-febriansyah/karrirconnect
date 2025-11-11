@@ -71,10 +71,22 @@ export interface SharedData {
     quote: { message: string; author: string };
     auth: Auth;
     settings: Setting;
+    statistics?: {
+        total_jobs: number;
+        total_companies: number;
+        total_candidates: number;
+        featured_jobs?: number;
+    };
     recaptcha: {
         site_key: string;
     };
     ziggy: Config & { location: string };
     sidebarOpen: boolean;
+    flash?: {
+        success?: string;
+        error?: string;
+        warning?: string;
+        data?: unknown;
+    };
     [key: string]: unknown;
 }

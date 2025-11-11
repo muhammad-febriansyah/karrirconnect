@@ -87,7 +87,7 @@ class WhatsappTemplate extends Model
         if (isset($data['action_url'])) {
             $baseUrl = config('app.url');
             $fullUrl = $baseUrl . $data['action_url'];
-            $message .= "\n\n🔗 Link: {$fullUrl}";
+            $message .= "\n\nLink: {$fullUrl}";
         }
 
         // Add signature if enabled
@@ -105,13 +105,7 @@ class WhatsappTemplate extends Model
 
     private function getEmojiForType(): string
     {
-        return match($this->type) {
-            'notification' => '🔔',
-            'marketing' => '📢',
-            'system' => '🔧',
-            'alert' => '⚠️',
-            default => '📱'
-        };
+        return '';
     }
 
     // Static methods for getting specific templates

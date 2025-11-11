@@ -6,22 +6,74 @@
 
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, user-scalable=yes">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="theme-color" content="#2347FA">
 
 
     <style>
         html {
             background-color: oklch(1 0 0);
         }
+
+        /* Mobile-first optimizations */
+        @media (max-width: 768px) {
+            /* Improve touch targets */
+            button, .btn, [role="button"] {
+                min-height: 44px;
+                min-width: 44px;
+            }
+
+            /* Prevent zoom on form inputs */
+            input[type="text"], input[type="email"], input[type="password"], textarea, select {
+                font-size: 16px !important;
+            }
+
+            /* Smooth scrolling for mobile */
+            html {
+                scroll-behavior: smooth;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            /* Better text rendering on mobile */
+            body {
+                -webkit-font-smoothing: antialiased;
+                -moz-osx-font-smoothing: grayscale;
+                text-rendering: optimizeLegibility;
+            }
+        }
+
+        /* Loading spinner for better mobile UX */
+        .loading-spinner {
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid #2347FA;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
     </style>
 
     <title>{{ $setting->site_name }}</title>
 
     <!-- Favicon -->
-    <link rel="icon" href="{{ asset('storage/' . $setting->logo) }}" sizes="any">
-    <link rel="icon" href="{{ asset('storage/' . $setting->logo) }}" type="image/svg+xml">
-    <link rel="apple-touch-icon" href="{{ asset('storage/' . $setting->logo) }}">
+    @if($setting->favicon)
+        <link rel="icon" href="{{ asset('storage/' . $setting->favicon) }}" sizes="any">
+        <link rel="icon" href="{{ asset('storage/' . $setting->favicon) }}" type="image/x-icon">
+        <link rel="apple-touch-icon" href="{{ asset('storage/' . $setting->favicon) }}">
+    @elseif($setting->logo)
+        <link rel="icon" href="{{ asset('storage/' . $setting->logo) }}" sizes="any">
+        <link rel="icon" href="{{ asset('storage/' . $setting->logo) }}" type="image/svg+xml">
+        <link rel="apple-touch-icon" href="{{ asset('storage/' . $setting->logo) }}">
+    @endif
     
     <!-- Open Graph / Facebook / WhatsApp -->
     <meta property="og:type" content="website">

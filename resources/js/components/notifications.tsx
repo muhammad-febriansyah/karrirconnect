@@ -2,14 +2,15 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Bell, CheckCircle, FileText, UserPlus, Users, AlertTriangle, Shield } from 'lucide-react';
+import { Bell, CheckCircle, FileText, UserPlus, Users, AlertTriangle, Shield, MessageCircle } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { useState, useEffect } from 'react';
 import { router } from '@inertiajs/react';
+import { toast } from 'sonner';
 
 interface Notification {
     id: string;
-    type: 'user' | 'company' | 'application' | 'system' | 'finance' | 'content';
+    type: 'user' | 'company' | 'application' | 'system' | 'finance' | 'content' | 'new_message';
     title: string;
     message: string;
     time: Date;
@@ -41,6 +42,8 @@ const getNotificationIcon = (type: string, priority?: string) => {
             return <Shield className={`h-4 w-4 ${iconColor}`} />;
         case 'content':
             return <FileText className={`h-4 w-4 ${iconColor}`} />;
+        case 'new_message':
+            return <MessageCircle className={`h-4 w-4 ${priority === 'urgent' ? 'text-red-500' : 'text-blue-500'}`} />;
         default:
             return <Bell className={`h-4 w-4 ${iconColor}`} />;
     }
@@ -73,6 +76,8 @@ export function Notifications() {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
                     'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
                 },
             });
@@ -136,16 +141,82 @@ export function Notifications() {
         }
     };
 
+    // Fix invalid URLs based on available routes
+    const fixActionUrl = (url: string, notificationType: string): string => {
+        // Handle common URL issues and redirect to appropriate admin pages
+        if (url.startsWith('/company/applications/')) {
+            return '/admin/applications';
+        }
+        if (url === '/user/applications' || url.startsWith('/user/applications/')) {
+            return '/admin/applications';
+        }
+        if (url === '/user/profile') {
+            return '/admin/dashboard'; // Redirect to dashboard for user profile requests from admin
+        }
+        if (url === '/user/dashboard') {
+            return '/admin/dashboard'; // Redirect user dashboard to admin dashboard for admin users
+        }
+        if (url.startsWith('/admin/users/') && url.includes('/')) {
+            // Check if it's a valid user ID pattern
+            const userId = url.split('/')[3];
+            if (userId && !isNaN(Number(userId))) {
+                return `/admin/users/${userId}`;
+            }
+            return '/admin/users';
+        }
+        // Handle company-related notifications
+        if (url.startsWith('/admin/companies/') && url.includes('/')) {
+            const companyId = url.split('/')[3];
+            if (companyId && !isNaN(Number(companyId))) {
+                return `/admin/companies/${companyId}`;
+            }
+            return '/admin/companies';
+        }
+        // Handle job listing notifications
+        if (url.startsWith('/admin/job-listings/')) {
+            return url; // These should be valid
+        }
+        // Default fallback for unknown patterns
+        if (url.startsWith('/admin/')) {
+            return url; // Assume admin URLs are valid
+        }
+
+        return url;
+    };
+
     // Handle notification click
     const handleNotificationClick = (notification: Notification) => {
         // Mark as read if not already
         if (!notification.read) {
             markAsRead(notification.id);
         }
-        
+
         // Navigate to action URL if available
         if (notification.action_url) {
-            router.visit(notification.action_url);
+            try {
+                const fixedUrl = fixActionUrl(notification.action_url, notification.type);
+
+                // Show toast if URL was modified
+                if (fixedUrl !== notification.action_url) {
+                    toast.info('Mengarahkan ke halaman yang sesuai...', {
+                        duration: 2000,
+                    });
+                }
+
+                router.visit(fixedUrl);
+            } catch (error) {
+                console.error('Error navigating to notification URL:', error);
+                toast.error('Link notifikasi tidak valid. Mengarahkan ke dashboard...', {
+                    duration: 3000,
+                });
+                // Fallback to dashboard if URL is invalid
+                router.visit('/admin/dashboard');
+            }
+        } else {
+            // No action URL, just mark as read
+            toast.info('Notifikasi telah ditandai sebagai dibaca', {
+                duration: 2000,
+            });
         }
     };
 

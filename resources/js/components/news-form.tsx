@@ -9,6 +9,7 @@ import { Link, useForm, router } from '@inertiajs/react';
 import { ArrowLeft, ImageIcon, Save } from 'lucide-react';
 import { FormEventHandler } from 'react';
 import { toast } from 'sonner';
+import { route } from 'ziggy-js';
 
 interface NewsFormProps {
     news?: {
@@ -95,7 +96,7 @@ export function NewsForm({ news, isEdit = false }: NewsFormProps) {
 
             <form onSubmit={submit} className="space-y-6">
                 <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-                    <Card>
+                    <Card className="lg:col-span-2">
                         <CardHeader>
                             <CardTitle>Informasi Berita</CardTitle>
                         </CardHeader>
@@ -130,7 +131,7 @@ export function NewsForm({ news, isEdit = false }: NewsFormProps) {
                                     value={data.content}
                                     onChange={(e) => setData('content', e.target.value)}
                                     placeholder="Masukkan konten berita..."
-                                    rows={10}
+                                    rows={15}
                                 />
                                 {errors.content && <p className="text-sm text-red-600">{errors.content}</p>}
                             </div>

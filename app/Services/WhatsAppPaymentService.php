@@ -24,13 +24,13 @@ class WhatsAppPaymentService
         $waNumber = preg_replace('/[^0-9]/', '', $number);
 
         if (empty($waNumber) || strlen($waNumber) < 9) {
-            Log::warning("❌ Pesan WhatsApp TIDAK terkirim: Nomor tidak valid. Input: {$number} | Dibersihkan: {$waNumber}");
+            Log::warning("Pesan WhatsApp TIDAK terkirim: Nomor tidak valid. Input: {$number} | Dibersihkan: {$waNumber}");
             return;
         }
 
         $waGatewayUrl = env('APP_WA_URL');
         if (empty($waGatewayUrl)) {
-            Log::warning("❌ Pesan WhatsApp TIDAK terkirim: APP_WA_URL tidak diatur di .env");
+            Log::warning("Pesan WhatsApp TIDAK terkirim: APP_WA_URL tidak diatur di .env");
             return;
         }
 
@@ -42,10 +42,10 @@ class WhatsAppPaymentService
             
             try {
                 if ($attempt > 1) {
-                    Log::info("🔄 Retry #{$attempt} mengirim WhatsApp ke {$waNumber}");
+                    Log::info("Retry #{$attempt} mengirim WhatsApp ke {$waNumber}");
                     sleep(2); // Wait 2 seconds between retries
                 } else {
-                    Log::info("📤 Mengirim WhatsApp ke {$waNumber} dengan pesan:\n" . $message);
+                    Log::info("Mengirim WhatsApp ke {$waNumber} dengan pesan:\n" . $message);
                 }
 
                 $curl = curl_init();
@@ -81,34 +81,34 @@ class WhatsAppPaymentService
             curl_close($curl);
 
                 if ($err) {
-                    Log::error("❌ Attempt {$attempt}/{$retryCount} - Gagal mengirim WA ke {$waNumber}: Error cURL - {$err}");
+                    Log::error("Attempt {$attempt}/{$retryCount} - Gagal mengirim WA ke {$waNumber}: Error cURL - {$err}");
                     if ($attempt < $retryCount) {
-                        Log::info("🔄 Will retry in 2 seconds...");
+                        Log::info("Will retry in 2 seconds...");
                         continue; // Try again
                     }
                 } elseif ($httpCode >= 400) {
-                    Log::error("❌ Attempt {$attempt}/{$retryCount} - Gagal mengirim WA ke {$waNumber}: HTTP {$httpCode} - Respons: {$response}");
+                    Log::error("Attempt {$attempt}/{$retryCount} - Gagal mengirim WA ke {$waNumber}: HTTP {$httpCode} - Respons: {$response}");
                     if ($attempt < $retryCount) {
-                        Log::info("🔄 Will retry in 2 seconds...");
+                        Log::info("Will retry in 2 seconds...");
                         continue; // Try again
                     }
                 } else {
-                    Log::info("✅ WhatsApp terkirim ke {$waNumber} pada attempt {$attempt} | Respons: {$response}");
+                    Log::info("WhatsApp terkirim ke {$waNumber} pada attempt {$attempt} | Respons: {$response}");
                     $success = true; // Success, exit loop
                 }
             } catch (\Exception $e) {
-                Log::error("❌ Exception pada attempt {$attempt}/{$retryCount} saat mengirim WhatsApp ke {$waNumber}: " . $e->getMessage(), [
+                Log::error("Exception pada attempt {$attempt}/{$retryCount} saat mengirim WhatsApp ke {$waNumber}: " . $e->getMessage(), [
                     'trace' => $e->getTraceAsString(),
                 ]);
                 if ($attempt < $retryCount) {
-                    Log::info("🔄 Will retry in 2 seconds...");
+                    Log::info("Will retry in 2 seconds...");
                     continue; // Try again
                 }
             }
         }
         
         if (!$success) {
-            Log::error("❌ FINAL FAILURE: Gagal mengirim WhatsApp ke {$waNumber} setelah {$retryCount} attempts");
+            Log::error("FINAL FAILURE: Gagal mengirim WhatsApp ke {$waNumber} setelah {$retryCount} attempts");
         }
     }
 
@@ -117,7 +117,7 @@ class WhatsAppPaymentService
         $phoneNumber = $this->getCompanyPhoneNumber($company);
         
         if (!$phoneNumber) {
-            Log::warning("❌ Tidak dapat mengirim WhatsApp: Company {$company->name} tidak memiliki nomor telepon yang valid", [
+            Log::warning("Tidak dapat mengirim WhatsApp: Company {$company->name} tidak memiliki nomor telepon yang valid", [
                 'company_id' => $company->id,
                 'company_phone' => $company->phone ?: 'NULL/EMPTY',
                 'admin_phones' => $company->users()
@@ -141,7 +141,7 @@ class WhatsAppPaymentService
         $phoneNumber = $this->getCompanyPhoneNumber($company);
         
         if (!$phoneNumber) {
-            Log::warning("❌ Tidak dapat mengirim WhatsApp: Company {$company->name} tidak memiliki nomor telepon yang valid", [
+            Log::warning("Tidak dapat mengirim WhatsApp: Company {$company->name} tidak memiliki nomor telepon yang valid", [
                 'company_id' => $company->id,
                 'company_phone' => $company->phone ?: 'NULL/EMPTY',
                 'admin_phones' => $company->users()
@@ -177,7 +177,7 @@ class WhatsAppPaymentService
             ->first();
 
         if ($companyAdmin && $companyAdmin->profile && !empty($companyAdmin->profile->phone)) {
-            Log::info("📞 Menggunakan nomor admin {$companyAdmin->name} untuk company {$company->name}");
+            Log::info("Menggunakan nomor admin {$companyAdmin->name} untuk company {$company->name}");
             return $companyAdmin->profile->phone;
         }
 

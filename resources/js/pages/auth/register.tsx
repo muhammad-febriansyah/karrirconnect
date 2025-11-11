@@ -2,12 +2,14 @@ import { Head, useForm, usePage } from '@inertiajs/react';
 import { GalleryVerticalEnd, LoaderCircle, Eye, EyeOff, User, Mail, Lock, Phone } from 'lucide-react';
 import { FormEventHandler, useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
+import { route } from 'ziggy-js';
 
 import InputError from '@/components/input-error';
 import TextLink from '@/components/text-link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { resolveAssetUrl } from '@/lib/utils';
 import { type SharedData } from '@/types';
 
 type RegisterForm = {
@@ -21,6 +23,9 @@ type RegisterForm = {
 
 export default function Register() {
     const { settings } = usePage<SharedData>().props;
+    const authIllustrationFallback = 'https://placehold.co/1920x1080/0f172a/FFFFFF?text=KarirConnect';
+    const logoSrc = resolveAssetUrl(settings.logo);
+    const thumbnailSrc = resolveAssetUrl(settings.thumbnail, authIllustrationFallback);
     const { data, setData, post, processing, errors, reset } = useForm<Required<RegisterForm>>({
         name: '',
         email: '',
@@ -43,7 +48,7 @@ export default function Register() {
         (window as any).onRecaptchaLoad = () => {
             if ((window as any).grecaptcha && (window as any).grecaptcha.render && recaptchaRef.current) {
                 (window as any).grecaptcha.render(recaptchaRef.current, {
-                    sitekey: '6LfIWR8rAAAAAP58_cs_prL0XLvoMjN_72liKq2-',
+                    sitekey: import.meta.env.VITE_RECAPTCHA_SITE_KEY || '6LekAgQsAAAAACd1Pjpmr4gsjaH9lYKNgMOQhmxF',
                     callback: (response: string) => {
                         setData('g-recaptcha-response', response);
                     },
@@ -97,8 +102,8 @@ export default function Register() {
                     <div className="flex justify-start">
                         <a href={route('home')} className="flex items-center">
                             <div className="flex items-center justify-center overflow-hidden">
-                                {settings.logo ? (
-                                    <img src={`/storage/${settings.logo}`} alt={settings.site_name || 'Logo'} className="h-10 w-auto max-w-[160px] object-contain" />
+                                {logoSrc ? (
+                                    <img src={logoSrc} alt={settings.site_name || 'Logo'} className="h-10 w-auto max-w-[160px] object-contain" />
                                 ) : (
                                     <div className="flex h-8 w-8 items-center justify-center rounded-md bg-primary text-primary-foreground">
                                         <GalleryVerticalEnd className="h-4 w-4" />
@@ -236,7 +241,7 @@ export default function Register() {
                                     </div>
 
                                     <div className="grid gap-2">
-                                        <div ref={recaptchaRef} />
+                                        <div className="recaptcha-container"><div ref={recaptchaRef} /></div>
                                         <InputError message={errors['g-recaptcha-response']} />
                                     </div>
 
@@ -323,7 +328,7 @@ export default function Register() {
                                 <div className="text-center text-sm text-muted-foreground space-y-2">
                                     <p>Sudah punya akun?</p>
                                     <div className="space-y-1">
-                                        <TextLink href="/masuk" tabIndex={6}>
+                                        <TextLink href="/login" tabIndex={6}>
                                             Masuk ke Akun Anda
                                         </TextLink>
                                         <span className="mx-2">•</span>
@@ -338,11 +343,7 @@ export default function Register() {
                 </div>
 
                 <div className="relative hidden bg-muted lg:block">
-                    <img
-                        src={`/storage/${settings.thumbnail || 'default-thumbnail.jpg'}`}
-                        alt="Ilustrasi daftar"
-                        className="absolute inset-0 h-full w-full object-cover"
-                    />
+                    <img src={thumbnailSrc} alt="Ilustrasi daftar" className="absolute inset-0 h-full w-full object-cover" />
                 </div>
             </div>
         </>

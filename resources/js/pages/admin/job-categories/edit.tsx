@@ -379,7 +379,7 @@ export default function EditJobCategory({ category }: Props) {
                                                             : 'bg-gray-100 text-gray-800 ring-1 ring-gray-600/20'
                                                     }`}
                                                 >
-                                                    {data.is_active ? '✓ Aktif' : '○ Tidak Aktif'}
+                                                    {data.is_active ? 'Aktif' : 'Tidak Aktif'}
                                                 </span>
                                             </div>
                                         </div>

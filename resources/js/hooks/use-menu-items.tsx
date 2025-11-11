@@ -1,4 +1,4 @@
-import { BarChart3, Briefcase, Building2, FileText, FolderOpen, Users, Settings, Info, Newspaper, Shield, UserCheck, User, Mail, AlertTriangle, ShieldCheck, Flag, Coins, CreditCard, History, MessageSquare, Award } from 'lucide-react';
+import { BarChart3, Briefcase, Building, Building2, FileText, FolderOpen, Users, Settings, Info, Newspaper, Shield, UserCheck, User, Mail, AlertTriangle, ShieldCheck, Flag, Coins, CreditCard, History, MessageSquare, Award, Star } from 'lucide-react';
 import { type NavItem } from '@/types';
 
 export function useMenuItems() {
@@ -66,7 +66,12 @@ export function useMenuItems() {
                     title: 'Tentang Kami',
                     href: '/admin/about-us',
                     icon: Info,
-                }
+                },
+                {
+                    title: 'Kisah Sukses',
+                    href: '/admin/success-stories',
+                    icon: Star,
+                },
             ]
         },
         {
@@ -82,6 +87,11 @@ export function useMenuItems() {
         {
             label: 'WhatsApp & Notifikasi',
             items: [
+                {
+                    title: 'Template Email',
+                    href: '/admin/email-templates',
+                    icon: Mail,
+                },
                 {
                     title: 'Template WhatsApp',
                     href: '/admin/whatsapp-templates',
@@ -159,13 +169,23 @@ export function useMenuItems() {
             items: [
                 {
                     title: 'Lowongan',
-                    href: '/admin/job-listings',
+                    href: '/company/jobs',
                     icon: Briefcase,
                 },
                 {
                     title: 'Lamaran',
-                    href: '/admin/applications',
+                    href: '/company/applications',
                     icon: FileText,
+                },
+                {
+                    title: 'Database Pencari Kerja',
+                    href: '/company/talent-database',
+                    icon: Users,
+                },
+                {
+                    title: 'Job Invitations',
+                    href: '/company/job-invitations',
+                    icon: MessageSquare,
                 }
             ]
         },
@@ -193,6 +213,11 @@ export function useMenuItems() {
             label: 'Pengaturan',
             items: [
                 {
+                    title: 'Profil Perusahaan',
+                    href: '/company/profile/edit',
+                    icon: Building,
+                },
+                {
                     title: 'Profil Admin',
                     href: '/admin/profile',
                     icon: User,
@@ -214,13 +239,13 @@ export function useMenuItems() {
             items: [
                 {
                     title: 'Dashboard',
-                    href: '/company/dashboard',
+                    href: '/admin/dashboard',
                     icon: BarChart3,
                 }
             ]
         },
         {
-            label: 'Manajemen',
+            label: 'Recruitment',
             items: [
                 {
                     title: 'Lowongan',
@@ -231,6 +256,16 @@ export function useMenuItems() {
                     title: 'Lamaran',
                     href: '/company/applications',
                     icon: FileText,
+                },
+                {
+                    title: 'Database Pencari Kerja',
+                    href: '/company/talent-database',
+                    icon: Users,
+                },
+                {
+                    title: 'Job Invitations',
+                    href: '/company/job-invitations',
+                    icon: MessageSquare,
                 }
             ]
         },

@@ -6,14 +6,27 @@ export interface Company {
     email?: string;
     phone?: string;
     address?: string;
+    location?: string;
     logo?: string;
     industry?: string;
+    size?: CompanySize;
     company_size?: CompanySize;
+    slug?: string;
+    admin_user_id?: number;
+    verification_status?: 'unverified' | 'pending' | 'verified' | 'rejected';
+    verification_documents?: any;
+    verification_data?: any;
+    social_links?: any;
     is_verified: boolean;
     is_active: boolean;
+    job_posting_points?: number;
+    total_job_posts?: number;
+    active_job_posts?: number;
+    max_active_jobs?: number;
+    points_last_updated?: string;
     created_at: string;
     updated_at: string;
-    user_id: number;
+    user_id?: number;
     user?: {
         id: number;
         name: string;
@@ -36,8 +49,19 @@ export interface CompanyCreateRequest {
     email?: string;
     phone?: string;
     address?: string;
+    location?: string;
     industry?: string;
     company_size?: CompanySize;
+    logo?: File | null;
+    social_links?: {
+        linkedin?: string;
+        twitter?: string;
+        facebook?: string;
+        instagram?: string;
+        website?: string;
+    };
+    admin_user_id?: number;
+    verification_status?: 'unverified' | 'pending' | 'verified' | 'rejected';
     is_verified: boolean;
     is_active: boolean;
     user_id?: number;
@@ -62,6 +86,6 @@ export interface CompanyFilters {
     search?: string;
     industry?: string;
     company_size?: CompanySize;
-    verification_status?: 'verified' | 'unverified';
+    verification_status?: 'unverified' | 'pending' | 'verified' | 'rejected';
     status?: 'active' | 'inactive';
 }

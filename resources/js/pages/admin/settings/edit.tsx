@@ -4,11 +4,13 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import AppLayout from '@/layouts/app-layout';
 import { Head, useForm } from '@inertiajs/react';
-import { Camera, DollarSign, Facebook, Globe, Image as ImageIcon, Instagram, Mail, Save, Trash2, Upload, Youtube } from 'lucide-react';
-import { FormEventHandler, useEffect, useRef, useState } from 'react';
+import { Camera, DollarSign, Facebook, Globe, Image as ImageIcon, Instagram, Mail, Save, Trash2, Upload, Globe2, Linkedin } from 'lucide-react';
+import { FormEventHandler, useRef, useState } from 'react';
 import { FaTiktok } from 'react-icons/fa';
+import { FaXTwitter } from 'react-icons/fa6';
 import { toast } from 'sonner';
 
 interface Setting {
@@ -19,13 +21,18 @@ interface Setting {
     address?: string;
     phone?: string;
     description?: string;
-    yt?: string;
+    x?: string;
+    linkedin?: string;
     ig?: string;
     fb?: string;
     tiktok?: string;
     fee?: number;
     logo?: string;
     thumbnail?: string;
+    favicon?: string;
+    hero_image?: string;
+    hero_title?: string;
+    hero_subtitle?: string;
     use_custom_stats?: boolean;
     custom_total_jobs?: number;
     custom_total_companies?: number;
@@ -42,12 +49,20 @@ interface Props {
 export default function EditSettings({ setting, flash }: Props) {
     const [logoPreview, setLogoPreview] = useState<string | null>(null);
     const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(null);
+    const [faviconPreview, setFaviconPreview] = useState<string | null>(null);
+    const [heroImagePreview, setHeroImagePreview] = useState<string | null>(null);
     const [isDragOver, setIsDragOver] = useState(false);
     const [isThumbnailDragOver, setIsThumbnailDragOver] = useState(false);
+    const [isFaviconDragOver, setIsFaviconDragOver] = useState(false);
+    const [isHeroImageDragOver, setIsHeroImageDragOver] = useState(false);
     const [fileError, setFileError] = useState<string | null>(null);
     const [thumbnailError, setThumbnailError] = useState<string | null>(null);
+    const [faviconError, setFaviconError] = useState<string | null>(null);
+    const [heroImageError, setHeroImageError] = useState<string | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const thumbnailInputRef = useRef<HTMLInputElement>(null);
+    const faviconInputRef = useRef<HTMLInputElement>(null);
+    const heroImageInputRef = useRef<HTMLInputElement>(null);
     const [feeDisplay, setFeeDisplay] = useState<string>(setting.fee ? new Intl.NumberFormat('id-ID').format(setting.fee) : '0');
 
     const { data, setData, post, processing, errors, progress } = useForm({
@@ -57,27 +72,23 @@ export default function EditSettings({ setting, flash }: Props) {
         address: setting.address || '',
         phone: setting.phone || '',
         description: setting.description || '',
-        yt: setting.yt || '',
+        x: setting.x || '',
+        linkedin: setting.linkedin || '',
         ig: setting.ig || '',
         fb: setting.fb || '',
         tiktok: setting.tiktok || '',
         fee: setting.fee || 0,
         logo: null as File | null,
         thumbnail: null as File | null,
+        favicon: null as File | null,
+        hero_image: null as File | null,
+        hero_title: setting.hero_title || '',
+        hero_subtitle: setting.hero_subtitle || '',
         use_custom_stats: setting.use_custom_stats || false,
         custom_total_jobs: setting.custom_total_jobs || 0,
         custom_total_companies: setting.custom_total_companies || 0,
         custom_total_candidates: setting.custom_total_candidates || 0,
     });
-
-    useEffect(() => {
-        if (flash?.success) {
-            toast.success('Pengaturan Berhasil Disimpan!', {
-                description: 'Semua perubahan pengaturan sistem telah berhasil disimpan.',
-                duration: 4000,
-            });
-        }
-    }, [flash]);
 
     const validateFile = (file: File): string | null => {
         const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
@@ -89,6 +100,21 @@ export default function EditSettings({ setting, flash }: Props) {
 
         if (file.size > maxSize) {
             return 'Ukuran file tidak boleh lebih dari 2MB.';
+        }
+
+        return null;
+    };
+
+    const validateFaviconFile = (file: File): string | null => {
+        const allowedTypes = ['image/x-icon', 'image/png', 'image/jpeg', 'image/jpg', 'image/vnd.microsoft.icon'];
+        const maxSize = 1 * 1024 * 1024; // 1MB
+
+        if (!allowedTypes.includes(file.type) && !file.name.toLowerCase().endsWith('.ico')) {
+            return 'File favicon harus berformat ICO, PNG, JPG, atau JPEG.';
+        }
+
+        if (file.size > maxSize) {
+            return 'Ukuran file favicon tidak boleh lebih dari 1MB.';
         }
 
         return null;
@@ -158,6 +184,10 @@ export default function EditSettings({ setting, flash }: Props) {
 
     const triggerThumbnailInput = () => {
         thumbnailInputRef.current?.click();
+    };
+
+    const triggerFaviconInput = () => {
+        faviconInputRef.current?.click();
     };
 
     const removeLogoPreview = () => {
@@ -249,6 +279,156 @@ export default function EditSettings({ setting, flash }: Props) {
         });
     };
 
+    // Favicon handlers
+    const processFaviconFile = (file: File) => {
+        const error = validateFaviconFile(file);
+        setFaviconError(error);
+
+        if (error) {
+            toast.error('File Favicon Tidak Valid', {
+                description: error,
+                duration: 4000,
+            });
+            return;
+        }
+
+        setData('favicon', file);
+
+        // Create preview URL
+        const reader = new FileReader();
+        reader.onloadend = () => {
+            setFaviconPreview(reader.result as string);
+        };
+        reader.readAsDataURL(file);
+
+        toast.success('Favicon Siap Diupload', {
+            description: `File ${file.name} telah dipilih. Klik "Simpan Pengaturan" untuk menyimpan.`,
+            duration: 3000,
+        });
+    };
+
+    const handleFaviconChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            processFaviconFile(file);
+        } else {
+            setData('favicon', null);
+            setFaviconPreview(null);
+            setFaviconError(null);
+        }
+    };
+
+    const handleFaviconDragOver = (e: React.DragEvent) => {
+        e.preventDefault();
+        setIsFaviconDragOver(true);
+    };
+
+    const handleFaviconDragLeave = (e: React.DragEvent) => {
+        e.preventDefault();
+        setIsFaviconDragOver(false);
+    };
+
+    const handleFaviconDrop = (e: React.DragEvent) => {
+        e.preventDefault();
+        setIsFaviconDragOver(false);
+
+        const files = Array.from(e.dataTransfer.files);
+        if (files.length > 0) {
+            processFaviconFile(files[0]);
+        }
+    };
+
+    const removeFaviconPreview = () => {
+        setData('favicon', null);
+        setFaviconPreview(null);
+        setFaviconError(null);
+        // Reset the file input
+        if (faviconInputRef.current) {
+            faviconInputRef.current.value = '';
+        }
+
+        toast.info('Favicon Dihapus', {
+            description: 'Preview favicon telah dihapus. Pilih file baru untuk mengupload favicon.',
+            duration: 3000,
+        });
+    };
+
+    // Hero Image handlers
+    const triggerHeroImageInput = () => {
+        heroImageInputRef.current?.click();
+    };
+
+    const processHeroImageFile = (file: File) => {
+        const error = validateFile(file);
+        setHeroImageError(error);
+
+        if (error) {
+            toast.error('File Hero Image Tidak Valid', {
+                description: error,
+                duration: 4000,
+            });
+            return;
+        }
+
+        setData('hero_image', file);
+
+        const reader = new FileReader();
+        reader.onloadend = () => {
+            setHeroImagePreview(reader.result as string);
+        };
+        reader.readAsDataURL(file);
+
+        toast.success('Hero Image Siap Diupload', {
+            description: `File ${file.name} telah dipilih. Klik "Simpan Pengaturan" untuk menyimpan.`,
+            duration: 3000,
+        });
+    };
+
+    const handleHeroImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            processHeroImageFile(file);
+        } else {
+            setData('hero_image', null);
+            setHeroImagePreview(null);
+            setHeroImageError(null);
+        }
+    };
+
+    const handleHeroImageDragOver = (e: React.DragEvent) => {
+        e.preventDefault();
+        setIsHeroImageDragOver(true);
+    };
+
+    const handleHeroImageDragLeave = (e: React.DragEvent) => {
+        e.preventDefault();
+        setIsHeroImageDragOver(false);
+    };
+
+    const handleHeroImageDrop = (e: React.DragEvent) => {
+        e.preventDefault();
+        setIsHeroImageDragOver(false);
+
+        const files = Array.from(e.dataTransfer.files);
+        if (files.length > 0) {
+            processHeroImageFile(files[0]);
+        }
+    };
+
+    const removeHeroImagePreview = () => {
+        setData('hero_image', null);
+        setHeroImagePreview(null);
+        setHeroImageError(null);
+        if (heroImageInputRef.current) {
+            heroImageInputRef.current.value = '';
+        }
+
+        toast.info('Hero Image Dihapus', {
+            description: 'Preview hero image telah dihapus. Pilih file baru untuk mengupload hero image.',
+            duration: 3000,
+        });
+    };
+
     const handleFeeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value.replace(/\D/g, ''); // Remove non-digits
         const numericValue = parseInt(value) || 0;
@@ -289,541 +469,886 @@ export default function EditSettings({ setting, flash }: Props) {
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-6">
-                    {/* Informasi Dasar */}
-                    <Card>
-                        <CardHeader>
-                            <CardTitle className="flex items-center gap-2">
-                                <Globe className="h-5 w-5" />
-                                Informasi Dasar
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                                <div className="grid gap-2">
-                                    <Label htmlFor="site_name">Nama Website</Label>
-                                    <Input
-                                        id="site_name"
-                                        value={data.site_name}
-                                        onChange={(e) => setData('site_name', e.target.value)}
-                                        placeholder="Masukkan nama website"
-                                    />
-                                    <InputError message={errors.site_name} />
-                                </div>
-
-                                <div className="grid gap-2">
-                                    <Label htmlFor="keyword">Kata Kunci SEO</Label>
-                                    <Input
-                                        id="keyword"
-                                        value={data.keyword}
-                                        onChange={(e) => setData('keyword', e.target.value)}
-                                        placeholder="Kata kunci untuk SEO"
-                                    />
-                                    <InputError message={errors.keyword} />
-                                </div>
-                            </div>
-
-                            <div className="grid gap-2">
-                                <Label htmlFor="description">Deskripsi Website</Label>
-                                <Textarea
-                                    id="description"
-                                    value={data.description}
-                                    onChange={(e) => setData('description', e.target.value)}
-                                    placeholder="Deskripsi singkat tentang website"
-                                    rows={4}
-                                />
-                                <InputError message={errors.description} />
-                            </div>
-                        </CardContent>
-                    </Card>
-
-                    {/* Kontak */}
-                    <Card>
-                        <CardHeader>
-                            <CardTitle className="flex items-center gap-2">
-                                <Mail className="h-5 w-5" />
-                                Informasi Kontak
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                                <div className="grid gap-2">
-                                    <Label htmlFor="email">Email</Label>
-                                    <Input
-                                        id="email"
-                                        type="email"
-                                        value={data.email}
-                                        onChange={(e) => setData('email', e.target.value)}
-                                        placeholder="admin@example.com"
-                                    />
-                                    <InputError message={errors.email} />
-                                </div>
-
-                                <div className="grid gap-2">
-                                    <Label htmlFor="phone">Nomor Telepon</Label>
-                                    <Input
-                                        id="phone"
-                                        value={data.phone}
-                                        onChange={(e) => setData('phone', e.target.value)}
-                                        placeholder="+62 xxx xxxx xxxx"
-                                    />
-                                    <InputError message={errors.phone} />
-                                </div>
-                            </div>
-
-                            <div className="grid gap-2">
-                                <Label htmlFor="address">Alamat</Label>
-                                <Textarea
-                                    id="address"
-                                    value={data.address}
-                                    onChange={(e) => setData('address', e.target.value)}
-                                    placeholder="Alamat lengkap perusahaan"
-                                    rows={3}
-                                />
-                                <InputError message={errors.address} />
-                            </div>
-                        </CardContent>
-                    </Card>
-
-                    {/* Media Sosial */}
-                    <Card>
-                        <CardHeader>
-                            <CardTitle className="flex items-center gap-2">
-                                <Instagram className="h-5 w-5" />
+                    <Tabs defaultValue="general" className="space-y-6">
+                        <TabsList className="flex w-full flex-nowrap gap-2 overflow-x-auto bg-gray-100 p-1 sm:flex-wrap sm:overflow-visible">
+                            <TabsTrigger value="general" className="min-w-[140px] flex-none text-xs sm:flex-1 sm:min-w-0 sm:text-sm">
+                                Umum
+                            </TabsTrigger>
+                            <TabsTrigger value="social" className="min-w-[140px] flex-none text-xs sm:flex-1 sm:min-w-0 sm:text-sm">
                                 Media Sosial
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                                <div className="grid gap-2">
-                                    <Label htmlFor="yt" className="flex items-center gap-2">
-                                        <Youtube className="h-4 w-4 text-red-500" />
-                                        YouTube
-                                    </Label>
-                                    <Input
-                                        id="yt"
-                                        value={data.yt}
-                                        onChange={(e) => setData('yt', e.target.value)}
-                                        placeholder="https://youtube.com/@channel"
-                                    />
-                                    <InputError message={errors.yt} />
-                                </div>
+                            </TabsTrigger>
+                            <TabsTrigger value="business" className="min-w-[140px] flex-none text-xs sm:flex-1 sm:min-w-0 sm:text-sm">
+                                Bisnis & Marketing
+                            </TabsTrigger>
+                            <TabsTrigger value="branding" className="min-w-[140px] flex-none text-xs sm:flex-1 sm:min-w-0 sm:text-sm">
+                                Branding
+                            </TabsTrigger>
+                            <TabsTrigger value="hero" className="min-w-[140px] flex-none text-xs sm:flex-1 sm:min-w-0 sm:text-sm">
+                                Hero Section
+                            </TabsTrigger>
+                        </TabsList>
 
-                                <div className="grid gap-2">
-                                    <Label htmlFor="ig" className="flex items-center gap-2">
-                                        <Instagram className="h-4 w-4 text-pink-500" />
-                                        Instagram
-                                    </Label>
-                                    <Input
-                                        id="ig"
-                                        value={data.ig}
-                                        onChange={(e) => setData('ig', e.target.value)}
-                                        placeholder="https://instagram.com/username"
-                                    />
-                                    <InputError message={errors.ig} />
-                                </div>
-
-                                <div className="grid gap-2">
-                                    <Label htmlFor="fb" className="flex items-center gap-2">
-                                        <Facebook className="h-4 w-4 text-blue-600" />
-                                        Facebook
-                                    </Label>
-                                    <Input
-                                        id="fb"
-                                        value={data.fb}
-                                        onChange={(e) => setData('fb', e.target.value)}
-                                        placeholder="https://facebook.com/page"
-                                    />
-                                    <InputError message={errors.fb} />
-                                </div>
-
-                                <div className="grid gap-2">
-                                    <Label htmlFor="tiktok" className="flex items-center gap-2">
-                                        <FaTiktok className="h-4 w-4 text-black" />
-                                        TikTok
-                                    </Label>
-                                    <Input
-                                        id="tiktok"
-                                        value={data.tiktok}
-                                        onChange={(e) => setData('tiktok', e.target.value)}
-                                        placeholder="https://tiktok.com/@username"
-                                    />
-                                    <InputError message={errors.tiktok} />
-                                </div>
-                            </div>
-                        </CardContent>
-                    </Card>
-
-                    {/* Pengaturan Bisnis */}
-                    <Card>
-                        <CardHeader>
-                            <CardTitle className="flex items-center gap-2">
-                                <DollarSign className="h-5 w-5" />
-                                Pengaturan Bisnis
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                            <div className="grid gap-2">
-                                <Label htmlFor="fee">Biaya Layanan</Label>
-                                <div className="relative">
-                                    <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                                        <span className="text-gray-500 sm:text-sm">Rp</span>
-                                    </div>
-                                    <Input id="fee" type="text" value={feeDisplay} onChange={handleFeeChange} placeholder="0" className="pl-10" />
-                                </div>
-                                <InputError message={errors.fee} />
-                                <p className="text-sm text-gray-500">
-                                    Biaya yang akan dikenakan untuk layanan tertentu.
-                                    {/* {data.fee > 0 && (
-                                        <span className="block mt-1 font-medium text-green-600">
-                                            Nilai: Rp {new Intl.NumberFormat('id-ID').format(data.fee)}
-                                        </span>
-                                    )} */}
-                                </p>
-                            </div>
-                        </CardContent>
-                    </Card>
-
-                    {/* Marketing Statistics */}
-                    <Card>
-                        <CardHeader>
-                            <CardTitle className="flex items-center gap-2">
-                                <DollarSign className="h-5 w-5" />
-                                Statistik Marketing
-                            </CardTitle>
-                            <p className="text-sm text-gray-600">
-                                Gunakan angka custom untuk tujuan marketing di homepage. Aktifkan untuk mengganti data real dengan angka custom.
-                            </p>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                            <div className="flex items-center space-x-2">
-                                <input
-                                    id="use_custom_stats"
-                                    type="checkbox"
-                                    checked={data.use_custom_stats}
-                                    onChange={(e) => setData('use_custom_stats', e.target.checked)}
-                                    className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                                />
-                                <Label htmlFor="use_custom_stats" className="text-sm font-medium">
-                                    Gunakan Statistik Custom (Marketing Gimmick)
-                                </Label>
-                            </div>
-                            
-                            {data.use_custom_stats && (
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
-                                    <div className="grid gap-2">
-                                        <Label htmlFor="custom_total_jobs">Total Lowongan Kerja</Label>
-                                        <Input
-                                            id="custom_total_jobs"
-                                            type="number"
-                                            min="0"
-                                            value={data.custom_total_jobs}
-                                            onChange={(e) => setData('custom_total_jobs', parseInt(e.target.value) || 0)}
-                                            placeholder="1000"
-                                        />
-                                        <p className="text-xs text-gray-600">Angka yang akan ditampilkan di homepage</p>
-                                    </div>
-                                    
-                                    <div className="grid gap-2">
-                                        <Label htmlFor="custom_total_companies">Total Perusahaan</Label>
-                                        <Input
-                                            id="custom_total_companies"
-                                            type="number"
-                                            min="0"
-                                            value={data.custom_total_companies}
-                                            onChange={(e) => setData('custom_total_companies', parseInt(e.target.value) || 0)}
-                                            placeholder="500"
-                                        />
-                                        <p className="text-xs text-gray-600">Angka yang akan ditampilkan di homepage</p>
-                                    </div>
-                                    
-                                    <div className="grid gap-2">
-                                        <Label htmlFor="custom_total_candidates">Total Pengguna</Label>
-                                        <Input
-                                            id="custom_total_candidates"
-                                            type="number"
-                                            min="0"
-                                            value={data.custom_total_candidates}
-                                            onChange={(e) => setData('custom_total_candidates', parseInt(e.target.value) || 0)}
-                                            placeholder="10000"
-                                        />
-                                        <p className="text-xs text-gray-600">Angka yang akan ditampilkan di homepage</p>
-                                    </div>
-                                </div>
-                            )}
-                            
-                            <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-                                <p className="text-sm text-yellow-800">
-                                    <strong>Catatan:</strong> Fitur ini untuk keperluan marketing. Ketika diaktifkan, angka-angka di homepage akan menggunakan nilai custom ini alih-alih data real dari database.
-                                </p>
-                            </div>
-                        </CardContent>
-                    </Card>
-
-                    {/* Logo */}
-                    <Card>
-                        <CardHeader>
-                            <CardTitle className="flex items-center gap-2">
-                                <Camera className="h-5 w-5" />
-                                Logo Website
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent className="space-y-6">
-                            {/* Current Logo Display */}
-                            {setting.logo && !logoPreview && (
-                                <div className="space-y-3">
-                                    <Label className="text-sm font-medium text-gray-700">Logo Saat Ini</Label>
-                                    <br />
-                                    <br />
-                                    <div className="relative inline-block">
-                                        <div className="flex h-32 w-32 items-center justify-center overflow-hidden rounded-lg border-2 border-gray-200 bg-gray-50">
-                                            <img
-                                                src={`/storage/${setting.logo}`}
-                                                alt="Logo Saat Ini"
-                                                className="max-h-full max-w-full object-contain"
+                        <TabsContent value="general" className="space-y-6">
+                            {/* Informasi Dasar */}
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle className="flex items-center gap-2">
+                                        <Globe className="h-5 w-5" />
+                                        Informasi Dasar
+                                    </CardTitle>
+                                </CardHeader>
+                                <CardContent className="space-y-4">
+                                    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                                        <div className="grid gap-2">
+                                            <Label htmlFor="site_name">Nama Website</Label>
+                                            <Input
+                                                id="site_name"
+                                                value={data.site_name}
+                                                onChange={(e) => setData('site_name', e.target.value)}
+                                                placeholder="Masukkan nama website"
                                             />
+                                            <InputError message={errors.site_name} />
                                         </div>
-                                        <div className="absolute top-2 right-2">
-                                            <div className="rounded-full bg-green-100 px-2 py-1 text-xs font-medium text-green-800">Aktif</div>
+
+                                        <div className="grid gap-2">
+                                            <Label htmlFor="keyword">Kata Kunci SEO</Label>
+                                            <Input
+                                                id="keyword"
+                                                value={data.keyword}
+                                                onChange={(e) => setData('keyword', e.target.value)}
+                                                placeholder="Kata kunci untuk SEO"
+                                            />
+                                            <InputError message={errors.keyword} />
                                         </div>
                                     </div>
-                                </div>
-                            )}
 
-                            {/* Logo Preview */}
-                            {logoPreview && (
-                                <div className="space-y-3">
-                                    <Label className="text-sm font-medium text-gray-700">Preview Logo Baru</Label>
-                                    <div className="relative inline-block">
-                                        <div className="flex h-32 w-32 items-center justify-center overflow-hidden rounded-lg border-2 border-green-200 bg-green-50 shadow-sm">
-                                            <img src={logoPreview} alt="Preview Logo" className="max-h-full max-w-full object-contain" />
+                                    <div className="grid gap-2">
+                                        <Label htmlFor="description">Deskripsi Website</Label>
+                                        <Textarea
+                                            id="description"
+                                            value={data.description}
+                                            onChange={(e) => setData('description', e.target.value)}
+                                            placeholder="Deskripsi singkat tentang website"
+                                            rows={4}
+                                        />
+                                        <InputError message={errors.description} />
+                                    </div>
+                                </CardContent>
+                            </Card>
+
+                            {/* Kontak */}
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle className="flex items-center gap-2">
+                                        <Mail className="h-5 w-5" />
+                                        Informasi Kontak
+                                    </CardTitle>
+                                </CardHeader>
+                                <CardContent className="space-y-4">
+                                    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                                        <div className="grid gap-2">
+                                            <Label htmlFor="email">Email</Label>
+                                            <Input
+                                                id="email"
+                                                type="email"
+                                                value={data.email}
+                                                onChange={(e) => setData('email', e.target.value)}
+                                                placeholder="admin@example.com"
+                                            />
+                                            <InputError message={errors.email} />
                                         </div>
-                                        <Button
-                                            type="button"
-                                            variant="destructive"
-                                            size="sm"
-                                            className="absolute -top-2 -right-2 h-7 w-7 rounded-full p-0 shadow-md transition-transform hover:scale-110"
-                                            onClick={removeLogoPreview}
-                                        >
-                                            <Trash2 className="h-3 w-3" />
-                                        </Button>
-                                        <div className="absolute bottom-2 left-2">
-                                            <div className="rounded-full bg-orange-100 px-2 py-1 text-xs font-medium text-orange-800">Preview</div>
+
+                                        <div className="grid gap-2">
+                                            <Label htmlFor="phone">Nomor Telepon</Label>
+                                            <Input
+                                                id="phone"
+                                                value={data.phone}
+                                                onChange={(e) => setData('phone', e.target.value)}
+                                                placeholder="+62 xxx xxxx xxxx"
+                                            />
+                                            <InputError message={errors.phone} />
                                         </div>
                                     </div>
-                                    <div className="rounded-lg border border-green-200 bg-green-50 p-3">
-                                        <div className="flex items-center gap-2">
-                                            <div className="h-2 w-2 rounded-full bg-green-500"></div>
-                                            <p className="text-sm font-medium text-green-700">Logo siap diupload</p>
-                                        </div>
-                                        <p className="mt-1 text-xs text-green-600">Klik "Simpan Pengaturan" untuk menyimpan perubahan.</p>
+
+                                    <div className="grid gap-2">
+                                        <Label htmlFor="address">Alamat</Label>
+                                        <Textarea
+                                            id="address"
+                                            value={data.address}
+                                            onChange={(e) => setData('address', e.target.value)}
+                                            placeholder="Alamat lengkap perusahaan"
+                                            rows={3}
+                                        />
+                                        <InputError message={errors.address} />
                                     </div>
-                                </div>
-                            )}
+                                </CardContent>
+                            </Card>
+                        </TabsContent>
 
-                            {/* Upload Area */}
-                            <div className="space-y-3">
-                                <Label className="text-sm font-medium text-gray-700">
-                                    {setting.logo || logoPreview ? 'Ganti Logo' : 'Upload Logo'}
-                                </Label>
-
-                                {/* Drag and Drop Area */}
-                                <div
-                                    className={`relative cursor-pointer rounded-lg border-2 border-dashed p-6 transition-all duration-200 hover:bg-gray-50 ${
-                                        isDragOver ? 'border-blue-400 bg-blue-50' : fileError ? 'border-red-300 bg-red-50' : 'border-gray-300'
-                                    }`}
-                                    onDragOver={handleDragOver}
-                                    onDragLeave={handleDragLeave}
-                                    onDrop={handleDrop}
-                                    onClick={triggerFileInput}
-                                >
-                                    <div className="space-y-3 text-center">
-                                        <div className="mx-auto">
-                                            {isDragOver ? (
-                                                <Upload className="h-10 w-10 animate-bounce text-blue-500" />
-                                            ) : (
-                                                <ImageIcon className="h-10 w-10 text-gray-400" />
-                                            )}
+                        <TabsContent value="social" className="space-y-6">
+                            {/* Media Sosial */}
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle className="flex items-center gap-2">
+                                        <Instagram className="h-5 w-5" />
+                                        Media Sosial
+                                    </CardTitle>
+                                </CardHeader>
+                                <CardContent className="space-y-4">
+                                    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                                        <div className="grid gap-2">
+                                            <Label htmlFor="x" className="flex items-center gap-2">
+                                                <FaXTwitter className="h-4 w-4 text-black" />
+                                                X (Twitter)
+                                            </Label>
+                                            <Input
+                                                id="x"
+                                                value={data.x}
+                                                onChange={(e) => setData('x', e.target.value)}
+                                                placeholder="https://x.com/username"
+                                            />
+                                            <InputError message={errors.x} />
                                         </div>
-                                        <div>
-                                            <p className="text-sm font-medium text-gray-700">
-                                                {isDragOver ? 'Lepaskan file di sini' : 'Drag & drop logo atau klik untuk pilih file'}
-                                            </p>
-                                            <p className="mt-1 text-xs text-gray-500">Format: JPEG, PNG, JPG, GIF, WebP • Maksimal 2MB</p>
+
+                                        <div className="grid gap-2">
+                                            <Label htmlFor="linkedin" className="flex items-center gap-2">
+                                                <Linkedin className="h-4 w-4 text-blue-700" />
+                                                LinkedIn
+                                            </Label>
+                                            <Input
+                                                id="linkedin"
+                                                value={data.linkedin}
+                                                onChange={(e) => setData('linkedin', e.target.value)}
+                                                placeholder="https://linkedin.com/company/name"
+                                            />
+                                            <InputError message={errors.linkedin} />
                                         </div>
-                                        <Button
-                                            type="button"
-                                            variant="outline"
-                                            size="sm"
-                                            className="gap-2"
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                triggerFileInput();
-                                            }}
-                                        >
-                                            <Upload className="h-4 w-4" />
-                                            Pilih File
-                                        </Button>
+
+                                        <div className="grid gap-2">
+                                            <Label htmlFor="ig" className="flex items-center gap-2">
+                                                <Instagram className="h-4 w-4 text-pink-500" />
+                                                Instagram
+                                            </Label>
+                                            <Input
+                                                id="ig"
+                                                value={data.ig}
+                                                onChange={(e) => setData('ig', e.target.value)}
+                                                placeholder="https://instagram.com/username"
+                                            />
+                                            <InputError message={errors.ig} />
+                                        </div>
+
+                                        <div className="grid gap-2">
+                                            <Label htmlFor="fb" className="flex items-center gap-2">
+                                                <Facebook className="h-4 w-4 text-blue-600" />
+                                                Facebook
+                                            </Label>
+                                            <Input
+                                                id="fb"
+                                                value={data.fb}
+                                                onChange={(e) => setData('fb', e.target.value)}
+                                                placeholder="https://facebook.com/page"
+                                            />
+                                            <InputError message={errors.fb} />
+                                        </div>
+
+                                        <div className="grid gap-2">
+                                            <Label htmlFor="tiktok" className="flex items-center gap-2">
+                                                <FaTiktok className="h-4 w-4 text-black" />
+                                                TikTok
+                                            </Label>
+                                            <Input
+                                                id="tiktok"
+                                                value={data.tiktok}
+                                                onChange={(e) => setData('tiktok', e.target.value)}
+                                                placeholder="https://tiktok.com/@username"
+                                            />
+                                            <InputError message={errors.tiktok} />
+                                        </div>
                                     </div>
-                                </div>
+                                </CardContent>
+                            </Card>
+                        </TabsContent>
 
-                                {/* Hidden File Input */}
-                                <input
-                                    ref={fileInputRef}
-                                    type="file"
-                                    accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
-                                    onChange={handleLogoChange}
-                                    className="hidden"
-                                />
-
-                                {/* Error Display */}
-                                <InputError message={errors.logo || fileError} />
-                            </div>
-
-                            {/* Upload Progress */}
-                            {progress && (
-                                <div className="space-y-3">
-                                    <div className="flex items-center justify-between">
-                                        <span className="text-sm font-medium text-gray-700">Mengupload...</span>
-                                        <span className="text-sm text-gray-600">{progress.percentage}%</span>
+                        <TabsContent value="business" className="space-y-6">
+                            {/* Pengaturan Bisnis */}
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle className="flex items-center gap-2">
+                                        <DollarSign className="h-5 w-5" />
+                                        Pengaturan Bisnis
+                                    </CardTitle>
+                                </CardHeader>
+                                <CardContent className="space-y-4">
+                                    <div className="grid gap-2">
+                                        <Label htmlFor="fee">Biaya Layanan</Label>
+                                        <div className="relative">
+                                            <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                                                <span className="text-gray-500 sm:text-sm">Rp</span>
+                                            </div>
+                                            <Input id="fee" type="text" value={feeDisplay} onChange={handleFeeChange} placeholder="0" className="pl-10" />
+                                        </div>
+                                        <InputError message={errors.fee} />
+                                        <p className="text-sm text-gray-500">
+                                            Biaya yang akan dikenakan untuk layanan tertentu.
+                                            {/* {data.fee > 0 && (
+                                                <span className="block mt-1 font-medium text-green-600">
+                                                    Nilai: Rp {new Intl.NumberFormat('id-ID').format(data.fee)}
+                                                </span>
+                                            )} */}
+                                        </p>
                                     </div>
-                                    <div className="h-2 w-full overflow-hidden rounded-full bg-gray-200">
+                                </CardContent>
+                            </Card>
+
+                            {/* Marketing Statistics */}
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle className="flex items-center gap-2">
+                                        <DollarSign className="h-5 w-5" />
+                                        Statistik Marketing
+                                    </CardTitle>
+                                    <p className="text-sm text-gray-600">
+                                        Gunakan angka custom untuk tujuan marketing di homepage. Aktifkan untuk mengganti data real dengan angka custom.
+                                    </p>
+                                </CardHeader>
+                                <CardContent className="space-y-4">
+                                    <div className="flex items-center space-x-2">
+                                        <input
+                                            id="use_custom_stats"
+                                            type="checkbox"
+                                            checked={data.use_custom_stats}
+                                            onChange={(e) => setData('use_custom_stats', e.target.checked)}
+                                            className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                                        />
+                                        <Label htmlFor="use_custom_stats" className="text-sm font-medium">
+                                            Gunakan Statistik Custom (Marketing Gimmick)
+                                        </Label>
+                                    </div>
+
+                                    {data.use_custom_stats && (
+                                        <div className="grid grid-cols-1 gap-4 rounded-lg border border-blue-200 bg-blue-50 p-4 md:grid-cols-3">
+                                            <div className="grid gap-2">
+                                                <Label htmlFor="custom_total_jobs">Total Lowongan Kerja</Label>
+                                                <Input
+                                                    id="custom_total_jobs"
+                                                    type="number"
+                                                    min="0"
+                                                    value={data.custom_total_jobs}
+                                                    onChange={(e) => setData('custom_total_jobs', parseInt(e.target.value) || 0)}
+                                                    placeholder="1000"
+                                                />
+                                                <p className="text-xs text-gray-600">Angka yang akan ditampilkan di homepage</p>
+                                            </div>
+
+                                            <div className="grid gap-2">
+                                                <Label htmlFor="custom_total_companies">Total Perusahaan</Label>
+                                                <Input
+                                                    id="custom_total_companies"
+                                                    type="number"
+                                                    min="0"
+                                                    value={data.custom_total_companies}
+                                                    onChange={(e) => setData('custom_total_companies', parseInt(e.target.value) || 0)}
+                                                    placeholder="500"
+                                                />
+                                                <p className="text-xs text-gray-600">Angka yang akan ditampilkan di homepage</p>
+                                            </div>
+
+                                            <div className="grid gap-2">
+                                                <Label htmlFor="custom_total_candidates">Total Pengguna</Label>
+                                                <Input
+                                                    id="custom_total_candidates"
+                                                    type="number"
+                                                    min="0"
+                                                    value={data.custom_total_candidates}
+                                                    onChange={(e) => setData('custom_total_candidates', parseInt(e.target.value) || 0)}
+                                                    placeholder="10000"
+                                                />
+                                                <p className="text-xs text-gray-600">Angka yang akan ditampilkan di homepage</p>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    <div className="rounded-lg border border-yellow-200 bg-yellow-50 p-3">
+                                        <p className="text-sm text-yellow-800">
+                                            <strong>Catatan:</strong> Fitur ini untuk keperluan marketing. Ketika diaktifkan, angka-angka di homepage akan menggunakan nilai custom ini alih-alih data real dari database.
+                                        </p>
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        </TabsContent>
+
+                        <TabsContent value="branding" className="space-y-6">
+                            {/* Logo */}
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle className="flex items-center gap-2">
+                                        <Camera className="h-5 w-5" />
+                                        Logo Website
+                                    </CardTitle>
+                                </CardHeader>
+                                <CardContent className="space-y-6">
+                                    {/* Current Logo Display */}
+                                    {setting.logo && !logoPreview && (
+                                        <div className="space-y-3">
+                                            <Label className="text-sm font-medium text-gray-700">Logo Saat Ini</Label>
+                                            <br />
+                                            <br />
+                                            <div className="relative inline-block">
+                                                <div className="flex h-32 w-32 items-center justify-center overflow-hidden rounded-lg border-2 border-gray-200 bg-gray-50">
+                                                    <img
+                                                        src={`/storage/${setting.logo}`}
+                                                        alt="Logo Saat Ini"
+                                                        className="max-h-full max-w-full object-contain"
+                                                    />
+                                                </div>
+                                                <div className="absolute top-2 right-2">
+                                                    <div className="rounded-full bg-green-100 px-2 py-1 text-xs font-medium text-green-800">Aktif</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* Logo Preview */}
+                                    {logoPreview && (
+                                        <div className="space-y-3">
+                                            <Label className="text-sm font-medium text-gray-700">Preview Logo Baru</Label>
+                                            <div className="relative inline-block">
+                                                <div className="flex h-32 w-32 items-center justify-center overflow-hidden rounded-lg border-2 border-green-200 bg-green-50 shadow-sm">
+                                                    <img src={logoPreview} alt="Preview Logo" className="max-h-full max-w-full object-contain" />
+                                                </div>
+                                                <Button
+                                                    type="button"
+                                                    variant="destructive"
+                                                    size="sm"
+                                                    className="absolute -top-2 -right-2 h-7 w-7 rounded-full p-0 shadow-md transition-transform hover:scale-110"
+                                                    onClick={removeLogoPreview}
+                                                >
+                                                    <Trash2 className="h-3 w-3" />
+                                                </Button>
+                                                <div className="absolute bottom-2 left-2">
+                                                    <div className="rounded-full bg-orange-100 px-2 py-1 text-xs font-medium text-orange-800">Preview</div>
+                                                </div>
+                                            </div>
+                                            <div className="rounded-lg border border-green-200 bg-green-50 p-3">
+                                                <div className="flex items-center gap-2">
+                                                    <div className="h-2 w-2 rounded-full bg-green-500"></div>
+                                                    <p className="text-sm font-medium text-green-700">Logo siap diupload</p>
+                                                </div>
+                                                <p className="mt-1 text-xs text-green-600">Klik "Simpan Pengaturan" untuk menyimpan perubahan.</p>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* Upload Area */}
+                                    <div className="space-y-3">
+                                        <Label className="text-sm font-medium text-gray-700">
+                                            {setting.logo || logoPreview ? 'Ganti Logo' : 'Upload Logo'}
+                                        </Label>
+
+                                        {/* Drag and Drop Area */}
                                         <div
-                                            className="h-2 rounded-full bg-gradient-to-r from-blue-500 to-green-500 transition-all duration-300 ease-out"
-                                            style={{ width: `${progress.percentage}%` }}
-                                        ></div>
-                                    </div>
-                                </div>
-                            )}
-                        </CardContent>
-                    </Card>
+                                            className={`relative cursor-pointer rounded-lg border-2 border-dashed p-6 transition-all duration-200 hover:bg-gray-50 ${
+                                                isDragOver ? 'border-blue-400 bg-blue-50' : fileError ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                                            }`}
+                                            onDragOver={handleDragOver}
+                                            onDragLeave={handleDragLeave}
+                                            onDrop={handleDrop}
+                                            onClick={triggerFileInput}
+                                        >
+                                            <div className="space-y-3 text-center">
+                                                <div className="mx-auto">
+                                                    {isDragOver ? (
+                                                        <Upload className="h-10 w-10 animate-bounce text-blue-500" />
+                                                    ) : (
+                                                        <ImageIcon className="h-10 w-10 text-gray-400" />
+                                                    )}
+                                                </div>
+                                                <div>
+                                                    <p className="text-sm font-medium text-gray-700">
+                                                        {isDragOver ? 'Lepaskan file di sini' : 'Drag & drop logo atau klik untuk pilih file'}
+                                                    </p>
+                                                    <p className="mt-1 text-xs text-gray-500">Format: JPEG, PNG, JPG, GIF, WebP • Maksimal 2MB</p>
+                                                </div>
+                                                <Button
+                                                    type="button"
+                                                    variant="outline"
+                                                    size="sm"
+                                                    className="gap-2"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        triggerFileInput();
+                                                    }}
+                                                >
+                                                    <Upload className="h-4 w-4" />
+                                                    Pilih File
+                                                </Button>
+                                            </div>
+                                        </div>
 
-                    {/* Thumbnail */}
-                    <Card>
-                        <CardHeader>
-                            <CardTitle className="flex items-center gap-2">
-                                <ImageIcon className="h-5 w-5" />
-                                Thumbnail Website
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent className="space-y-6">
-                            {/* Current Thumbnail Display */}
-                            {setting.thumbnail && !thumbnailPreview && (
-                                <div className="space-y-3">
-                                    <Label className="text-sm font-medium text-gray-700">Thumbnail Saat Ini</Label>
-                                    <br />
-                                    <br />
-                                    <div className="relative inline-block">
-                                        <div className="flex h-32 w-48 items-center justify-center overflow-hidden rounded-lg border-2 border-gray-200 bg-gray-50">
-                                            <img
-                                                src={`/storage/${setting.thumbnail}`}
-                                                alt="Thumbnail Saat Ini"
-                                                className="max-h-full max-w-full object-cover"
+                                        {/* Hidden File Input */}
+                                        <input
+                                            ref={fileInputRef}
+                                            type="file"
+                                            accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
+                                            onChange={handleLogoChange}
+                                            className="hidden"
+                                        />
+
+                                        {/* Error Display */}
+                                        <InputError message={errors.logo || fileError} />
+                                    </div>
+
+                                    {/* Upload Progress */}
+                                    {progress && (
+                                        <div className="space-y-3">
+                                            <div className="flex items-center justify-between">
+                                                <span className="text-sm font-medium text-gray-700">Mengupload...</span>
+                                                <span className="text-sm text-gray-600">{progress.percentage}%</span>
+                                            </div>
+                                            <div className="h-2 w-full overflow-hidden rounded-full bg-gray-200">
+                                                <div
+                                                    className="h-2 rounded-full bg-gradient-to-r from-blue-500 to-green-500 transition-all duration-300 ease-out"
+                                                    style={{ width: `${progress.percentage}%` }}
+                                                ></div>
+                                            </div>
+                                        </div>
+                                    )}
+                                </CardContent>
+                            </Card>
+
+                            {/* Thumbnail */}
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle className="flex items-center gap-2">
+                                        <ImageIcon className="h-5 w-5" />
+                                        Thumbnail Website
+                                    </CardTitle>
+                                </CardHeader>
+                                <CardContent className="space-y-6">
+                                    {/* Current Thumbnail Display */}
+                                    {setting.thumbnail && !thumbnailPreview && (
+                                        <div className="space-y-3">
+                                            <Label className="text-sm font-medium text-gray-700">Thumbnail Saat Ini</Label>
+                                            <br />
+                                            <br />
+                                            <div className="relative inline-block">
+                                                <div className="flex h-32 w-48 items-center justify-center overflow-hidden rounded-lg border-2 border-gray-200 bg-gray-50">
+                                                    <img
+                                                        src={`/storage/${setting.thumbnail}`}
+                                                        alt="Thumbnail Saat Ini"
+                                                        className="max-h-full max-w-full object-cover"
+                                                    />
+                                                </div>
+                                                <div className="absolute top-2 right-2">
+                                                    <div className="rounded-full bg-green-100 px-2 py-1 text-xs font-medium text-green-800">Aktif</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* Thumbnail Preview */}
+                                    {thumbnailPreview && (
+                                        <div className="space-y-3">
+                                            <Label className="text-sm font-medium text-gray-700">Preview Thumbnail Baru</Label>
+                                            <br />
+                                            <br />
+                                            <div className="relative inline-block">
+                                                <div className="flex h-32 w-48 items-center justify-center overflow-hidden rounded-lg border-2 border-green-200 bg-green-50 shadow-sm">
+                                                    <img src={thumbnailPreview} alt="Preview Thumbnail" className="max-h-full max-w-full object-cover" />
+                                                </div>
+                                                <Button
+                                                    type="button"
+                                                    variant="destructive"
+                                                    size="sm"
+                                                    className="absolute -top-2 -right-2 h-7 w-7 rounded-full p-0 shadow-md transition-transform hover:scale-110"
+                                                    onClick={removeThumbnailPreview}
+                                                >
+                                                    <Trash2 className="h-3 w-3" />
+                                                </Button>
+                                                <div className="absolute bottom-2 left-2">
+                                                    <div className="rounded-full bg-orange-100 px-2 py-1 text-xs font-medium text-orange-800">Preview</div>
+                                                </div>
+                                            </div>
+                                            <div className="rounded-lg border border-green-200 bg-green-50 p-3">
+                                                <div className="flex items-center gap-2">
+                                                    <div className="h-2 w-2 rounded-full bg-green-500"></div>
+                                                    <p className="text-sm font-medium text-green-700">Thumbnail siap diupload</p>
+                                                </div>
+                                                <p className="mt-1 text-xs text-green-600">Klik "Simpan Pengaturan" untuk menyimpan perubahan.</p>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* Upload Area */}
+                                    <div className="space-y-3">
+                                        <Label className="text-sm font-medium text-gray-700">
+                                            {setting.thumbnail || thumbnailPreview ? 'Ganti Thumbnail' : 'Upload Thumbnail'}
+                                        </Label>
+
+                                        {/* Drag and Drop Area */}
+                                        <div
+                                            className={`relative cursor-pointer rounded-lg border-2 border-dashed p-6 transition-all duration-200 hover:bg-gray-50 ${
+                                                isThumbnailDragOver
+                                                    ? 'border-blue-400 bg-blue-50'
+                                                    : thumbnailError
+                                                      ? 'border-red-300 bg-red-50'
+                                                      : 'border-gray-300'
+                                            }`}
+                                            onDragOver={handleThumbnailDragOver}
+                                            onDragLeave={handleThumbnailDragLeave}
+                                            onDrop={handleThumbnailDrop}
+                                            onClick={triggerThumbnailInput}
+                                        >
+                                            <div className="space-y-3 text-center">
+                                                <div className="mx-auto">
+                                                    {isThumbnailDragOver ? (
+                                                        <Upload className="h-10 w-10 animate-bounce text-blue-500" />
+                                                    ) : (
+                                                        <ImageIcon className="h-10 w-10 text-gray-400" />
+                                                    )}
+                                                </div>
+                                                <div>
+                                                    <p className="text-sm font-medium text-gray-700">
+                                                        {isThumbnailDragOver ? 'Lepaskan file di sini' : 'Drag & drop thumbnail atau klik untuk pilih file'}
+                                                    </p>
+                                                    <p className="mt-1 text-xs text-gray-500">Format: JPEG, PNG, JPG, GIF, WebP • Maksimal 2MB</p>
+                                                </div>
+                                                <Button
+                                                    type="button"
+                                                    variant="outline"
+                                                    size="sm"
+                                                    className="gap-2"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        triggerThumbnailInput();
+                                                    }}
+                                                >
+                                                    <Upload className="h-4 w-4" />
+                                                    Pilih File
+                                                </Button>
+                                            </div>
+                                        </div>
+
+                                        {/* Hidden File Input */}
+                                        <input
+                                            ref={thumbnailInputRef}
+                                            type="file"
+                                            accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
+                                            onChange={handleThumbnailChange}
+                                            className="hidden"
+                                        />
+
+                                        {/* Error Display */}
+                                        <InputError message={errors.thumbnail || thumbnailError || undefined} />
+                                    </div>
+                                </CardContent>
+                            </Card>
+
+                            {/* Favicon */}
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle className="flex items-center gap-2">
+                                        <Globe2 className="h-5 w-5" />
+                                        Favicon Website
+                                    </CardTitle>
+                                    <p className="text-sm text-gray-600">
+                                        Favicon adalah icon kecil yang muncul di tab browser dan bookmark
+                                    </p>
+                                </CardHeader>
+                                <CardContent className="space-y-6">
+                                    {/* Current Favicon Display */}
+                                    {setting.favicon && !faviconPreview && (
+                                        <div className="space-y-3">
+                                            <Label className="text-sm font-medium text-gray-700">Favicon Saat Ini</Label>
+                                            <br />
+                                            <br />
+                                            <div className="relative inline-block">
+                                                <div className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-lg border-2 border-gray-200 bg-gray-50">
+                                                    <img
+                                                        src={`/storage/${setting.favicon}`}
+                                                        alt="Favicon Saat Ini"
+                                                        className="max-h-full max-w-full object-contain"
+                                                    />
+                                                </div>
+                                                <div className="absolute top-1 right-1">
+                                                    <div className="rounded-full bg-green-100 px-2 py-1 text-xs font-medium text-green-800">Aktif</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* Favicon Preview */}
+                                    {faviconPreview && (
+                                        <div className="space-y-3">
+                                            <Label className="text-sm font-medium text-gray-700">Preview Favicon Baru</Label>
+                                            <br />
+                                            <br />
+                                            <div className="relative inline-block">
+                                                <div className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-lg border-2 border-green-200 bg-green-50 shadow-sm">
+                                                    <img src={faviconPreview} alt="Preview Favicon" className="max-h-full max-w-full object-contain" />
+                                                </div>
+                                                <Button
+                                                    type="button"
+                                                    variant="destructive"
+                                                    size="sm"
+                                                    className="absolute -top-2 -right-2 h-7 w-7 rounded-full p-0 shadow-md transition-transform hover:scale-110"
+                                                    onClick={removeFaviconPreview}
+                                                >
+                                                    <Trash2 className="h-3 w-3" />
+                                                </Button>
+                                                <div className="absolute bottom-1 left-1">
+                                                    <div className="rounded-full bg-orange-100 px-2 py-1 text-xs font-medium text-orange-800">Preview</div>
+                                                </div>
+                                            </div>
+                                            <div className="rounded-lg border border-green-200 bg-green-50 p-3">
+                                                <div className="flex items-center gap-2">
+                                                    <div className="h-2 w-2 rounded-full bg-green-500"></div>
+                                                    <p className="text-sm font-medium text-green-700">Favicon siap diupload</p>
+                                                </div>
+                                                <p className="mt-1 text-xs text-green-600">Klik "Simpan Pengaturan" untuk menyimpan perubahan.</p>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* Upload Area */}
+                                    <div className="space-y-3">
+                                        <Label className="text-sm font-medium text-gray-700">
+                                            {setting.favicon || faviconPreview ? 'Ganti Favicon' : 'Upload Favicon'}
+                                        </Label>
+
+                                        {/* Drag and Drop Area */}
+                                        <div
+                                            className={`relative cursor-pointer rounded-lg border-2 border-dashed p-6 transition-all duration-200 hover:bg-gray-50 ${
+                                                isFaviconDragOver
+                                                    ? 'border-blue-400 bg-blue-50'
+                                                    : faviconError
+                                                      ? 'border-red-300 bg-red-50'
+                                                      : 'border-gray-300'
+                                            }`}
+                                            onDragOver={handleFaviconDragOver}
+                                            onDragLeave={handleFaviconDragLeave}
+                                            onDrop={handleFaviconDrop}
+                                            onClick={triggerFaviconInput}
+                                        >
+                                            <div className="space-y-3 text-center">
+                                                <div className="mx-auto">
+                                                    {isFaviconDragOver ? (
+                                                        <Upload className="h-10 w-10 animate-bounce text-blue-500" />
+                                                    ) : (
+                                                        <Globe2 className="h-10 w-10 text-gray-400" />
+                                                    )}
+                                                </div>
+                                                <div>
+                                                    <p className="text-sm font-medium text-gray-700">
+                                                        {isFaviconDragOver ? 'Lepaskan file di sini' : 'Drag & drop favicon atau klik untuk pilih file'}
+                                                    </p>
+                                                    <p className="mt-1 text-xs text-gray-500">Format: ICO, PNG, JPG, JPEG • Maksimal 1MB • Ukuran ideal: 32x32px</p>
+                                                </div>
+                                                <Button
+                                                    type="button"
+                                                    variant="outline"
+                                                    size="sm"
+                                                    className="gap-2"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        triggerFaviconInput();
+                                                    }}
+                                                >
+                                                    <Upload className="h-4 w-4" />
+                                                    Pilih File
+                                                </Button>
+                                            </div>
+                                        </div>
+
+                                        {/* Hidden File Input */}
+                                        <input
+                                            ref={faviconInputRef}
+                                            type="file"
+                                            accept="image/x-icon,image/png,image/jpeg,image/jpg,.ico"
+                                            onChange={handleFaviconChange}
+                                            className="hidden"
+                                        />
+
+                                        {/* Error Display */}
+                                        <InputError message={errors.favicon || faviconError || undefined} />
+                                    </div>
+
+                                    <div className="rounded-lg border border-blue-200 bg-blue-50 p-3">
+                                        <p className="text-sm text-blue-800">
+                                            <strong>Tips:</strong> Favicon akan tampil di tab browser, bookmark, dan address bar.
+                                            Gunakan gambar dengan ukuran 32x32px atau 16x16px untuk hasil terbaik.
+                                        </p>
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        </TabsContent>
+
+                        <TabsContent value="hero" className="space-y-6">
+                            {/* Hero Section Homepage */}
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle className="flex items-center gap-2">
+                                        <ImageIcon className="h-5 w-5" />
+                                        Hero Section Homepage
+                                    </CardTitle>
+                                    <p className="text-sm text-gray-600">
+                                        Gambar dan teks yang tampil di bagian hero section halaman utama (berbeda dari thumbnail untuk login/register)
+                                    </p>
+                                </CardHeader>
+                                <CardContent className="space-y-6">
+                                    {setting.hero_image && !heroImagePreview && (
+                                        <div className="space-y-3">
+                                            <Label className="text-sm font-medium text-gray-700">Hero Image Saat Ini</Label>
+                                            <br />
+                                            <br />
+                                            <div className="relative inline-block">
+                                                <div className="flex h-48 w-64 items-center justify-center overflow-hidden rounded-lg border-2 border-gray-200 bg-gray-50">
+                                                    <img
+                                                        src={`/storage/${setting.hero_image}`}
+                                                        alt="Hero Image Saat Ini"
+                                                        className="max-h-full max-w-full object-cover"
+                                                    />
+                                                </div>
+                                                <div className="absolute top-2 right-2">
+                                                    <div className="rounded-full bg-green-100 px-2 py-1 text-xs font-medium text-green-800">Aktif</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {heroImagePreview && (
+                                        <div className="space-y-3">
+                                            <Label className="text-sm font-medium text-gray-700">Preview Hero Image Baru</Label>
+                                            <br />
+                                            <br />
+                                            <div className="relative inline-block">
+                                                <div className="flex h-48 w-64 items-center justify-center overflow-hidden rounded-lg border-2 border-green-200 bg-green-50 shadow-sm">
+                                                    <img src={heroImagePreview} alt="Preview Hero Image" className="max-h-full max-w-full object-cover" />
+                                                </div>
+                                                <Button
+                                                    type="button"
+                                                    variant="destructive"
+                                                    size="sm"
+                                                    className="absolute -top-2 -right-2 h-7 w-7 rounded-full p-0 shadow-md transition-transform hover:scale-110"
+                                                    onClick={removeHeroImagePreview}
+                                                >
+                                                    <Trash2 className="h-3 w-3" />
+                                                </Button>
+                                                <div className="absolute bottom-2 left-2">
+                                                    <div className="rounded-full bg-orange-100 px-2 py-1 text-xs font-medium text-orange-800">Preview</div>
+                                                </div>
+                                            </div>
+                                            <div className="mt-2">
+                                                <div className="flex items-center gap-2">
+                                                    <div className="h-2 w-2 rounded-full bg-green-500"></div>
+                                                    <p className="text-sm font-medium text-green-700">Hero Image siap diupload</p>
+                                                </div>
+                                                <p className="mt-1 text-xs text-green-600">Klik "Simpan Pengaturan" untuk menyimpan perubahan.</p>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    <div className="space-y-3">
+                                        <Label className="text-sm font-medium text-gray-700">
+                                            {setting.hero_image || heroImagePreview ? 'Ganti Hero Image' : 'Upload Hero Image'}
+                                        </Label>
+
+                                        <div
+                                            className={`relative cursor-pointer rounded-lg border-2 border-dashed p-6 transition-all duration-200 hover:bg-gray-50 ${
+                                                isHeroImageDragOver
+                                                    ? 'border-blue-400 bg-blue-50'
+                                                    : heroImageError
+                                                      ? 'border-red-300 bg-red-50'
+                                                      : 'border-gray-300'
+                                            }`}
+                                            onDragOver={handleHeroImageDragOver}
+                                            onDragLeave={handleHeroImageDragLeave}
+                                            onDrop={handleHeroImageDrop}
+                                            onClick={triggerHeroImageInput}
+                                        >
+                                            <div className="space-y-3 text-center">
+                                                <div className="mx-auto">
+                                                    {isHeroImageDragOver ? (
+                                                        <Upload className="h-10 w-10 animate-bounce text-blue-500" />
+                                                    ) : (
+                                                        <ImageIcon className="h-10 w-10 text-gray-400" />
+                                                    )}
+                                                </div>
+                                                <div>
+                                                    <p className="text-sm font-medium text-gray-700">
+                                                        {isHeroImageDragOver ? 'Lepaskan file di sini' : 'Drag & drop hero image atau klik untuk pilih file'}
+                                                    </p>
+                                                    <p className="mt-1 text-xs text-gray-500">Format: JPEG, PNG, JPG, GIF, WebP • Maksimal 2MB</p>
+                                                </div>
+                                                <Button
+                                                    type="button"
+                                                    variant="outline"
+                                                    size="sm"
+                                                    className="gap-2"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        triggerHeroImageInput();
+                                                    }}
+                                                >
+                                                    <Upload className="h-4 w-4" />
+                                                    Pilih File
+                                                </Button>
+                                            </div>
+                                        </div>
+
+                                        <input
+                                            ref={heroImageInputRef}
+                                            type="file"
+                                            accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
+                                            onChange={handleHeroImageChange}
+                                            className="hidden"
+                                        />
+
+                                        <InputError message={errors.hero_image || heroImageError || undefined} />
+                                    </div>
+
+                                    <div className="space-y-4">
+                                        <div className="grid gap-2">
+                                            <Label htmlFor="hero_title">Hero Title (Opsional)</Label>
+                                            <Input
+                                                id="hero_title"
+                                                value={data.hero_title}
+                                                onChange={(e) => setData('hero_title', e.target.value)}
+                                                placeholder="Contoh: Temukan Karir Impian Anda"
                                             />
-                                        </div>
-                                        <div className="absolute top-2 right-2">
-                                            <div className="rounded-full bg-green-100 px-2 py-1 text-xs font-medium text-green-800">Aktif</div>
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
-
-                            {/* Thumbnail Preview */}
-                            {thumbnailPreview && (
-                                <div className="space-y-3">
-                                    <Label className="text-sm font-medium text-gray-700">Preview Thumbnail Baru</Label>
-                                    <br />
-                                    <br />
-                                    <div className="relative inline-block">
-                                        <div className="flex h-32 w-48 items-center justify-center overflow-hidden rounded-lg border-2 border-green-200 bg-green-50 shadow-sm">
-                                            <img src={thumbnailPreview} alt="Preview Thumbnail" className="max-h-full max-w-full object-cover" />
-                                        </div>
-                                        <Button
-                                            type="button"
-                                            variant="destructive"
-                                            size="sm"
-                                            className="absolute -top-2 -right-2 h-7 w-7 rounded-full p-0 shadow-md transition-transform hover:scale-110"
-                                            onClick={removeThumbnailPreview}
-                                        >
-                                            <Trash2 className="h-3 w-3" />
-                                        </Button>
-                                        <div className="absolute bottom-2 left-2">
-                                            <div className="rounded-full bg-orange-100 px-2 py-1 text-xs font-medium text-orange-800">Preview</div>
-                                        </div>
-                                    </div>
-                                    <div className="rounded-lg border border-green-200 bg-green-50 p-3">
-                                        <div className="flex items-center gap-2">
-                                            <div className="h-2 w-2 rounded-full bg-green-500"></div>
-                                            <p className="text-sm font-medium text-green-700">Thumbnail siap diupload</p>
-                                        </div>
-                                        <p className="mt-1 text-xs text-green-600">Klik "Simpan Pengaturan" untuk menyimpan perubahan.</p>
-                                    </div>
-                                </div>
-                            )}
-
-                            {/* Upload Area */}
-                            <div className="space-y-3">
-                                <Label className="text-sm font-medium text-gray-700">
-                                    {setting.thumbnail || thumbnailPreview ? 'Ganti Thumbnail' : 'Upload Thumbnail'}
-                                </Label>
-
-                                {/* Drag and Drop Area */}
-                                <div
-                                    className={`relative cursor-pointer rounded-lg border-2 border-dashed p-6 transition-all duration-200 hover:bg-gray-50 ${
-                                        isThumbnailDragOver
-                                            ? 'border-blue-400 bg-blue-50'
-                                            : thumbnailError
-                                              ? 'border-red-300 bg-red-50'
-                                              : 'border-gray-300'
-                                    }`}
-                                    onDragOver={handleThumbnailDragOver}
-                                    onDragLeave={handleThumbnailDragLeave}
-                                    onDrop={handleThumbnailDrop}
-                                    onClick={triggerThumbnailInput}
-                                >
-                                    <div className="space-y-3 text-center">
-                                        <div className="mx-auto">
-                                            {isThumbnailDragOver ? (
-                                                <Upload className="h-10 w-10 animate-bounce text-blue-500" />
-                                            ) : (
-                                                <ImageIcon className="h-10 w-10 text-gray-400" />
-                                            )}
-                                        </div>
-                                        <div>
-                                            <p className="text-sm font-medium text-gray-700">
-                                                {isThumbnailDragOver ? 'Lepaskan file di sini' : 'Drag & drop thumbnail atau klik untuk pilih file'}
+                                            <p className="text-xs text-gray-500">
+                                                Jika kosong, akan menggunakan default dari sistem
                                             </p>
-                                            <p className="mt-1 text-xs text-gray-500">Format: JPEG, PNG, JPG, GIF, WebP • Maksimal 2MB</p>
+                                            <InputError message={errors.hero_title} />
                                         </div>
-                                        <Button
-                                            type="button"
-                                            variant="outline"
-                                            size="sm"
-                                            className="gap-2"
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                triggerThumbnailInput();
-                                            }}
-                                        >
-                                            <Upload className="h-4 w-4" />
-                                            Pilih File
-                                        </Button>
+
+                                        <div className="grid gap-2">
+                                            <Label htmlFor="hero_subtitle">Hero Subtitle (Opsional)</Label>
+                                            <Textarea
+                                                id="hero_subtitle"
+                                                value={data.hero_subtitle}
+                                                onChange={(e) => setData('hero_subtitle', e.target.value)}
+                                                placeholder="Contoh: Platform karir terpercaya yang menghubungkan talenta dengan peluang terbaik"
+                                                rows={3}
+                                            />
+                                            <p className="text-xs text-gray-500">
+                                                Jika kosong, akan menggunakan default dari sistem
+                                            </p>
+                                            <InputError message={errors.hero_subtitle} />
+                                        </div>
                                     </div>
-                                </div>
 
-                                {/* Hidden File Input */}
-                                <input
-                                    ref={thumbnailInputRef}
-                                    type="file"
-                                    accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
-                                    onChange={handleThumbnailChange}
-                                    className="hidden"
-                                />
-
-                                {/* Error Display */}
-                                <InputError message={errors.thumbnail || thumbnailError || undefined} />
-                            </div>
-                        </CardContent>
-                    </Card>
+                                    <div className="rounded-lg border border-blue-200 bg-blue-50 p-3">
+                                        <p className="text-sm text-blue-800">
+                                            <strong>Info:</strong> Hero image akan tampil di sebelah kanan hero section halaman utama.
+                                            Sedangkan thumbnail untuk login/register tetap terpisah.
+                                        </p>
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        </TabsContent>
+                    </Tabs>
 
                     {/* Submit Button */}
                     <div className="flex justify-end">
@@ -833,6 +1358,7 @@ export default function EditSettings({ setting, flash }: Props) {
                         </Button>
                     </div>
                 </form>
+
             </div>
         </AppLayout>
     );

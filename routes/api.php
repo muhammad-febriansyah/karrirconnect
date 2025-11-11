@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\CompanyController;
 use App\Http\Controllers\Api\JobApplicationController;
 use App\Http\Controllers\Api\JobCategoryController;
 use App\Http\Controllers\Api\JobListingController;
+use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\SkillController;
 use App\Http\Controllers\Company\PointController;
 use Illuminate\Http\Request;
@@ -38,6 +39,10 @@ Route::group(['prefix' => 'v1'], function () {
     
     // Protected routes requiring authentication
     Route::middleware(['auth:web', 'web'])->group(function () {
+        // Notifications
+        Route::get('notifications/new-messages', [NotificationController::class, 'getNewMessages']);
+        Route::get('notifications/unread-count', [NotificationController::class, 'getUnreadMessageCount']);
+
         // Job Applications
         Route::post('jobs/{jobListing}/apply', [JobListingController::class, 'apply']);
         Route::post('jobs/{jobListing}/save', [JobListingController::class, 'toggleSave']);

@@ -2,8 +2,8 @@ import React, { useState } from 'react';
 import { Head, useForm, Link } from '@inertiajs/react';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
-import ModernNavbar from '@/components/modern-navbar';
-import ModernFooter from '@/components/modern-footer';
+// import ModernNavbar from '@/components/modern-navbar';
+// import ModernFooter from '@/components/modern-footer';
 import { FlickeringGrid } from '@/components/magicui/flickering-grid';
 import { 
     ArrowLeft, 
@@ -26,6 +26,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import InputError from '@/components/input-error';
+import MainLayout from '@/layouts/main-layout';
 
 interface Company {
     id: number;
@@ -132,11 +133,8 @@ export default function JobApply({ job }: JobApplyProps) {
     };
 
     return (
-        <>
+        <MainLayout currentPage="jobs">
             <Head title={`Lamar - ${job.title} di ${job.company.name}`} />
-            
-            <div className="min-h-screen bg-gray-50">
-                <ModernNavbar currentPage="jobs" />
 
                 {/* Hero Section */}
                 <section className="relative bg-gradient-to-br from-indigo-50 via-white to-blue-50 pt-24 pb-16 overflow-hidden">
@@ -429,8 +427,6 @@ export default function JobApply({ job }: JobApplyProps) {
                     </div>
                 </section>
 
-                <ModernFooter />
-            </div>
-        </>
+            </MainLayout>
     );
 }

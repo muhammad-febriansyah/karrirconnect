@@ -5,6 +5,7 @@ import { Separator } from '@/components/ui/separator';
 import AppLayout from '@/layouts/app-layout';
 import { Head, Link } from '@inertiajs/react';
 import { ArrowLeft, Calendar, Clock, Edit, Eye, Image as ImageIcon, User } from 'lucide-react';
+import { route } from 'ziggy-js';
 
 interface Author {
     id: number;

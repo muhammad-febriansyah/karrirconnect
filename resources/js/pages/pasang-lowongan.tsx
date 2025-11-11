@@ -1,14 +1,15 @@
 import React from 'react';
 import { Head, Link, usePage } from '@inertiajs/react';
 import { motion } from 'framer-motion';
-import ModernNavbar from '@/components/modern-navbar';
-import ModernFooter from '@/components/modern-footer';
+// import ModernNavbar from '@/components/modern-navbar';
+// import ModernFooter from '@/components/modern-footer';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { NumberTicker } from '@/components/magicui/number-ticker';
 import { FlickeringGrid } from '@/components/magicui/flickering-grid';
 import { type SharedData } from '@/types';
+import MainLayout from '@/layouts/main-layout';
 import {
   ArrowRight,
   Building,
@@ -148,12 +149,8 @@ export default function PasangLowongan({ pointPackages, statistics, settings }: 
   ];
 
   return (
-    <>
+    <MainLayout currentPage="pasang-lowongan">
       <Head title="Pasang Lowongan - Temukan Talenta Terbaik" />
-      
-      <div className="relative min-h-screen bg-white">
-        {/* Modern Navbar */}
-        <ModernNavbar currentPage="pasang-lowongan" />
 
         {/* Hero Section */}
         <section className="relative overflow-hidden bg-white pt-32 pb-20 lg:pt-40 lg:pb-24">
@@ -525,10 +522,6 @@ export default function PasangLowongan({ pointPackages, statistics, settings }: 
             </motion.div>
           </div>
         </section>
-
-        {/* Modern Footer */}
-        <ModernFooter siteName={siteName} siteDescription={siteDescription} statistics={statistics} settings={settings} />
-      </div>
-    </>
+    </MainLayout>
   );
 }

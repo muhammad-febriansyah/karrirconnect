@@ -31,6 +31,7 @@ import {
     File
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { route } from 'ziggy-js';
 
 interface Props {
     companies: {

@@ -2,10 +2,14 @@ import DashboardCharts from '@/components/dashboard-charts';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import AppLayout from '@/layouts/app-layout';
-import { Head, Link } from '@inertiajs/react';
-import { BarChart3, Briefcase, Building2, FileText, PieChart, Plus, TrendingUp, Users, ShieldCheck, AlertTriangle, CheckCircle2 } from 'lucide-react';
+import { Head, Link, usePage } from '@inertiajs/react';
+import { BarChart3, Briefcase, Building2, FileText, PieChart, Plus, TrendingUp, Users, ShieldCheck, AlertTriangle, CheckCircle2, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { toast } from 'sonner';
+import { useEffect } from 'react';
+import { type SharedData } from '@/types';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { route } from 'ziggy-js';
 import {
     Bar,
     BarChart,
@@ -63,7 +67,7 @@ interface Application {
             last_name?: string;
         };
     };
-    jobListing?: {
+    job_listing?: {
         title?: string;
         company?: {
             name?: string;
@@ -185,8 +189,22 @@ export default function AdminDashboard({
     company,
     chartData,
 }: Props) {
-    // Debug: Log data untuk melihat apa yang diterima
-    console.log('Recent Applications:', recentApplications);
+    // Ensure recentApplications is always an array
+    const safeRecentApplications = Array.isArray(recentApplications) ? recentApplications : [];
+
+    // Show global flash messages (e.g., after redirect)
+    const { flash } = usePage<SharedData>().props as any;
+    useEffect(() => {
+        if (flash?.success) {
+            toast.success(flash.success);
+        }
+        if (flash?.error) {
+            toast.error(flash.error);
+        }
+        if (flash?.warning) {
+            toast.warning?.(flash.warning);
+        }
+    }, [flash?.success, flash?.error, flash?.warning]);
 
     return (
         <AppLayout>
@@ -214,7 +232,7 @@ export default function AdminDashboard({
                 </div>
 
                 {/* Company Verification Alert - Only for unverified company admins */}
-                {userRole === 'company_admin' && company && !company.is_verified && (
+                {userRole === 'company_admin' && company && !company.is_verified && company.verification_status === 'unverified' && (
                     <Alert className="border-yellow-200 bg-yellow-50">
                         <AlertDescription className="flex items-center justify-between">
                             <span className="text-yellow-800">
@@ -231,6 +249,18 @@ export default function AdminDashboard({
                                     Verifikasi Perusahaan
                                 </Link>
                             </Button>
+                        </AlertDescription>
+                    </Alert>
+                )}
+
+                {/* Company Verification Pending Alert */}
+                {userRole === 'company_admin' && company && !company.is_verified && company.verification_status === 'pending' && (
+                    <Alert className="border-blue-200 bg-blue-50">
+                        <Clock className="h-4 w-4 text-blue-600" />
+                        <AlertDescription className="text-blue-800">
+                            <span className="font-medium">
+                                Dokumen verifikasi sedang ditinjau oleh tim kami. Kami akan menginformasikan hasilnya dalam 1-3 hari kerja.
+                            </span>
                         </AlertDescription>
                     </Alert>
                 )}
@@ -358,7 +388,7 @@ export default function AdminDashboard({
                                 </CardHeader>
                                 <CardContent>
                                     <div className="text-2xl font-bold">1 poin</div>
-                                    <p className="text-xs text-muted-foreground">per posisi tambahan (1 gratis)</p>
+                                    <p className="text-xs text-muted-foreground">per lowongan yang dipublikasikan</p>
                                 </CardContent>
                             </Card>
                         </>
@@ -540,32 +570,34 @@ export default function AdminDashboard({
                             <CardDescription>Lamaran kerja terbaru</CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-4">
-                            {recentApplications.map((application) => {
-                                console.log('Processing application:', {
-                                    id: application.id,
-                                    jobListing: application.jobListing,
-                                    title: application.jobListing?.title,
-                                    company: application.jobListing?.company,
-                                });
+                            {safeRecentApplications.length === 0 ? (
+                                <p className="text-center text-gray-500 py-4">Belum ada lamaran</p>
+                            ) : (
+                                safeRecentApplications.map((application) => {
+                                    const userName = application.user?.profile?.first_name && application.user?.profile?.last_name
+                                        ? `${application.user.profile.first_name} ${application.user.profile.last_name}`
+                                        : application.user?.name || 'Unknown User';
 
-                                return (
+                                    const jobInfo = application.job_listing?.title && application.job_listing?.company?.name
+                                        ? `${application.job_listing.title} di ${application.job_listing.company.name}`
+                                        : 'Data lamaran tidak tersedia';
+
+                                    return (
                                     <div key={application.id} className="flex items-center justify-between rounded-lg border p-3">
                                         <div className="flex-1">
                                             <h4 className="font-medium">
-                                                {application.user?.profile?.first_name} {application.user?.profile?.last_name}
-                                                {!application.user?.profile?.first_name && application.user?.name}
+                                                {userName}
                                             </h4>
                                             <p className="text-sm text-gray-600">
-                                                {application.jobListing?.title && application.jobListing?.company?.name
-                                                    ? `${application.jobListing.title} di ${application.jobListing.company.name}`
-                                                    : 'Data lamaran tidak tersedia'}
+                                                {jobInfo}
                                             </p>
                                             <p className="text-xs text-gray-500">{formatTimeAgo(application.created_at)}</p>
                                         </div>
                                         <Badge className={getStatusColor(application.status)}>{application.status}</Badge>
                                     </div>
                                 );
-                            })}
+                            })
+                            )}
                         </CardContent>
                     </Card>
                 </div>

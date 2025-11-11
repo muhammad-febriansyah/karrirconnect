@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Services\EmailService;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -48,6 +49,9 @@ class RegisteredUserController extends Controller
 
         event(new Registered($user));
 
+        // Send welcome email to user
+        $this->sendWelcomeEmail($user);
+
         Auth::login($user);
 
         // Redirect based on user role
@@ -55,6 +59,24 @@ class RegisteredUserController extends Controller
             return redirect()->intended(route('user.dashboard', absolute: false));
         } else {
             return redirect()->intended(route('admin.dashboard', absolute: false));
+        }
+    }
+
+    /**
+     * Send welcome email to new user
+     */
+    private function sendWelcomeEmail(User $user): void
+    {
+        try {
+            EmailService::send('employee-registration-success', $user->email, [
+                'user_name' => $user->name,
+                'profile_url' => route('user.profile.edit'),
+                'jobs_url' => route('jobs.index'),
+            ]);
+
+            \Log::info("Welcome email sent to user: {$user->email}");
+        } catch (\Exception $e) {
+            \Log::error("Failed to send welcome email to user: " . $e->getMessage());
         }
     }
 }

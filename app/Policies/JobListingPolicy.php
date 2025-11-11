@@ -30,7 +30,9 @@ class JobListingPolicy
      */
     public function create(User $user): bool
     {
-        return $user->hasRole('company_admin') && $user->company;
+        return $user->hasRole('company_admin') &&
+               $user->company &&
+               $user->company->verification_status === 'verified';
     }
 
     /**

@@ -8,6 +8,7 @@ use App\Models\JobCategory;
 use App\Models\Company;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 
 class JobListingsController extends Controller
@@ -18,6 +19,7 @@ class JobListingsController extends Controller
 
         // Company admin can only see their company's job listings
         $query = JobListing::with(['company', 'category', 'skills'])
+            ->withCount('applications')
             ->when($user->role === 'company_admin' && $user->company_id, function ($q) use ($user) {
                 $q->where('company_id', $user->company_id);
             })
@@ -39,7 +41,7 @@ class JobListingsController extends Controller
             })
             ->orderBy('created_at', 'desc');
 
-        $jobListings = $query->paginate(10)->withQueryString();
+        $jobListings = $query->paginate(5)->withQueryString();
 
         $filters = $request->only(['search', 'status', 'category', 'employment_type']);
 
@@ -74,9 +76,9 @@ class JobListingsController extends Controller
                     ->with('error', 'Perusahaan Anda harus diverifikasi terlebih dahulu sebelum dapat membuat lowongan pekerjaan. Silakan lengkapi proses verifikasi.');
             }
 
-            if (!$company->canCreateJobListing(1)) { // Check for minimum 1 position
+            if (!$company->canCreateJobListing()) {
                 return redirect()->route('company.points.packages')
-                    ->with('error', 'Poin tidak cukup! Untuk membuat lowongan dengan beberapa posisi dibutuhkan poin tambahan. Sisa poin Anda: ' . $company->job_posting_points);
+                    ->with('error', 'Poin tidak cukup! Dibutuhkan 1 poin untuk memposting lowongan. Silakan lakukan top up terlebih dahulu.');
             }
         }
 
@@ -103,10 +105,14 @@ class JobListingsController extends Controller
             ];
         }
 
+        // Get all skills
+        $skills = \App\Models\Skill::orderBy('name')->get(['id', 'name']);
+
         return Inertia::render('admin/job-listings/create', [
             'categories' => $categories,
             'companies' => $companies,
             'userCompany' => $userCompany,
+            'skills' => $skills,
         ]);
     }
 
@@ -118,6 +124,7 @@ class JobListingsController extends Controller
             'title' => 'required|string|max:255',
             'description' => 'required|string',
             'requirements' => 'required|string',
+            'banner_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'company_id' => 'required|exists:companies,id',
             'job_category_id' => 'required|exists:job_categories,id',
             'employment_type' => 'required|in:full_time,part_time,contract,internship,freelance',
@@ -127,7 +134,7 @@ class JobListingsController extends Controller
             'location' => 'required|string|max:255',
             'work_arrangement' => 'required|in:onsite,remote,hybrid',
             'skills' => 'array',
-            'benefits' => 'array',
+            'benefits' => 'nullable|string',
             'positions_available' => 'integer|min:1',
         ]);
 
@@ -135,21 +142,27 @@ class JobListingsController extends Controller
         if ($user->role === 'company_admin') {
             $validated['company_id'] = $user->company_id;
 
-            // Check again before creating with actual positions count
+            // Check again before creating
             $company = $user->company;
 
-            // Double-check verification status
             if (!$company->is_verified || $company->verification_status !== 'verified') {
                 return redirect()->route('admin.company.verify')
                     ->with('error', 'Perusahaan Anda harus diverifikasi terlebih dahulu sebelum dapat membuat lowongan pekerjaan.');
             }
 
-            $positions = (int)($validated['positions_available'] ?? 1);
-            if (!$company->canCreateJobListing($positions)) {
-                $pointsNeeded = $positions > 1 ? $positions - 1 : 0;
+            if (!$company->canCreateJobListing()) {
                 return redirect()->route('company.points.packages')
-                    ->with('error', "Poin tidak cukup! Untuk {$positions} posisi dibutuhkan {$pointsNeeded} poin (1 posisi gratis). Sisa poin Anda: {$company->job_posting_points}");
+                    ->with('error', 'Poin tidak cukup! Dibutuhkan 1 poin untuk memposting lowongan. Sisa poin Anda: ' . $company->job_posting_points);
             }
+        }
+
+        // Handle banner image upload
+        if ($request->hasFile('banner_image')) {
+            if (!Storage::disk('public')->exists('job-banners')) {
+                Storage::disk('public')->makeDirectory('job-banners');
+            }
+            $bannerPath = $request->file('banner_image')->store('job-banners', 'public');
+            $validated['banner_image'] = $bannerPath;
         }
 
         $validated['status'] = 'draft'; // Default status
@@ -158,11 +171,15 @@ class JobListingsController extends Controller
 
         $jobListing = JobListing::create($validated);
 
-        // Deduct point for company admin based on positions
-        if ($user->role === 'company_admin') {
+        // Deduct point for company admin
+        if ($user->role === 'company_admin' && $jobListing->status === 'published' && !$jobListing->points_deducted_at) {
             $company = $user->company;
-            $positions = (int)($validated['positions_available'] ?? 1);
-            $company->deductJobPostingPoint($positions);
+            if (!$company->deductJobPostingPoint($jobListing)) {
+                $jobListing->update(['status' => 'draft']);
+
+                return redirect()->route('admin.job-listings.index')
+                    ->with('error', 'Poin tidak mencukupi untuk mempublikasikan lowongan. Lowongan disimpan sebagai draft.');
+            }
         }
 
         // Attach skills if provided
@@ -206,11 +223,24 @@ class JobListingsController extends Controller
             : Company::where('id', $user->company_id)->get();
 
         $jobListing->load(['skills']);
+        $skills = \App\Models\Skill::where('is_active', true)->orderBy('name')->get();
+
+        $userCompany = null;
+        if ($user->role === 'company_admin' && $user->company) {
+            $userCompany = [
+                'id' => $user->company->id,
+                'name' => $user->company->name,
+                'job_posting_points' => $user->company->job_posting_points,
+                'active_job_posts' => $user->company->jobListings()->where('status', 'published')->count(),
+            ];
+        }
 
         return Inertia::render('admin/job-listings/edit', [
             'jobListing' => $jobListing,
             'categories' => $categories,
             'companies' => $companies,
+            'skills' => $skills,
+            'userCompany' => $userCompany,
         ]);
     }
 
@@ -227,6 +257,7 @@ class JobListingsController extends Controller
             'title' => 'required|string|max:255',
             'description' => 'required|string',
             'requirements' => 'required|string',
+            'banner_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'company_id' => 'required|exists:companies,id',
             'job_category_id' => 'required|exists:job_categories,id',
             'employment_type' => 'required|in:full_time,part_time,contract,internship,freelance',
@@ -236,7 +267,7 @@ class JobListingsController extends Controller
             'location' => 'required|string|max:255',
             'work_arrangement' => 'required|in:onsite,remote,hybrid',
             'skills' => 'array',
-            'benefits' => 'array',
+            'benefits' => 'nullable|string',
             'positions_available' => 'integer|min:1',
             'status' => 'required|in:draft,published,closed,archived',
         ]);
@@ -244,6 +275,20 @@ class JobListingsController extends Controller
         // Company admin can only update their own company
         if ($user->role === 'company_admin') {
             $validated['company_id'] = $user->company_id;
+        }
+
+        // Handle banner image upload
+        if ($request->hasFile('banner_image')) {
+            // Delete old banner image if exists
+            if ($jobListing->banner_image && Storage::disk('public')->exists($jobListing->banner_image)) {
+                Storage::disk('public')->delete($jobListing->banner_image);
+            }
+
+            if (!Storage::disk('public')->exists('job-banners')) {
+                Storage::disk('public')->makeDirectory('job-banners');
+            }
+            $bannerPath = $request->file('banner_image')->store('job-banners', 'public');
+            $validated['banner_image'] = $bannerPath;
         }
 
         $jobListing->update($validated);
@@ -281,10 +326,33 @@ class JobListingsController extends Controller
             abort(403, 'Unauthorized');
         }
 
-        $newStatus = $jobListing->status === 'published' ? 'closed' : 'published';
-        $jobListing->update(['status' => $newStatus]);
+        $company = $jobListing->company;
+
+        if ($jobListing->status === 'published') {
+            $jobListing->update(['status' => 'closed']);
+
+            if ($company && $company->active_job_posts > 0) {
+                $company->decrement('active_job_posts');
+            }
+
+            return redirect()->back()
+                ->with('success', 'Lowongan berhasil ditutup.');
+        }
+
+        if ($company) {
+            if (!$jobListing->points_deducted_at) {
+                if (!$company->deductJobPostingPoint($jobListing)) {
+                    return redirect()->back()
+                        ->with('error', 'Poin tidak mencukupi untuk mempublikasikan lowongan. Silakan lakukan top up terlebih dahulu.');
+                }
+            } else {
+                $company->increment('active_job_posts');
+            }
+        }
+
+        $jobListing->update(['status' => 'published']);
 
         return redirect()->back()
-            ->with('success', 'Status lowongan pekerjaan berhasil diubah.');
+            ->with('success', 'Lowongan berhasil dipublikasikan.');
     }
 }

@@ -23,13 +23,13 @@ class WhatsAppPasswordResetService
         $waNumber = preg_replace('/[^0-9]/', '', $number);
 
         if (empty($waNumber) || strlen($waNumber) < 9) {
-            Log::warning("❌ Pesan WhatsApp password reset TIDAK terkirim: Nomor tidak valid. Input: {$number} | Dibersihkan: {$waNumber}");
+            Log::warning("Pesan WhatsApp password reset TIDAK terkirim: Nomor tidak valid. Input: {$number} | Dibersihkan: {$waNumber}");
             return;
         }
 
         $waGatewayUrl = env('APP_WA_URL');
         if (empty($waGatewayUrl)) {
-            Log::warning("❌ Pesan WhatsApp password reset TIDAK terkirim: APP_WA_URL tidak diatur di .env");
+            Log::warning("Pesan WhatsApp password reset TIDAK terkirim: APP_WA_URL tidak diatur di .env");
             return;
         }
 
@@ -41,10 +41,10 @@ class WhatsAppPasswordResetService
             
             try {
                 if ($attempt > 1) {
-                    Log::info("🔄 Retry #{$attempt} mengirim WhatsApp password reset ke {$waNumber}");
+                    Log::info("Retry #{$attempt} mengirim WhatsApp password reset ke {$waNumber}");
                     sleep(2); // Wait 2 seconds between retries
                 } else {
-                    Log::info("📤 Mengirim WhatsApp password reset ke {$waNumber} dengan pesan:\n" . $message);
+                    Log::info("Mengirim WhatsApp password reset ke {$waNumber} dengan pesan:\n" . $message);
                 }
 
                 $curl = curl_init();
@@ -80,31 +80,31 @@ class WhatsAppPasswordResetService
                 curl_close($curl);
 
                 if (!empty($error)) {
-                    Log::error("❌ Attempt {$attempt}/{$retryCount} - Gagal mengirim WhatsApp password reset ke {$waNumber}: Error cURL - {$error}");
+                    Log::error("Attempt {$attempt}/{$retryCount} - Gagal mengirim WhatsApp password reset ke {$waNumber}: Error cURL - {$error}");
                     if ($attempt < $retryCount) {
-                        Log::info("🔄 Will retry in 2 seconds...");
+                        Log::info("Will retry in 2 seconds...");
                         continue; // Try again
                     }
                 } elseif ($httpCode >= 400) {
-                    Log::error("❌ Attempt {$attempt}/{$retryCount} - HTTP Error {$httpCode} - Response: {$response}");
+                    Log::error("Attempt {$attempt}/{$retryCount} - HTTP Error {$httpCode} - Response: {$response}");
                     if ($attempt < $retryCount) {
-                        Log::info("🔄 Will retry in 2 seconds...");
+                        Log::info("Will retry in 2 seconds...");
                         continue; // Try again
                     }
                 } else {
                     // Success
-                    Log::info("✅ WhatsApp password reset berhasil dikirim ke {$waNumber} - HTTP {$httpCode}");
+                    Log::info("WhatsApp password reset berhasil dikirim ke {$waNumber} - HTTP {$httpCode}");
                     $success = true;
                 }
 
             } catch (\Exception $e) {
-                Log::error("🔴 Exception saat mengirim WhatsApp password reset (attempt #{$attempt}): " . $e->getMessage());
+                Log::error("Exception saat mengirim WhatsApp password reset (attempt #{$attempt}): " . $e->getMessage());
                 continue;
             }
         }
 
         if (!$success) {
-            Log::error("❌ GAGAL mengirim WhatsApp password reset ke {$waNumber} setelah {$retryCount} percobaan");
+            Log::error("GAGAL mengirim WhatsApp password reset ke {$waNumber} setelah {$retryCount} percobaan");
         }
     }
 
@@ -115,7 +115,7 @@ class WhatsAppPasswordResetService
             $phoneNumber = $user->userProfile->phone ?? null;
             
             if (!$phoneNumber) {
-                Log::warning("⚠️ No phone number in userProfile for user: {$user->email}");
+                Log::warning("No phone number in userProfile for user: {$user->email}");
                 return;
             }
 
@@ -123,7 +123,7 @@ class WhatsAppPasswordResetService
             $template = WhatsappTemplate::where('type', 'password_reset')->first();
             
             if (!$template) {
-                Log::warning("⚠️ Template WhatsApp password_reset tidak ditemukan, menggunakan template default");
+                Log::warning("Template WhatsApp password_reset tidak ditemukan, menggunakan template default");
                 $message = $this->getDefaultPasswordResetMessage($user, $resetUrl);
             } else {
                 $message = $this->replaceTemplatePlaceholders($template->message, $user, $resetUrl);
@@ -132,10 +132,10 @@ class WhatsAppPasswordResetService
             // Send WhatsApp message
             $this->sendWhatsAppMessage($phoneNumber, $message);
 
-            Log::info("📱 WhatsApp password reset notification dikirim ke user: {$user->email} ({$phoneNumber})");
+            Log::info("WhatsApp password reset notification dikirim ke user: {$user->email} ({$phoneNumber})");
 
         } catch (\Exception $e) {
-            Log::error("🔴 Error mengirim WhatsApp password reset notification: " . $e->getMessage(), [
+            Log::error("Error mengirim WhatsApp password reset notification: " . $e->getMessage(), [
                 'user_id' => $user->id,
                 'user_email' => $user->email,
                 'user_phone' => $user->userProfile->phone ?? 'N/A',

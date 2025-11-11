@@ -11,12 +11,18 @@ class JobListing extends Model
 {
     use HasFactory;
 
+    protected $appends = [
+        'banner_image_url',
+        'remaining_positions',
+    ];
+
     protected $fillable = [
         'title',
         'slug',
         'description',
         'requirements',
         'benefits',
+        'banner_image',
         'employment_type',
         'work_arrangement',
         'experience_level',
@@ -28,6 +34,7 @@ class JobListing extends Model
         'application_deadline',
         'positions_available',
         'status',
+        'points_deducted_at',
         'featured',
         'views_count',
         'applications_count',
@@ -44,6 +51,7 @@ class JobListing extends Model
             'salary_negotiable' => 'boolean',
             'application_deadline' => 'date',
             'featured' => 'boolean',
+            'points_deducted_at' => 'datetime',
         ];
     }
 
@@ -78,6 +86,11 @@ class JobListing extends Model
     {
         return $this->belongsToMany(User::class, 'saved_jobs')
             ->withTimestamps();
+    }
+
+    public function invitations()
+    {
+        return $this->hasMany(JobInvitation::class);
     }
 
     public function moderator()
@@ -143,6 +156,18 @@ class JobListing extends Model
     }
 
     /**
+     * Get the full URL for the banner image
+     */
+    public function getBannerImageUrlAttribute()
+    {
+        if ($this->banner_image) {
+            // Use storage asset URL directly
+            return asset('storage/' . $this->banner_image);
+        }
+        return null;
+    }
+
+    /**
      * Boot method to auto-generate slug
      */
     protected static function boot()
@@ -185,5 +210,21 @@ class JobListing extends Model
     public function getRouteKeyName()
     {
         return 'slug';
+    }
+
+    /**
+     * Resolve route binding with fallback to ID if slug not found
+     */
+    public function resolveRouteBinding($value, $field = null)
+    {
+        // First try to find by slug
+        $job = $this->where('slug', $value)->first();
+
+        // If not found and value is numeric, try by ID (for backward compatibility)
+        if (!$job && is_numeric($value)) {
+            $job = $this->where('id', $value)->first();
+        }
+
+        return $job;
     }
 }

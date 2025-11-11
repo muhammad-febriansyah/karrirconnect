@@ -8,10 +8,15 @@ import TextLink from '@/components/text-link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { resolveAssetUrl } from '@/lib/utils';
 import { type SharedData } from '@/types';
+import { route } from 'ziggy-js';
 
 export default function ForgotPassword({ status }: { status?: string }) {
     const { settings } = usePage<SharedData>().props;
+    const authIllustrationFallback = 'https://placehold.co/1920x1080/0f172a/FFFFFF?text=KarirConnect';
+    const logoSrc = resolveAssetUrl(settings.logo);
+    const thumbnailSrc = resolveAssetUrl(settings.thumbnail, authIllustrationFallback);
     const { data, setData, post, processing, errors } = useForm<Required<{ email: string }>>({
         email: '',
     });
@@ -44,9 +49,9 @@ export default function ForgotPassword({ status }: { status?: string }) {
                     <div className="flex justify-start">
                         <a href={route('home')} className="flex items-center">
                             <div className="flex items-center justify-center overflow-hidden">
-                                {settings.logo ? (
+                                {logoSrc ? (
                                     <img
-                                        src={`/storage/${settings.logo}`}
+                                        src={logoSrc}
                                         alt={settings.site_name || 'Logo'}
                                         className="h-10 w-auto max-w-[160px] object-contain"
                                     />
@@ -144,11 +149,7 @@ export default function ForgotPassword({ status }: { status?: string }) {
                 </div>
 
                 <div className="relative hidden bg-muted lg:block">
-                    <img
-                        src={settings.thumbnail ? `/storage/${settings.thumbnail}` : "/placeholder.svg?height=1080&width=1920"}
-                        alt="Background"
-                        className="absolute inset-0 h-full w-full object-cover dark:brightness-[0.2] dark:grayscale"
-                    />
+                    <img src={thumbnailSrc} alt="Background" className="absolute inset-0 h-full w-full object-cover dark:brightness-[0.2] dark:grayscale" />
                 </div>
             </div>
         </>

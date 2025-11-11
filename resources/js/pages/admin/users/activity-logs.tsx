@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Activity, User, Calendar, MapPin, Monitor, Search, Download } from 'lucide-react';
+import { route } from 'ziggy-js';
 
 interface ActivityLog {
   id: number;

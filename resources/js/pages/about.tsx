@@ -1,11 +1,10 @@
 import { FlickeringGrid } from '@/components/magicui/flickering-grid';
 import { NumberTicker } from '@/components/magicui/number-ticker';
-import ModernFooter from '@/components/modern-footer';
-import ModernNavbar from '@/components/modern-navbar';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Head, Link } from '@inertiajs/react';
+import { Link } from '@inertiajs/react';
+import MainLayout from '@/layouts/main-layout';
 import { motion } from 'framer-motion';
 import {
     ArrowRight,
@@ -191,13 +190,8 @@ export default function About({ aboutUs }: AboutProps) {
     };
 
     return (
-        <>
-            <Head title={`${aboutUs.title} - KarirConnect`} />
-
-            <div className="min-h-screen bg-white">
-                {/* Modern Navbar */}
-                <ModernNavbar currentPage="about" />
-
+        <MainLayout currentPage="about" title={`${aboutUs.title} - KarirConnect`} className="bg-white">
+            <div className="min-h-screen">
                 {/* Hero Section */}
                 <section className="relative overflow-hidden bg-white pt-32 pb-16 lg:pt-40 lg:pb-20">
                     {/* Flickering Grid Background */}
@@ -830,9 +824,7 @@ export default function About({ aboutUs }: AboutProps) {
                     </div>
                 </section>
 
-                {/* Modern Footer */}
-                <ModernFooter />
             </div>
-        </>
+        </MainLayout>
     );
 }

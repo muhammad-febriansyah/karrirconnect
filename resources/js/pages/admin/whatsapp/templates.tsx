@@ -41,10 +41,10 @@ export default function WhatsAppTemplates({ templates }: Props) {
     };
 
     const typeEmojis = {
-        notification: '🔔',
-        marketing: '📢',
-        system: '🔧',
-        alert: '⚠️',
+        notification: '',
+        marketing: '',
+        system: '',
+        alert: '',
     };
 
     const handleToggleStatus = async (template: WhatsAppTemplate) => {

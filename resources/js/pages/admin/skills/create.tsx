@@ -11,6 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { ArrowLeft, Save, Award, Hash, FileText, CheckCircle } from 'lucide-react';
 import { toast } from 'sonner';
+import { route } from 'ziggy-js';
 
 export default function CreateSkill() {
     const { data, setData, post, processing, errors } = useForm({

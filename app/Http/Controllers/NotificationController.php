@@ -14,14 +14,17 @@ class NotificationController extends Controller
     public function index(Request $request)
     {
         $user = Auth::user();
-        
+
         if (!$user) {
-            return response()->json(['notifications' => [], 'unread_count' => 0]);
+            if ($request->expectsJson() || $request->wantsJson()) {
+                return response()->json(['notifications' => [], 'unread_count' => 0]);
+            }
+            return redirect()->route('login');
         }
 
         $notifications = Notification::query()
             ->active()
-            ->forRole($user->role)
+            ->visibleTo($user)
             ->orderBy('created_at', 'desc')
             ->limit(20)
             ->get()
@@ -39,11 +42,20 @@ class NotificationController extends Controller
             });
 
         $unreadCount = Notification::active()
-            ->forRole($user->role)
+            ->visibleTo($user)
             ->unread()
             ->count();
 
-        return response()->json([
+        // If this is an AJAX/API request, return JSON
+        if ($request->expectsJson() || $request->wantsJson()) {
+            return response()->json([
+                'notifications' => $notifications,
+                'unread_count' => $unreadCount,
+            ]);
+        }
+
+        // If this is a regular browser request, render notifications page
+        return \Inertia\Inertia::render('admin/notifications/index', [
             'notifications' => $notifications,
             'unread_count' => $unreadCount,
         ]);
@@ -57,7 +69,7 @@ class NotificationController extends Controller
         $user = Auth::user();
         
         // Check if notification is for user's role
-        if (!$notification->isForRole($user->role)) {
+        if (!$notification->isAccessibleBy($user)) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
@@ -74,7 +86,7 @@ class NotificationController extends Controller
         $user = Auth::user();
         
         Notification::active()
-            ->forRole($user->role)
+            ->visibleTo($user)
             ->unread()
             ->update(['read_at' => now()]);
 

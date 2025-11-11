@@ -19,7 +19,7 @@ class HomeController extends Controller
     {
         // Get site settings
         $settings = Setting::first();
-        
+
         // Get statistics
         $realStats = [
             'total_jobs' => JobListing::published()->count(),
@@ -27,7 +27,7 @@ class HomeController extends Controller
             'total_candidates' => User::where('role', 'user')->count(),
             'featured_jobs' => JobListing::published()->featured()->count(),
         ];
-        
+
         // Use custom stats if enabled
         $statistics = $realStats;
         if ($settings && $settings->use_custom_stats) {
@@ -50,6 +50,7 @@ class HomeController extends Controller
                 return [
                     'id' => $job->id,
                     'title' => $job->title,
+                    'slug' => $job->slug,
                     'company' => [
                         'id' => $job->company->id,
                         'name' => $job->company->name,
@@ -143,11 +144,11 @@ class HomeController extends Controller
                 ];
             });
 
-        // Get success stories
+        // Get success stories (featured first, then others)
         $successStories = SuccessStory::active()
-            ->featured()
-            ->ordered()
-            ->limit(6)
+            ->orderByDesc('is_featured')
+            ->orderBy('id')
+            ->orderBy('created_at', 'desc')
             ->get()
             ->map(function ($story) {
                 return [
@@ -166,30 +167,6 @@ class HomeController extends Controller
                 ];
             });
 
-        // If no featured stories, get any active stories
-        if ($successStories->isEmpty()) {
-            $successStories = SuccessStory::active()
-                ->ordered()
-                ->limit(6)
-                ->get()
-                ->map(function ($story) {
-                    return [
-                        'id' => $story->id,
-                        'name' => $story->name,
-                        'position' => $story->position,
-                        'company' => $story->company,
-                        'story' => $story->story,
-                        'location' => $story->location,
-                        'experience_years' => $story->experience_years,
-                        'salary_before' => $story->salary_before,
-                        'salary_after' => $story->salary_after,
-                        'salary_increase_percentage' => $story->salary_increase_percentage,
-                        'avatar_url' => $story->avatar_url,
-                        'created_at' => $story->created_at,
-                    ];
-                });
-        }
-
         // Get about us data
         $aboutUs = AboutUs::where('is_active', true)->first();
 
@@ -202,10 +179,14 @@ class HomeController extends Controller
                 'address' => $settings->address,
                 'logo' => $settings->logo ? asset('storage/' . $settings->logo) : null,
                 'thumbnail' => $settings->thumbnail ? asset('storage/' . $settings->thumbnail) : null,
+                'hero_image' => $settings->hero_image ? asset('storage/' . $settings->hero_image) : null,
+                'hero_title' => $settings->hero_title,
+                'hero_subtitle' => $settings->hero_subtitle,
                 'social' => [
-                    'facebook' => $settings->fb,
+                    'x' => $settings->x,
+                    'linkedin' => $settings->linkedin,
                     'instagram' => $settings->ig,
-                    'youtube' => $settings->yt,
+                    'facebook' => $settings->fb,
                     'tiktok' => $settings->tiktok,
                 ],
                 'keywords' => $settings->keyword,

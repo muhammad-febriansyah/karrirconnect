@@ -9,6 +9,7 @@ import { Head, router, useForm } from '@inertiajs/react';
 import { Camera, User } from 'lucide-react';
 import { FormEventHandler, useRef } from 'react';
 import { toast } from 'sonner';
+import { route } from 'ziggy-js';
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Admin', href: '/admin/dashboard' },
@@ -66,11 +67,9 @@ export default function AdminProfileEdit({ user }: AdminProfileEditProps) {
         }
     };
 
-    const currentAvatar = data.avatar 
-        ? URL.createObjectURL(data.avatar) 
-        : user.avatar 
-        ? `/storage/${user.avatar}` 
-        : null;
+    const currentAvatar = data.avatar
+        ? URL.createObjectURL(data.avatar)
+        : user.avatar_url;
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -113,7 +112,7 @@ export default function AdminProfileEdit({ user }: AdminProfileEditProps) {
                                 </div>
                                 <div>
                                     <Button type="button" variant="outline" size="sm" onClick={handleAvatarClick}>
-                                        {user.avatar ? 'Ganti Foto' : 'Upload Foto'}
+                                        {user.avatar_url ? 'Ganti Foto' : 'Upload Foto'}
                                     </Button>
                                     <p className="text-xs text-gray-500 mt-1">
                                         JPG, PNG atau GIF (maksimal 2MB)

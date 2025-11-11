@@ -14,8 +14,10 @@ export function NumberTicker({
   className?: string;
   delay?: number; // delay in s
 }) {
+  // Ensure value is a valid number
+  const validValue = typeof value === 'number' && !isNaN(value) ? value : 0;
   const ref = useRef<HTMLSpanElement>(null);
-  const motionValue = useMotionValue(direction === "down" ? value : 0);
+  const motionValue = useMotionValue(direction === "down" ? validValue : 0);
   const springValue = useSpring(motionValue, {
     damping: 60,
     stiffness: 100,
@@ -25,18 +27,19 @@ export function NumberTicker({
   useEffect(() => {
     if (isInView) {
       setTimeout(() => {
-        motionValue.set(direction === "down" ? 0 : value);
+        motionValue.set(direction === "down" ? 0 : validValue);
       }, delay * 1000);
     }
-  }, [motionValue, isInView, delay, value, direction]);
+  }, [motionValue, isInView, delay, validValue, direction]);
 
   useEffect(
     () =>
       springValue.on("change", (latest) => {
         if (ref.current) {
-          ref.current.textContent = Intl.NumberFormat("en-US").format(
-            Number(latest.toFixed(0)),
-          );
+          const numValue = Number(latest.toFixed(0));
+          ref.current.textContent = isNaN(numValue)
+            ? "0"
+            : Intl.NumberFormat("en-US").format(numValue);
         }
       }),
     [springValue],

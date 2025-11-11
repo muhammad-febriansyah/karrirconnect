@@ -16,18 +16,18 @@ class WaGatewayController extends Controller
         $waNumber = preg_replace('/[^0-9]/', '', $number);
 
         if (empty($waNumber) || strlen($waNumber) < 9) {
-            Log::warning("❌ Pesan WhatsApp TIDAK terkirim: Nomor tidak valid. Input: {$number} | Dibersihkan: {$waNumber}");
+            Log::warning("Pesan WhatsApp TIDAK terkirim: Nomor tidak valid. Input: {$number} | Dibersihkan: {$waNumber}");
             return;
         }
 
         $waGatewayUrl = env('APP_WA_URL');
         if (empty($waGatewayUrl)) {
-            Log::warning("❌ Pesan WhatsApp TIDAK terkirim: APP_WA_URL tidak diatur di .env");
+            Log::warning("Pesan WhatsApp TIDAK terkirim: APP_WA_URL tidak diatur di .env");
             return;
         }
 
         try {
-            Log::info("📤 Mengirim WhatsApp ke {$waNumber} dengan pesan:\n" . $message);
+            Log::info("Mengirim WhatsApp ke {$waNumber} dengan pesan:\n" . $message);
 
             $curl = curl_init();
             curl_setopt_array($curl, [
@@ -62,14 +62,14 @@ class WaGatewayController extends Controller
             curl_close($curl);
 
             if ($err) {
-                Log::error("❌ Gagal mengirim WA ke {$waNumber}: Error cURL - {$err}");
+                Log::error("Gagal mengirim WA ke {$waNumber}: Error cURL - {$err}");
             } elseif ($httpCode >= 400) {
-                Log::error("❌ Gagal mengirim WA ke {$waNumber}: HTTP {$httpCode} - Respons: {$response}");
+                Log::error("Gagal mengirim WA ke {$waNumber}: HTTP {$httpCode} - Respons: {$response}");
             } else {
-                Log::info("✅ WhatsApp terkirim ke {$waNumber} | Respons: {$response}");
+                Log::info("WhatsApp terkirim ke {$waNumber} | Respons: {$response}");
             }
         } catch (\Exception $e) {
-            Log::error("❌ Exception saat mengirim WhatsApp ke {$waNumber}: " . $e->getMessage(), [
+            Log::error("Exception saat mengirim WhatsApp ke {$waNumber}: " . $e->getMessage(), [
                 'trace' => $e->getTraceAsString(),
             ]);
         }
@@ -260,7 +260,7 @@ class WaGatewayController extends Controller
 
     private function getDefaultNotificationMessage(Notification $notification, ?User $user = null): string
     {
-        $message = "🔔 *KarirConnect Notification*\n\n";
+        $message = "*KarirConnect Notification*\n\n";
         $message .= "*{$notification->title}*\n\n";
         $message .= $notification->message;
 
@@ -271,7 +271,7 @@ class WaGatewayController extends Controller
         if ($notification->action_url) {
             $baseUrl = config('app.url');
             $fullUrl = $baseUrl . $notification->action_url;
-            $message .= "\n\n🔗 Link: {$fullUrl}";
+            $message .= "\n\nLink: {$fullUrl}";
         }
 
         $message .= "\n\n_Pesan otomatis dari KarirConnect_";

@@ -47,7 +47,7 @@ export default function PointPackagesIndex({ packages }: Props) {
             onClick={() => router.get('/admin/dashboard')}
             className="w-fit"
           >
-            ← Kembali ke Dashboard
+             Kembali ke Dashboard
           </Button>
           
           <div className="flex justify-between items-center">

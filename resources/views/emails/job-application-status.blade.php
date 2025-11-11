@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Status Lamaran Kerja</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+        .container {
+            max-width: 600px;
+            margin: 20px auto;
+            background: #ffffff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .header {
+            background: linear-gradient(135deg, #2347FA 0%, #3b56fc 100%);
+            color: #ffffff;
+            padding: 30px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+            font-weight: 600;
+        }
+        .content {
+            padding: 30px;
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            margin: 10px 0;
+        }
+        .status-hired {
+            background-color: #d1fae5;
+            color: #065f46;
+        }
+        .status-rejected {
+            background-color: #fee2e2;
+            color: #991b1b;
+        }
+        .status-interview {
+            background-color: #dbeafe;
+            color: #1e40af;
+        }
+        .status-reviewing {
+            background-color: #fef3c7;
+            color: #92400e;
+        }
+        .status-shortlisted {
+            background-color: #e0e7ff;
+            color: #3730a3;
+        }
+        .job-info {
+            background-color: #f9fafb;
+            border-left: 4px solid #2347FA;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        .job-info h3 {
+            margin: 0 0 10px 0;
+            color: #111827;
+            font-size: 18px;
+        }
+        .job-info p {
+            margin: 5px 0;
+            color: #6b7280;
+            font-size: 14px;
+        }
+        .message {
+            background-color: #f0f9ff;
+            border: 1px solid #bae6fd;
+            padding: 20px;
+            border-radius: 6px;
+            margin: 20px 0;
+        }
+        .button {
+            display: inline-block;
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #2347FA 0%, #3b56fc 100%);
+            color: #ffffff;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: 600;
+            margin: 20px 0;
+            text-align: center;
+        }
+        .footer {
+            background-color: #f9fafb;
+            padding: 20px 30px;
+            text-align: center;
+            color: #6b7280;
+            font-size: 12px;
+            border-top: 1px solid #e5e7eb;
+        }
+        .footer a {
+            color: #2347FA;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>
+                @if($status === 'hired')
+                     Selamat!
+                @elseif($status === 'rejected')
+                     Update Status Lamaran
+                @elseif($status === 'interview')
+                     Undangan Interview
+                @elseif($status === 'reviewing')
+                     Lamaran Sedang Ditinjau
+                @elseif($status === 'shortlisted')
+                     Anda Masuk Shortlist
+                @else
+                     Update Lamaran Kerja
+                @endif
+            </h1>
+        </div>
+
+        <!-- Content -->
+        <div class="content">
+            <p>Halo, <strong>{{ $user->name }}</strong></p>
+
+            <p>
+                <span class="status-badge status-{{ $status }}">
+                    @if($status === 'hired')
+                        LAMARAN DITERIMA
+                    @elseif($status === 'rejected')
+                        LAMARAN DITOLAK
+                    @elseif($status === 'interview')
+                        UNDANGAN INTERVIEW
+                    @elseif($status === 'reviewing')
+                        SEDANG DITINJAU
+                    @elseif($status === 'shortlisted')
+                        MASUK SHORTLIST
+                    @else
+                        {{ strtoupper($status) }}
+                    @endif
+                </span>
+            </p>
+
+            <!-- Job Information -->
+            <div class="job-info">
+                <h3>{{ $jobListing->title }}</h3>
+                <p><strong>Perusahaan:</strong> {{ $company->company_name }}</p>
+                <p><strong>Lokasi:</strong> {{ $jobListing->location }}</p>
+                <p><strong>Tanggal Melamar:</strong> {{ $jobApplication->created_at->format('d M Y') }}</p>
+            </div>
+
+            <!-- Status-specific message -->
+            <div class="message">
+                @if($status === 'hired')
+                    <p><strong>Selamat! Lamaran Anda telah diterima! </strong></p>
+                    <p>
+                        Kami dengan senang hati menginformasikan bahwa lamaran Anda untuk posisi
+                        <strong>{{ $jobListing->title }}</strong> di <strong>{{ $company->company_name }}</strong>
+                        telah diterima.
+                    </p>
+                    <p>
+                        Tim HRD kami akan segera menghubungi Anda melalui email atau telepon untuk langkah selanjutnya
+                        dalam proses rekrutmen.
+                    </p>
+                @elseif($status === 'rejected')
+                    <p><strong>Terima kasih atas minat Anda</strong></p>
+                    <p>
+                        Terima kasih telah melamar untuk posisi <strong>{{ $jobListing->title }}</strong>
+                        di <strong>{{ $company->company_name }}</strong>.
+                    </p>
+                    <p>
+                        Setelah mempertimbangkan dengan cermat, kami memutuskan untuk melanjutkan dengan kandidat lain
+                        yang lebih sesuai dengan kebutuhan posisi ini saat ini.
+                    </p>
+                    <p>
+                        Kami menghargai waktu dan usaha Anda dalam proses aplikasi ini. Jangan berkecil hati,
+                        teruslah mencari peluang lain yang sesuai dengan keahlian Anda!
+                    </p>
+                @elseif($status === 'interview')
+                    <p><strong>Anda diundang untuk interview! </strong></p>
+                    <p>
+                        Selamat! Lamaran Anda untuk posisi <strong>{{ $jobListing->title }}</strong>
+                        di <strong>{{ $company->company_name }}</strong> telah lolos ke tahap interview.
+                    </p>
+                    <p>
+                        Tim HRD kami akan menghubungi Anda segera untuk mengatur jadwal interview.
+                        Pastikan Anda memeriksa email dan nomor telepon Anda secara berkala.
+                    </p>
+                    <p>
+                        <strong>Tips:</strong> Siapkan diri Anda dengan baik, pelajari tentang perusahaan,
+                        dan berlatih menjawab pertanyaan interview umum.
+                    </p>
+                @elseif($status === 'reviewing')
+                    <p><strong>Lamaran Anda sedang ditinjau </strong></p>
+                    <p>
+                        Lamaran Anda untuk posisi <strong>{{ $jobListing->title }}</strong>
+                        di <strong>{{ $company->company_name }}</strong> saat ini sedang ditinjau oleh tim HRD kami.
+                    </p>
+                    <p>
+                        Kami akan menginformasikan Anda segera setelah ada perkembangan lebih lanjut.
+                        Terima kasih atas kesabaran Anda.
+                    </p>
+                @elseif($status === 'shortlisted')
+                    <p><strong>Anda masuk daftar pendek kandidat! </strong></p>
+                    <p>
+                        Selamat! Lamaran Anda untuk posisi <strong>{{ $jobListing->title }}</strong>
+                        di <strong>{{ $company->company_name }}</strong> telah masuk ke dalam daftar pendek kandidat.
+                    </p>
+                    <p>
+                        Ini berarti profil Anda telah menarik perhatian tim HRD kami. Kami akan menghubungi Anda
+                        untuk tahap seleksi berikutnya.
+                    </p>
+                    <p>
+                        Mohon tetap memantau email dan telepon Anda untuk update selanjutnya.
+                    </p>
+                @endif
+            </div>
+
+            <!-- Call to Action -->
+            <div style="text-align: center;">
+                <a href="{{ config('app.url') }}/user/dashboard" class="button">
+                    Lihat Dashboard Anda
+                </a>
+            </div>
+
+            <p style="margin-top: 30px; color: #6b7280; font-size: 14px;">
+                Jika Anda memiliki pertanyaan, silakan hubungi kami melalui platform KarirConnect
+                atau balas email ini.
+            </p>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <p>
+                Email ini dikirim secara otomatis oleh sistem KarirConnect.<br>
+                Jangan balas email ini. Untuk pertanyaan, silakan hubungi kami melalui
+                <a href="{{ config('app.url') }}/contact">halaman kontak</a>.
+            </p>
+            <p style="margin-top: 10px;">
+                &copy; {{ date('Y') }} KarirConnect. All rights reserved.
+            </p>
+        </div>
+    </div>
+</body>
+</html>

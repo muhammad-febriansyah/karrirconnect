@@ -9,19 +9,58 @@ use App\Models\Setting;
 use App\Models\Skill;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Inertia\Inertia;
 
 class JobController extends Controller
 {
-    public function index()
+    use AuthorizesRequests;
+    public function index(Request $request)
     {
         $company = auth()->user()->company;
-        
-        $jobs = $company->jobListings()
-            ->with(['category', 'skills'])
-            ->orderBy('created_at', 'desc')
-            ->paginate(10);
 
+        // Get filter parameters
+        $search = $request->get('search');
+        $status = $request->get('status');
+        $category = $request->get('category');
+        $employment_type = $request->get('employment_type');
+        $perPage = $request->get('per_page', 10);
+
+        // Build the query
+        $query = $company->jobListings()->with(['category', 'skills']);
+
+        // Apply search filter
+        if ($search) {
+            $searchTerm = '%' . $search . '%';
+            $query->where(function ($q) use ($searchTerm) {
+                $q->where('title', 'like', $searchTerm)
+                    ->orWhere('description', 'like', $searchTerm)
+                    ->orWhere('location', 'like', $searchTerm)
+                    ->orWhere('requirements', 'like', $searchTerm);
+            });
+        }
+
+        // Apply status filter
+        if ($status && $status !== 'all') {
+            $query->where('status', $status);
+        }
+
+        // Apply category filter
+        if ($category && $category !== 'all') {
+            $query->where('job_category_id', $category);
+        }
+
+        // Apply employment type filter
+        if ($employment_type && $employment_type !== 'all') {
+            $query->where('employment_type', $employment_type);
+        }
+
+        // Get paginated results
+        $jobs = $query->orderBy('created_at', 'desc')
+            ->paginate($perPage)
+            ->withQueryString();
+
+        // Get stats (unfiltered for accurate totals)
         $stats = [
             'total_jobs' => $company->jobListings()->count(),
             'active_jobs' => $company->jobListings()->where('status', 'published')->count(),
@@ -30,17 +69,56 @@ class JobController extends Controller
             'current_points' => $company->job_posting_points,
         ];
 
+        // Get filter options
+        $categories = JobCategory::orderBy('name')->get(['id', 'name']);
+        $employmentTypes = [
+            'Full-time' => 'Full-time',
+            'Part-time' => 'Part-time',
+            'Contract' => 'Contract',
+            'Internship' => 'Internship'
+        ];
+
         return Inertia::render('company/jobs/index', [
             'jobs' => $jobs,
             'stats' => $stats,
-            'company' => $company
+            'company' => [
+                'id' => $company->id,
+                'name' => $company->name,
+                'job_posting_points' => $company->job_posting_points,
+                'verification_status' => $company->verification_status,
+                'is_verified' => $company->isVerified(),
+                'can_post_job' => $company->canPostJob(),
+            ],
+            'filters' => [
+                'search' => $search,
+                'status' => $status,
+                'category' => $category,
+                'employment_type' => $employment_type,
+                'per_page' => $perPage,
+            ],
+            'filterOptions' => [
+                'categories' => $categories,
+                'employment_types' => $employmentTypes,
+                'statuses' => [
+                    'draft' => 'Draft',
+                    'published' => 'Aktif',
+                    'paused' => 'Dijeda',
+                    'closed' => 'Ditutup',
+                ],
+            ]
         ]);
     }
 
     public function create()
     {
         $company = auth()->user()->company;
-        
+
+        // Check if company is verified
+        if (!$company->isVerified()) {
+            return redirect()->route('company.jobs.index')
+                ->with('error', 'Perusahaan Anda belum terverifikasi. Silakan lengkapi proses verifikasi terlebih dahulu untuk dapat memposting lowongan.');
+        }
+
         $categories = JobCategory::orderBy('name')->get();
         $skills = Skill::orderBy('name')->get();
 
@@ -133,42 +211,51 @@ class JobController extends Controller
             'status' => 'required|in:draft,published'
         ]);
 
-        DB::transaction(function () use ($validated, $company, $request) {
-            $job = $company->jobListings()->create([
-                ...$validated,
-                'created_by' => auth()->id(),
-                'salary_currency' => 'IDR'
-            ]);
+        $shouldPublish = $validated['status'] === 'published';
 
-            // Attach skills if provided
-            if ($request->has('skills') && is_array($request->skills)) {
-                $job->skills()->attach($request->skills);
-            }
-
-            // Deduct points if job is published and company has points
-            if ($validated['status'] === 'published' && $company->job_posting_points >= 1) {
-                $company->decrement('job_posting_points', 1);
-                
-                // Create point transaction record
-                $company->pointTransactions()->create([
-                    'type' => 'usage',
-                    'points' => -1,
-                    'description' => "Posting lowongan: {$job->title}",
-                    'status' => 'completed',
-                    'reference_type' => 'job_posting',
-                    'reference_id' => $job->id
-                ]);
-            } elseif ($validated['status'] === 'published' && $company->job_posting_points < 1) {
-                // Auto save as draft if no points but trying to publish
-                $validated['status'] = 'draft';
-            }
-        });
-
-        $message = $validated['status'] === 'published' ? 'Lowongan berhasil dipublikasikan!' : 'Lowongan berhasil disimpan sebagai draft!';
-        if ($request->input('status') === 'published' && $company->job_posting_points < 1) {
-            $message = 'Lowongan disimpan sebagai draft karena poin tidak mencukupi untuk publikasi.';
+        // Check if company is verified before allowing job posting
+        if (!$company->isVerified()) {
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'Perusahaan Anda belum terverifikasi. Silakan lengkapi proses verifikasi terlebih dahulu untuk dapat memposting lowongan.');
         }
-        
+
+        if ($shouldPublish && !$company->hasAvailablePoints()) {
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'Poin tidak mencukupi untuk mempublikasikan lowongan. Silakan lakukan top up terlebih dahulu.');
+        }
+
+        try {
+            DB::transaction(function () use ($validated, $company, $request, $shouldPublish) {
+                $job = $company->jobListings()->create([
+                    ...$validated,
+                    'created_by' => auth()->id(),
+                    'salary_currency' => 'IDR'
+                ]);
+
+                if ($request->has('skills') && is_array($request->skills)) {
+                    $job->skills()->attach($request->skills);
+                }
+
+                if ($shouldPublish && !$company->deductJobPostingPoint($job)) {
+                    $job->update(['status' => 'draft']);
+
+                    throw new \RuntimeException('insufficient_points');
+                }
+            });
+        } catch (\RuntimeException $exception) {
+            if ($exception->getMessage() === 'insufficient_points') {
+                return redirect()->back()
+                    ->withInput()
+                    ->with('error', 'Poin tidak mencukupi untuk mempublikasikan lowongan. Silakan lakukan top up terlebih dahulu.');
+            }
+
+            throw $exception;
+        }
+
+        $message = $shouldPublish ? 'Lowongan berhasil dipublikasikan!' : 'Lowongan berhasil disimpan sebagai draft!';
+
         return redirect()->route('company.jobs.index')
             ->with('success', $message);
     }
@@ -225,6 +312,11 @@ class JobController extends Controller
             'skills.*' => 'exists:skills,id',
             'status' => 'required|in:draft,published,closed,paused'
         ]);
+
+        // Check if company is verified before allowing publishing
+        if (!$company->isVerified()) {
+            return back()->with('error', 'Perusahaan Anda belum terverifikasi. Silakan lengkapi proses verifikasi terlebih dahulu.');
+        }
 
         // Check points if changing from draft to published
         if (!$wasPublished && $validated['status'] === 'published') {
@@ -283,6 +375,11 @@ class JobController extends Controller
             'draft' => 'published',
             default => $job->status
         };
+
+        // Check if company is verified before allowing publishing
+        if (!$company->isVerified()) {
+            return back()->with('error', 'Perusahaan Anda belum terverifikasi. Silakan lengkapi proses verifikasi terlebih dahulu.');
+        }
 
         // Check points if publishing
         if ($job->status !== 'published' && $newStatus === 'published') {

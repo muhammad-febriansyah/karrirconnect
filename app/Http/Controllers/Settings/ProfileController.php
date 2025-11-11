@@ -34,32 +34,50 @@ class ProfileController extends Controller
      */
     public function update(ProfileUpdateRequest $request): RedirectResponse
     {
-        $validated = $request->validated();
-        $user = $request->user();
+        try {
+            \Log::info('Profile update request data:', $request->all());
+            $validated = $request->validated();
+            \Log::info('Profile update validated data:', $validated);
+            $user = $request->user();
 
-        // Update user basic info
-        $user->fill([
-            'name' => $validated['name'],
-            'email' => $validated['email'],
-        ]);
+            // Update user basic info only if provided
+            if (!empty($validated['name'])) {
+                $user->name = $validated['name'];
+            }
 
-        if ($user->isDirty('email')) {
-            $user->email_verified_at = null;
-        }
+            if (!empty($validated['email'])) {
+                if ($user->email !== $validated['email']) {
+                    $user->email = $validated['email'];
+                    $user->email_verified_at = null;
+                }
+            }
 
-        $user->save();
+            $user->save();
 
         // Handle profile data
         $profileData = collect($validated)->except(['name', 'email'])->filter()->all();
 
         // Handle file uploads
         if ($request->hasFile('avatar')) {
+            \Log::info('Avatar file received for upload', [
+                'user_id' => $user->id,
+                'file_name' => $request->file('avatar')->getClientOriginalName(),
+                'file_size' => $request->file('avatar')->getSize()
+            ]);
+
             // Delete old avatar if exists
             if ($user->profile && $user->profile->avatar) {
+                \Log::info('Deleting old avatar: ' . $user->profile->avatar);
                 Storage::disk('public')->delete($user->profile->avatar);
             }
+
             $avatarPath = $request->file('avatar')->store('avatars', 'public');
             $profileData['avatar'] = $avatarPath;
+
+            \Log::info('Avatar uploaded successfully', [
+                'user_id' => $user->id,
+                'avatar_path' => $avatarPath
+            ]);
         }
 
         if ($request->hasFile('resume')) {
@@ -72,13 +90,38 @@ class ProfileController extends Controller
         }
 
         // Create or update profile
+        \Log::info('Updating profile data', [
+            'user_id' => $user->id,
+            'profile_data' => $profileData,
+            'has_profile' => !!$user->profile
+        ]);
+
         if ($user->profile) {
             $user->profile->update($profileData);
+            \Log::info('Profile updated successfully', [
+                'user_id' => $user->id,
+                'profile_id' => $user->profile->id
+            ]);
         } else {
-            $user->profile()->create(array_merge($profileData, ['user_id' => $user->id]));
+            $profile = $user->profile()->create(array_merge($profileData, ['user_id' => $user->id]));
+            \Log::info('Profile created successfully', [
+                'user_id' => $user->id,
+                'profile_id' => $profile->id
+            ]);
         }
 
-        return to_route('profile.edit')->with('status', 'profile-updated');
+            return to_route('profile.edit')->with('status', 'profile-updated');
+        } catch (\Exception $e) {
+            \Log::error('Profile update error: ' . $e->getMessage(), [
+                'user_id' => $request->user()->id,
+                'exception' => $e,
+                'validated_data' => $validated ?? null
+            ]);
+
+            return back()->withErrors([
+                'general' => 'Terjadi kesalahan saat menyimpan profil: ' . $e->getMessage()
+            ])->withInput();
+        }
     }
 
     /**

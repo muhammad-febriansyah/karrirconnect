@@ -8,6 +8,7 @@ use App\Http\Controllers\Admin\CompanyManagementController;
 use App\Http\Controllers\Admin\JobListingsController;
 use App\Http\Controllers\Admin\EmailManagementController;
 use App\Http\Controllers\Admin\JobCategoryManagementController;
+use App\Http\Controllers\Admin\JobInvitationController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\Admin\ModerationController;
 use App\Http\Controllers\Admin\NewsController;
@@ -22,6 +23,8 @@ use App\Http\Controllers\Admin\TransactionController;
 use App\Http\Controllers\Admin\WhatsAppTemplateController;
 use App\Http\Controllers\Admin\WhatsAppBroadcastController;
 use App\Http\Controllers\Admin\SkillController;
+use App\Http\Controllers\Admin\TalentDatabaseController;
+use App\Http\Controllers\Admin\EmailTemplateController;
 use App\Http\Controllers\WaGatewayController;
 use Illuminate\Support\Facades\Route;
 
@@ -31,6 +34,12 @@ Route::middleware(['auth', 'verified', 'admin.role'])->prefix('admin')->name('ad
     // Dashboard
     // Route::get('/', [AdminController::class, 'dashboard'])->name('dashboard');
     Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('dashboard');
+
+    // Success Stories moderation/listing
+    Route::get('/success-stories', [\App\Http\Controllers\Admin\SuccessStoryAdminController::class, 'index'])->name('success-stories.index');
+    Route::get('/success-stories/{successStory}', [\App\Http\Controllers\Admin\SuccessStoryAdminController::class, 'show'])->name('success-stories.show');
+    Route::post('/success-stories/{successStory}/toggle-status', [\App\Http\Controllers\Admin\SuccessStoryAdminController::class, 'toggleStatus'])->name('success-stories.toggle-status');
+    Route::post('/success-stories/{successStory}/toggle-featured', [\App\Http\Controllers\Admin\SuccessStoryAdminController::class, 'toggleFeatured'])->name('success-stories.toggle-featured');
 
     // Admin Profile
     Route::get('/profile', [AdminProfileController::class, 'edit'])->name('profile.edit');
@@ -63,6 +72,11 @@ Route::middleware(['auth', 'verified', 'admin.role'])->prefix('admin')->name('ad
     // Job Listings Create/Store - Company admin can create (MUST be before {jobListing} route)
     Route::get('/job-listings/create', [JobListingsController::class, 'create'])->name('job-listings.create');
     Route::post('/job-listings', [JobListingsController::class, 'store'])->name('job-listings.store');
+
+    // Talent database & job invitations (company admin only)
+    Route::get('/talent-database', [\App\Http\Controllers\Admin\TalentDatabaseController::class, 'index'])->name('talent-database.index');
+    Route::get('/talent-database/users/{user}', [\App\Http\Controllers\Admin\TalentDatabaseController::class, 'show'])->name('talent-database.profile');
+    Route::post('/job-invitations', [\App\Http\Controllers\Admin\JobInvitationController::class, 'store'])->name('job-invitations.store');
     
     Route::get('/job-listings/{jobListing}', [JobListingsController::class, 'show'])->name('job-listings.show');
 
@@ -150,6 +164,20 @@ Route::middleware(['auth', 'verified', App\Http\Middleware\EnsureUserIsAdmin::cl
         Route::post('/job-listings/bulk-moderate', [ModerationController::class, 'bulkModerateJobs'])->name('bulk-moderate-jobs');
         Route::get('/reports', [ModerationController::class, 'reports'])->name('reports');
         Route::patch('/reports/{report}/resolve', [ModerationController::class, 'resolveReport'])->name('resolve-report');
+    });
+
+    // Email Template Management (Super Admin Only)
+    Route::prefix('email-templates')->name('email-templates.')->group(function () {
+        Route::get('/', [EmailTemplateController::class, 'index'])->name('index');
+        Route::get('/create', [EmailTemplateController::class, 'create'])->name('create');
+        Route::post('/', [EmailTemplateController::class, 'store'])->name('store');
+        Route::get('/{emailTemplate}', [EmailTemplateController::class, 'show'])->name('show');
+        Route::get('/{emailTemplate}/edit', [EmailTemplateController::class, 'edit'])->name('edit');
+        Route::patch('/{emailTemplate}', [EmailTemplateController::class, 'update'])->name('update');
+        Route::delete('/{emailTemplate}', [EmailTemplateController::class, 'destroy'])->name('destroy');
+        Route::post('/{emailTemplate}/toggle', [EmailTemplateController::class, 'toggle'])->name('toggle');
+        Route::get('/{emailTemplate}/preview', [EmailTemplateController::class, 'preview'])->name('preview');
+        Route::post('/{emailTemplate}/send-test', [EmailTemplateController::class, 'sendTest'])->name('send-test');
     });
 
     // Email & Notification Management (Super Admin Only)

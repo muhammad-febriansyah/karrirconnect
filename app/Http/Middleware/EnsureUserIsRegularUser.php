@@ -23,11 +23,24 @@ class EnsureUserIsRegularUser
         
         // Only allow regular users (role: 'user')
         if ($user->role !== 'user') {
+            // Log for debugging
+            \Log::info('User role access attempt', [
+                'user_id' => $user->id,
+                'role' => $user->role,
+                'attempted_url' => $request->url()
+            ]);
+
+            // Temporary: Allow admin users for testing user pages
+            if (in_array($user->role, ['super_admin', 'company_admin'])) {
+                \Log::info('Allowing admin user to access user page for testing');
+                return $next($request);
+            }
+
             // Redirect to appropriate dashboard based on role
             if ($user->role === 'super_admin') {
                 return redirect()->route('admin.dashboard');
             }
-            
+
             if ($user->role === 'company_admin') {
                 // Check if company_admin has valid company association
                 if ($user->company_id && $user->company) {
@@ -37,7 +50,7 @@ class EnsureUserIsRegularUser
                     abort(403, 'Access denied. Please contact support to associate your account with a company.');
                 }
             }
-            
+
             // If unknown role, redirect to home
             return redirect()->route('home');
         }

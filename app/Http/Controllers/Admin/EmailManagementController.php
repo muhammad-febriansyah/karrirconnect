@@ -175,13 +175,39 @@ class EmailManagementController extends Controller
         $sentCount = 0;
         foreach ($recipients as $recipient) {
             try {
-                Mail::raw($campaign->content, function ($message) use ($campaign, $recipient) {
+                // Prepare data for variable replacement
+                $data = [
+                    'nama' => $recipient->name,
+                    'email' => $recipient->email,
+                    'name' => $recipient->name,
+                    'user_name' => $recipient->name,
+                    'company_name' => $recipient->company->name ?? 'N/A',
+                ];
+
+                // Replace variables in content
+                $body = $campaign->content;
+                foreach ($data as $key => $value) {
+                    $patterns = [
+                        '/\{\{\s*' . preg_quote($key, '/') . '\s*\}\}/',  // {{ variable }}
+                        '/\{\{' . preg_quote($key, '/') . '\}\}/',         // {{variable}}
+                    ];
+                    foreach ($patterns as $pattern) {
+                        $body = preg_replace($pattern, (string) $value, $body);
+                    }
+                }
+
+                // Send as HTML email
+                Mail::html($body, function ($message) use ($campaign, $recipient) {
                     $message->to($recipient->email)
                             ->subject($campaign->subject);
                 });
                 $sentCount++;
             } catch (\Exception $e) {
-                // Log error
+                \Log::error('Failed to send campaign email', [
+                    'campaign_id' => $campaign->id,
+                    'recipient_email' => $recipient->email,
+                    'error' => $e->getMessage(),
+                ]);
             }
         }
 

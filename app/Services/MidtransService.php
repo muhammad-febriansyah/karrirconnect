@@ -10,6 +10,7 @@ use App\Models\PointPackage;
 use App\Models\Company;
 use App\Models\Setting;
 use App\Services\WhatsAppPaymentService;
+use App\Services\EmailService;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
@@ -299,6 +300,29 @@ class MidtransService
             ]);
         } catch (\Exception $e) {
             Log::error('Failed to send WhatsApp notification for successful payment', [
+                'transaction_id' => $transaction->id,
+                'company_id' => $company->id,
+                'error' => $e->getMessage(),
+            ]);
+        }
+
+        // Send email notification for successful payment
+        try {
+            EmailService::send('employer-payment-notification', $company->email, [
+                'company_name' => $company->name,
+                'transaction_id' => $transaction->payment_reference,
+                'package_name' => $transaction->pointPackage->name ?? 'N/A',
+                'points' => number_format($transaction->points, 0, ',', '.'),
+                'amount' => number_format($transaction->amount, 0, ',', '.'),
+                'payment_date' => $transaction->updated_at->format('d M Y H:i'),
+                'current_balance' => number_format($company->job_posting_points, 0, ',', '.'),
+            ]);
+            Log::info('Email notification sent for successful payment', [
+                'transaction_id' => $transaction->id,
+                'company_id' => $company->id,
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Failed to send email notification for successful payment', [
                 'transaction_id' => $transaction->id,
                 'company_id' => $company->id,
                 'error' => $e->getMessage(),

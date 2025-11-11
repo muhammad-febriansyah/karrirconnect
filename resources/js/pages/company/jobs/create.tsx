@@ -1,16 +1,18 @@
-import React, { useState } from 'react';
-import { Head, useForm, router } from '@inertiajs/react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Head, useForm, router, usePage } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { RichTextEditor } from '@/components/ui/rich-text-editor';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
-import { 
+import {
   ArrowLeft,
+  ArrowRight,
   Save,
   Eye,
   Plus,
@@ -22,12 +24,15 @@ import {
   Users,
   Calendar,
   DollarSign,
-  Star,
   CheckCircle,
-  CreditCard,
-  ShoppingCart
+  Check,
+  FileText,
+  Award,
+  Zap
 } from 'lucide-react';
-import { NumberTicker } from '@/components/ui/number-ticker';
+import { toast } from 'sonner';
+import { type SharedData } from '@/types';
+import DatePicker from '@/components/ui/date-picker';
 
 interface JobCategory {
   id: number;
@@ -45,42 +50,57 @@ interface Company {
   job_posting_points: number;
 }
 
-interface PointPackage {
-  id: number;
-  name: string;
-  description: string;
-  points: number;
-  price: number;
-  bonus_points: number;
-  is_featured: boolean;
-  features: string[];
-  total_points: number;
-  formatted_price: string;
-}
-
-interface RecentTransaction {
-  id: number;
-  type: string;
-  points: number;
-  description: string;
-  status: string;
-  created_at: string;
-  package_name?: string;
-}
-
 interface Props {
   categories: JobCategory[];
   skills: Skill[];
   company: Company;
-  pointPackages: PointPackage[];
-  recentTransactions: RecentTransaction[];
-  jobPostingCost: number;
 }
 
-export default function CreateJob({ categories, skills, company, pointPackages, recentTransactions, jobPostingCost }: Props) {
+const STEPS = [
+  {
+    id: 1,
+    title: 'Informasi Dasar',
+    description: 'Judul dan kategori pekerjaan',
+    icon: Briefcase,
+    color: 'from-blue-500 to-cyan-500'
+  },
+  {
+    id: 2,
+    title: 'Deskripsi',
+    description: 'Detail pekerjaan lengkap',
+    icon: FileText,
+    color: 'from-purple-500 to-pink-500'
+  },
+  {
+    id: 3,
+    title: 'Kompensasi',
+    description: 'Gaji dan benefit',
+    icon: DollarSign,
+    color: 'from-green-500 to-emerald-500'
+  },
+  {
+    id: 4,
+    title: 'Keahlian',
+    description: 'Skills yang dibutuhkan',
+    icon: Award,
+    color: 'from-orange-500 to-red-500'
+  },
+  {
+    id: 5,
+    title: 'Review',
+    description: 'Tinjau dan terbitkan',
+    icon: Zap,
+    color: 'from-indigo-500 to-purple-500'
+  }
+];
+
+export default function CreateJobSteps({ categories, skills, company }: Props) {
+  const { flash } = usePage<SharedData & { flash?: { error?: string; success?: string } }>().props;
+  const [currentStep, setCurrentStep] = useState(1);
   const [selectedSkills, setSelectedSkills] = useState<number[]>([]);
   const [skillSearch, setSkillSearch] = useState('');
   const [showSkillDropdown, setShowSkillDropdown] = useState(false);
+  const skillContainerRef = useRef<HTMLDivElement | null>(null);
 
   const { data, setData, post, processing, errors } = useForm({
     title: '',
@@ -101,232 +121,168 @@ export default function CreateJob({ categories, skills, company, pointPackages, 
     status: 'draft'
   });
 
-  const handleSubmit = (e: React.FormEvent, status: 'draft' | 'published') => {
-    e.preventDefault();
-
-    post(route('company.jobs.store'), {
-      data: {
-        ...data,
-        skills: selectedSkills,
-        status
-      }
-    });
-  };
-
-  const addSkill = (skillId: number) => {
-    if (!selectedSkills.includes(skillId)) {
-      setSelectedSkills([...selectedSkills, skillId]);
-    }
-    setSkillSearch('');
-    setShowSkillDropdown(false);
-  };
-
-  const removeSkill = (skillId: number) => {
-    setSelectedSkills(selectedSkills.filter(id => id !== skillId));
-  };
-
   const filteredSkills = skills.filter(skill =>
     skill.name.toLowerCase().includes(skillSearch.toLowerCase()) &&
     !selectedSkills.includes(skill.id)
   );
 
-  const getSelectedSkillNames = () => {
+  const addSkill = (skillId: number) => {
+    const newSelectedSkills = [...selectedSkills, skillId];
+    setSelectedSkills(newSelectedSkills);
+    setData('skills', newSelectedSkills);
+    setSkillSearch('');
+    setShowSkillDropdown(false);
+  };
+
+  const removeSkill = (skillId: number) => {
+    const newSelectedSkills = selectedSkills.filter(id => id !== skillId);
+    setSelectedSkills(newSelectedSkills);
+    setData('skills', newSelectedSkills);
+  };
+
+  const getSelectedSkillsData = () => {
     return skills.filter(skill => selectedSkills.includes(skill.id));
   };
 
-  return (
-    <AppLayout>
-      <Head title="Posting Lowongan Baru" />
-      
-      <div className="space-y-6 p-6">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Button
-              variant="outline"
-              onClick={() => router.get('/company/jobs')}
-              className="flex items-center gap-2"
-            >
-              <ArrowLeft className="h-4 w-4" />
-              Kembali
-            </Button>
-            <div>
-              <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                Posting Lowongan Baru
-              </h1>
-              <p className="text-gray-600">Buat lowongan pekerjaan untuk perusahaan Anda</p>
+  const formatCurrency = (value: string): string => {
+    const number = value.replace(/\D/g, '');
+    return number.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+  };
+
+  const handleSalaryChange = (field: 'salary_min' | 'salary_max', value: string) => {
+    const cleanValue = value.replace(/\D/g, '');
+    setData(field, cleanValue);
+  };
+
+  const validateStep = (step: number): boolean => {
+    switch (step) {
+      case 1:
+        return !!(data.title && data.job_category_id && data.employment_type &&
+                 data.work_arrangement && data.experience_level && data.location);
+      case 2:
+        return !!data.description;
+      case 3:
+        return true;
+      case 4:
+        return true;
+      case 5:
+        return true;
+      default:
+        return true;
+    }
+  };
+
+  const nextStep = () => {
+    if (validateStep(currentStep)) {
+      setCurrentStep(prev => Math.min(prev + 1, STEPS.length));
+    } else {
+      toast.error('Mohon lengkapi semua field yang diperlukan');
+    }
+  };
+
+  const prevStep = () => {
+    setCurrentStep(prev => Math.max(prev - 1, 1));
+  };
+
+  const handleSubmit = (status: 'draft' | 'published') => {
+    setData('status', status);
+    post('/company/jobs', {
+      onSuccess: () => {
+        toast.success(status === 'published' ? 'Lowongan berhasil dipublikasikan!' : 'Draft berhasil disimpan!');
+        router.get('/company/jobs');
+      },
+      onError: () => {
+        toast.error('Terjadi kesalahan saat menyimpan lowongan.');
+      }
+    });
+  };
+
+  useEffect(() => {
+    setData('skills', selectedSkills);
+  }, [selectedSkills]);
+
+  useEffect(() => {
+    if (!skillContainerRef.current) return;
+    const onDocClick = (e: MouseEvent) => {
+      if (!skillContainerRef.current) return;
+      if (!skillContainerRef.current.contains(e.target as Node)) {
+        setShowSkillDropdown(false);
+      }
+    };
+    document.addEventListener('mousedown', onDocClick);
+    return () => document.removeEventListener('mousedown', onDocClick);
+  }, []);
+
+  const StepIndicator = () => (
+    <div className="mb-8">
+      <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
+        <div
+          className="h-full bg-blue-600 transition-all duration-500"
+          style={{ width: `${((currentStep - 1) / (STEPS.length - 1)) * 100}%` }}
+        />
+      </div>
+      <div className="mt-4 flex gap-4 overflow-x-auto pb-1">
+        {STEPS.map((step) => {
+          const isActive = currentStep === step.id;
+          const isCompleted = currentStep > step.id;
+          return (
+            <div key={step.id} className="flex items-center gap-2 shrink-0">
+              <div
+                className={`flex items-center justify-center w-8 h-8 rounded-full text-xs font-semibold border ${
+                  isCompleted
+                    ? 'bg-blue-600 text-white border-blue-600'
+                    : isActive
+                    ? 'bg-white text-blue-700 border-blue-300'
+                    : 'bg-white text-gray-500 border-gray-200'
+                }`}
+                aria-current={isActive ? 'step' : undefined}
+                aria-label={`Langkah ${step.id}`}
+              >
+                {isCompleted ? <Check className="h-4 w-4" /> : step.id}
+              </div>
+              <div className="hidden sm:block">
+                <div className={`text-sm font-medium ${isActive ? 'text-gray-900' : 'text-gray-600'}`}>{step.title}</div>
+                <div className="text-xs text-gray-500">{step.description}</div>
+              </div>
             </div>
-          </div>
-          <div className="flex items-center gap-2 bg-blue-50 px-4 py-2 rounded-lg border">
-            <Coins className="h-5 w-5 text-blue-600" />
-            <span className="text-sm font-medium text-blue-800">
-              Poin Tersisa: <NumberTicker value={company.job_posting_points} className="font-bold" />
-            </span>
-          </div>
-        </div>
+          );
+        })}
+      </div>
+    </div>
+  );
 
-        {/* Enhanced Point Packages Display */}
-        <Card className="border-blue-200 bg-gradient-to-br from-blue-50 to-indigo-50">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-lg flex items-center gap-2">
-              <ShoppingCart className="h-5 w-5 text-blue-600" />
-              Paket Poin Tersedia
-            </CardTitle>
-            {company.job_posting_points < jobPostingCost && (
-              <div className="space-y-2">
-                <p className="text-sm text-amber-700 bg-amber-50 p-2 rounded border border-amber-200">
-                  <AlertCircle className="h-4 w-4 inline mr-1" />
-                  Poin tidak mencukupi untuk publikasi. Lowongan akan disimpan sebagai draft.
-                </p>
-                <p className="text-xs text-gray-600">
-                  Biaya posting: {jobPostingCost} poin | Poin Anda: {company.job_posting_points}
-                </p>
-              </div>
-            )}
-            {company.job_posting_points >= jobPostingCost && (
-              <p className="text-sm text-green-700 bg-green-50 p-2 rounded border border-green-200">
-                <CheckCircle className="h-4 w-4 inline mr-1" />
-                Anda dapat memposting lowongan ini. Biaya: {jobPostingCost} poin.
-              </p>
-            )}
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {/* Current Balance Info */}
-            <div className="bg-white p-3 rounded-lg border border-blue-200">
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-gray-700">Saldo Poin Anda</span>
-                <span className="text-lg font-bold text-blue-600">
-                  <NumberTicker value={company.job_posting_points} className="text-lg font-bold text-blue-600" />
-                </span>
-              </div>
-              <div className="text-xs text-gray-500 mt-1">
-                Dapat digunakan untuk {Math.floor(company.job_posting_points / jobPostingCost)} lowongan
-              </div>
-            </div>
-
-            {/* Package Options */}
-            <div className="space-y-3">
-              <h5 className="text-sm font-semibold text-gray-800">Beli Paket Poin:</h5>
-              {pointPackages.slice(0, 3).map((pkg) => (
-                <div key={pkg.id} className="bg-white p-4 rounded-lg border border-blue-200 hover:border-blue-300 transition-colors">
-                  <div className="flex items-start justify-between mb-3">
-                    <div className="flex items-center gap-2">
-                      <h4 className="font-semibold text-sm text-gray-900">{pkg.name}</h4>
-                      {pkg.is_featured && (
-                        <Badge className="bg-gradient-to-r from-yellow-400 to-orange-400 text-white text-xs">
-                          <Star className="h-3 w-3 mr-1 fill-current" />
-                          Popular
-                        </Badge>
-                      )}
-                    </div>
-                    <span className="text-lg font-bold text-blue-600">{pkg.formatted_price}</span>
-                  </div>
-                  
-                  <div className="grid grid-cols-2 gap-3 mb-3 text-xs">
-                    <div className="flex items-center gap-1">
-                      <Coins className="h-3 w-3 text-blue-500" />
-                      <span className="text-gray-600">
-                        <NumberTicker value={pkg.points} className="font-medium" /> poin dasar
-                      </span>
-                    </div>
-                    {pkg.bonus_points > 0 && (
-                      <div className="flex items-center gap-1">
-                        <Plus className="h-3 w-3 text-green-500" />
-                        <span className="text-green-600 font-medium">
-                          {pkg.bonus_points} bonus
-                        </span>
-                      </div>
-                    )}
-                    <div className="flex items-center gap-1">
-                      <Briefcase className="h-3 w-3 text-purple-500" />
-                      <span className="text-gray-600">
-                        {pkg.total_points} lowongan
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <Target className="h-3 w-3 text-orange-500" />
-                      <span className="text-gray-600">
-                        Rp {Math.round(pkg.price / pkg.total_points).toLocaleString()}/poin
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Features Preview */}
-                  {pkg.features && pkg.features.length > 0 && (
-                    <div className="mb-3">
-                      <div className="text-xs text-gray-500 mb-1">Fitur:</div>
-                      <div className="flex flex-wrap gap-1">
-                        {pkg.features.slice(0, 3).map((feature, index) => (
-                          <span key={index} className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">
-                            {feature}
-                          </span>
-                        ))}
-                        {pkg.features.length > 3 && (
-                          <span className="text-xs text-blue-600">+{pkg.features.length - 3} lainnya</span>
-                        )}
-                      </div>
-                    </div>
-                  )}
-
-                  <Button 
-                    size="sm" 
-                    variant={pkg.is_featured ? "default" : "outline"}
-                    className="w-full text-xs"
-                    onClick={() => router.get('/company/points/packages')}
-                  >
-                    <CreditCard className="h-3 w-3 mr-1" />
-                    Beli Paket Ini
-                  </Button>
-                </div>
-              ))}
-            </div>
-
-            {pointPackages.length > 3 && (
-              <div className="text-center pt-2">
-                <Button 
-                  variant="link" 
-                  size="sm"
-                  onClick={() => router.get('/company/points/packages')}
-                  className="text-blue-600 hover:text-blue-700"
-                >
-                  Lihat Semua Paket ({pointPackages.length})
-                  <ArrowRight className="h-3 w-3 ml-1" />
-                </Button>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        <form className="space-y-6">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Main Form */}
-            <div className="lg:col-span-2 space-y-6">
-              {/* Basic Information */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Briefcase className="h-5 w-5" />
-                    Informasi Dasar
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div>
-                    <Label htmlFor="title">Judul Lowongan *</Label>
+  const renderStepContent = () => {
+    switch (currentStep) {
+      case 1:
+        return (
+          <div className="space-y-6">
+            <Card className="border shadow-sm bg-white">
+              <CardHeader className="pb-2">
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <Briefcase className="h-5 w-5 text-blue-600" />
+                  Informasi Dasar Lowongan
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="md:col-span-2">
+                    <Label htmlFor="title" className="text-sm font-medium text-gray-700">Judul Lowongan *</Label>
                     <Input
                       id="title"
                       value={data.title}
                       onChange={(e) => setData('title', e.target.value)}
-                      placeholder="contoh: Senior Frontend Developer"
-                      className={errors.title ? 'border-red-500' : ''}
+                      placeholder="Contoh: Frontend Developer"
+                      aria-invalid={!!errors.title}
+                      className={`mt-2 h-11 border ${errors.title ? 'border-red-400 focus-visible:ring-red-500' : 'border-gray-200 focus-visible:ring-blue-500'}`}
                     />
-                    {errors.title && <p className="text-sm text-red-600 mt-1">{errors.title}</p>}
+                    {errors.title && <p className="text-red-600 text-xs mt-2">{errors.title}</p>}
                   </div>
 
                   <div>
-                    <Label htmlFor="job_category_id">Kategori Pekerjaan *</Label>
+                    <Label htmlFor="job_category_id" className="text-sm font-medium text-gray-700">Kategori Pekerjaan *</Label>
                     <Select value={data.job_category_id} onValueChange={(value) => setData('job_category_id', value)}>
-                      <SelectTrigger className={errors.job_category_id ? 'border-red-500' : ''}>
-                        <SelectValue placeholder="Pilih kategori pekerjaan" />
+                      <SelectTrigger className={`mt-2 h-11 border ${errors.job_category_id ? 'border-red-400' : 'border-gray-200'}`} aria-invalid={!!errors.job_category_id}>
+                        <SelectValue placeholder="Pilih kategori" />
                       </SelectTrigger>
                       <SelectContent>
                         {categories.map((category) => (
@@ -336,386 +292,433 @@ export default function CreateJob({ categories, skills, company, pointPackages, 
                         ))}
                       </SelectContent>
                     </Select>
-                    {errors.job_category_id && <p className="text-sm text-red-600 mt-1">{errors.job_category_id}</p>}
+                    {errors.job_category_id && <p className="text-red-600 text-xs mt-2">{errors.job_category_id}</p>}
                   </div>
 
                   <div>
-                    <Label htmlFor="description">Deskripsi Pekerjaan *</Label>
-                    <Textarea
-                      id="description"
-                      value={data.description}
-                      onChange={(e) => setData('description', e.target.value)}
-                      placeholder="Jelaskan detail tentang pekerjaan ini..."
-                      rows={5}
-                      className={errors.description ? 'border-red-500' : ''}
-                    />
-                    {errors.description && <p className="text-sm text-red-600 mt-1">{errors.description}</p>}
-                  </div>
-
-                  <div>
-                    <Label htmlFor="requirements">Persyaratan</Label>
-                    <Textarea
-                      id="requirements"
-                      value={data.requirements}
-                      onChange={(e) => setData('requirements', e.target.value)}
-                      placeholder="Tuliskan persyaratan untuk posisi ini..."
-                      rows={4}
-                    />
-                  </div>
-
-                  <div>
-                    <Label htmlFor="benefits">Benefit & Fasilitas</Label>
-                    <Textarea
-                      id="benefits"
-                      value={data.benefits}
-                      onChange={(e) => setData('benefits', e.target.value)}
-                      placeholder="Jelaskan benefit dan fasilitas yang ditawarkan..."
-                      rows={3}
-                    />
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Job Details */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Users className="h-5 w-5" />
-                    Detail Pekerjaan
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="employment_type">Tipe Pekerjaan *</Label>
-                      <Select value={data.employment_type} onValueChange={(value) => setData('employment_type', value)}>
-                        <SelectTrigger className={errors.employment_type ? 'border-red-500' : ''}>
-                          <SelectValue placeholder="Pilih tipe pekerjaan" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="Full-time">Full-time</SelectItem>
-                          <SelectItem value="Part-time">Part-time</SelectItem>
-                          <SelectItem value="Contract">Contract</SelectItem>
-                          <SelectItem value="Internship">Internship</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      {errors.employment_type && <p className="text-sm text-red-600 mt-1">{errors.employment_type}</p>}
-                    </div>
-
-                    <div>
-                      <Label htmlFor="work_arrangement">Sistem Kerja *</Label>
-                      <Select value={data.work_arrangement} onValueChange={(value) => setData('work_arrangement', value)}>
-                        <SelectTrigger className={errors.work_arrangement ? 'border-red-500' : ''}>
-                          <SelectValue placeholder="Pilih sistem kerja" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="Remote">Remote</SelectItem>
-                          <SelectItem value="On-site">On-site</SelectItem>
-                          <SelectItem value="Hybrid">Hybrid</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      {errors.work_arrangement && <p className="text-sm text-red-600 mt-1">{errors.work_arrangement}</p>}
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="experience_level">Level Pengalaman *</Label>
-                      <Select value={data.experience_level} onValueChange={(value) => setData('experience_level', value)}>
-                        <SelectTrigger className={errors.experience_level ? 'border-red-500' : ''}>
-                          <SelectValue placeholder="Pilih level pengalaman" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="Entry">Entry Level</SelectItem>
-                          <SelectItem value="Mid">Mid Level</SelectItem>
-                          <SelectItem value="Senior">Senior Level</SelectItem>
-                          <SelectItem value="Lead">Lead/Manager</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      {errors.experience_level && <p className="text-sm text-red-600 mt-1">{errors.experience_level}</p>}
-                    </div>
-
-                    <div>
-                      <Label htmlFor="positions_available">Jumlah Posisi *</Label>
-                      <Input
-                        id="positions_available"
-                        type="number"
-                        min="1"
-                        value={data.positions_available}
-                        onChange={(e) => setData('positions_available', parseInt(e.target.value) || 1)}
-                        className={errors.positions_available ? 'border-red-500' : ''}
-                      />
-                      {errors.positions_available && <p className="text-sm text-red-600 mt-1">{errors.positions_available}</p>}
-                    </div>
-                  </div>
-
-                  <div>
-                    <Label htmlFor="location">Lokasi *</Label>
-                    <div className="relative">
-                      <MapPin className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                      <Input
-                        id="location"
-                        value={data.location}
-                        onChange={(e) => setData('location', e.target.value)}
-                        placeholder="contoh: Jakarta Selatan, Indonesia"
-                        className={`pl-10 ${errors.location ? 'border-red-500' : ''}`}
-                      />
-                    </div>
-                    {errors.location && <p className="text-sm text-red-600 mt-1">{errors.location}</p>}
-                  </div>
-
-                  <div>
-                    <Label htmlFor="application_deadline">Batas Waktu Melamar</Label>
-                    <div className="relative">
-                      <Calendar className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                      <Input
-                        id="application_deadline"
-                        type="date"
-                        value={data.application_deadline}
-                        onChange={(e) => setData('application_deadline', e.target.value)}
-                        className="pl-10"
-                        min={new Date().toISOString().split('T')[0]}
-                      />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Salary */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <DollarSign className="h-5 w-5" />
-                    Gaji & Kompensasi
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="flex items-center space-x-2">
-                    <Switch
-                      id="salary_negotiable"
-                      checked={data.salary_negotiable}
-                      onCheckedChange={(checked) => setData('salary_negotiable', checked)}
-                    />
-                    <Label htmlFor="salary_negotiable">Gaji dapat dinegosiasi</Label>
-                  </div>
-
-                  {!data.salary_negotiable && (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <Label htmlFor="salary_min">Gaji Minimum (IDR)</Label>
-                        <Input
-                          id="salary_min"
-                          type="number"
-                          min="0"
-                          value={data.salary_min}
-                          onChange={(e) => setData('salary_min', e.target.value)}
-                          placeholder="contoh: 5000000"
-                        />
-                      </div>
-
-                      <div>
-                        <Label htmlFor="salary_max">Gaji Maximum (IDR)</Label>
-                        <Input
-                          id="salary_max"
-                          type="number"
-                          min="0"
-                          value={data.salary_max}
-                          onChange={(e) => setData('salary_max', e.target.value)}
-                          placeholder="contoh: 8000000"
-                        />
-                      </div>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-
-              {/* Skills */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Skills yang Dibutuhkan</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="relative">
+                    <Label htmlFor="positions_available" className="text-sm font-medium text-gray-700">Jumlah Posisi *</Label>
                     <Input
-                      value={skillSearch}
-                      onChange={(e) => setSkillSearch(e.target.value)}
-                      onFocus={() => setShowSkillDropdown(true)}
-                      placeholder="Cari dan tambahkan skills..."
+                      id="positions_available"
+                      type="number"
+                      min="1"
+                      value={data.positions_available}
+                      onChange={(e) => setData('positions_available', parseInt(e.target.value) || 1)}
+                      aria-invalid={!!errors.positions_available}
+                      className={`mt-2 h-11 border ${errors.positions_available ? 'border-red-400' : 'border-gray-200'}`}
                     />
-                    
-                    {showSkillDropdown && filteredSkills.length > 0 && (
-                      <div className="absolute z-10 w-full mt-1 bg-white border rounded-md shadow-lg max-h-48 overflow-y-auto">
-                        {filteredSkills.slice(0, 10).map((skill) => (
-                          <button
-                            key={skill.id}
-                            type="button"
-                            onClick={() => addSkill(skill.id)}
-                            className="w-full px-3 py-2 text-left hover:bg-gray-50 flex items-center justify-between"
-                          >
-                            <span>{skill.name}</span>
-                            <Plus className="h-4 w-4 text-gray-400" />
-                          </button>
-                        ))}
-                      </div>
-                    )}
+                    {errors.positions_available && <p className="text-red-600 text-xs mt-2">{errors.positions_available}</p>}
                   </div>
 
-                  <div className="flex flex-wrap gap-2">
-                    {getSelectedSkillNames().map((skill) => (
+                  <div>
+                    <Label htmlFor="employment_type" className="text-sm font-medium text-gray-700">Tipe Pekerjaan *</Label>
+                    <Select value={data.employment_type} onValueChange={(value) => setData('employment_type', value)}>
+                      <SelectTrigger className={`mt-2 h-11 border ${errors.employment_type ? 'border-red-400' : 'border-gray-200'}`} aria-invalid={!!errors.employment_type}>
+                        <SelectValue placeholder="Pilih tipe" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Full-time">Full-time</SelectItem>
+                        <SelectItem value="Part-time">Part-time</SelectItem>
+                        <SelectItem value="Contract">Contract</SelectItem>
+                        <SelectItem value="Internship">Internship</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    {errors.employment_type && <p className="text-red-600 text-xs mt-2">{errors.employment_type}</p>}
+                  </div>
+
+                  <div>
+                    <Label htmlFor="work_arrangement" className="text-sm font-medium text-gray-700">Pengaturan Kerja *</Label>
+                    <Select value={data.work_arrangement} onValueChange={(value) => setData('work_arrangement', value)}>
+                      <SelectTrigger className={`mt-2 h-11 border ${errors.work_arrangement ? 'border-red-400' : 'border-gray-200'}`} aria-invalid={!!errors.work_arrangement}>
+                        <SelectValue placeholder="Pilih pengaturan" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Remote">Remote</SelectItem>
+                        <SelectItem value="On-site">On-site</SelectItem>
+                        <SelectItem value="Hybrid">Hybrid</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    {errors.work_arrangement && <p className="text-red-600 text-xs mt-2">{errors.work_arrangement}</p>}
+                  </div>
+
+                  <div>
+                    <Label htmlFor="experience_level" className="text-sm font-medium text-gray-700">Level Pengalaman *</Label>
+                    <Select value={data.experience_level} onValueChange={(value) => setData('experience_level', value)}>
+                      <SelectTrigger className={`mt-2 h-11 border ${errors.experience_level ? 'border-red-400' : 'border-gray-200'}`} aria-invalid={!!errors.experience_level}>
+                        <SelectValue placeholder="Pilih level" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Entry">Entry</SelectItem>
+                        <SelectItem value="Mid">Mid</SelectItem>
+                        <SelectItem value="Senior">Senior</SelectItem>
+                        <SelectItem value="Lead">Lead</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    {errors.experience_level && <p className="text-red-600 text-xs mt-2">{errors.experience_level}</p>}
+                  </div>
+
+                  <div>
+                    <Label htmlFor="location" className="text-sm font-medium text-gray-700">Lokasi *</Label>
+                    <Input
+                      id="location"
+                      value={data.location}
+                      onChange={(e) => setData('location', e.target.value)}
+                      placeholder="Contoh: Jakarta, ID"
+                      aria-invalid={!!errors.location}
+                      className={`mt-2 h-11 border ${errors.location ? 'border-red-400' : 'border-gray-200'}`}
+                    />
+                    {errors.location && <p className="text-red-600 text-xs mt-2">{errors.location}</p>}
+                  </div>
+
+                  <div>
+                    <Label htmlFor="application_deadline" className="text-sm font-medium text-gray-700">Batas Waktu Lamaran</Label>
+                    <DatePicker
+                      id="application_deadline"
+                      value={data.application_deadline}
+                      onChange={(val) => setData('application_deadline', val)}
+                      minDate={new Date()}
+                      placeholder="Pilih tanggal"
+                      className="mt-2"
+                      error={errors.application_deadline as string}
+                    />
+                    {errors.application_deadline && <p className="text-red-600 text-xs mt-2">{errors.application_deadline}</p>}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        );
+
+      case 2:
+        return (
+          <Card className="border shadow-sm bg-white">
+            <CardHeader className="pb-2">
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <FileText className="h-5 w-5 text-purple-600" />
+                Deskripsi Pekerjaan
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div>
+                <Label htmlFor="description" className="text-sm font-medium text-gray-700">Deskripsi Pekerjaan *</Label>
+                <RichTextEditor
+                  content={data.description}
+                  onChange={(val) => setData('description', val)}
+                  placeholder="Jelaskan tanggung jawab dan tugas utama untuk posisi ini..."
+                  className="mt-2"
+                />
+                {errors.description && <p className="text-red-600 text-xs mt-2">{errors.description}</p>}
+              </div>
+
+              <div>
+                <Label htmlFor="requirements" className="text-sm font-medium text-gray-700">Persyaratan & Kualifikasi</Label>
+                <RichTextEditor
+                  content={data.requirements}
+                  onChange={(val) => setData('requirements', val)}
+                  placeholder="Jelaskan kualifikasi dan persyaratan yang dibutuhkan..."
+                  className="mt-2"
+                />
+                {errors.requirements && <p className="text-red-600 text-xs mt-2">{errors.requirements}</p>}
+              </div>
+            </CardContent>
+          </Card>
+        );
+
+      case 3:
+        return (
+          <Card className="border shadow-sm bg-white">
+            <CardHeader className="pb-2">
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <DollarSign className="h-5 w-5 text-emerald-600" />
+                Kompensasi & Benefit
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="flex items-center gap-3 p-3 rounded-md border border-gray-200 bg-white">
+                <Switch
+                  checked={data.salary_negotiable}
+                  onCheckedChange={(checked) => setData('salary_negotiable', checked)}
+                  aria-label="Gaji dapat dinegosiasi"
+                />
+                <Label className="text-sm font-medium">Gaji dapat dinegosiasi</Label>
+              </div>
+
+              {!data.salary_negotiable && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                  <div>
+                    <Label htmlFor="salary_min" className="text-sm font-medium text-gray-700">Gaji Minimum (IDR)</Label>
+                    <Input
+                      id="salary_min"
+                      inputMode="numeric"
+                      value={data.salary_min ? formatCurrency(data.salary_min) : ''}
+                      onChange={(e) => handleSalaryChange('salary_min', e.target.value)}
+                      placeholder="0"
+                      aria-invalid={!!errors.salary_min}
+                      className={`mt-2 h-11 border ${errors.salary_min ? 'border-red-400' : 'border-gray-200'}`}
+                    />
+                    {errors.salary_min && <p className="text-red-600 text-xs mt-2">{errors.salary_min}</p>}
+                  </div>
+
+                  <div>
+                    <Label htmlFor="salary_max" className="text-sm font-medium text-gray-700">Gaji Maksimum (IDR)</Label>
+                    <Input
+                      id="salary_max"
+                      inputMode="numeric"
+                      value={data.salary_max ? formatCurrency(data.salary_max) : ''}
+                      onChange={(e) => handleSalaryChange('salary_max', e.target.value)}
+                      placeholder="0"
+                      aria-invalid={!!errors.salary_max}
+                      className={`mt-2 h-11 border ${errors.salary_max ? 'border-red-400' : 'border-gray-200'}`}
+                    />
+                    {errors.salary_max && <p className="text-red-600 text-xs mt-2">{errors.salary_max}</p>}
+                  </div>
+                </div>
+              )}
+
+              <div>
+                <Label htmlFor="benefits" className="text-sm font-medium text-gray-700">Benefit & Fasilitas</Label>
+                <RichTextEditor
+                  content={data.benefits}
+                  onChange={(val) => setData('benefits', val)}
+                  placeholder="Jelaskan benefit dan fasilitas yang ditawarkan..."
+                  className="mt-2"
+                />
+                {errors.benefits && <p className="text-red-600 text-xs mt-2">{errors.benefits}</p>}
+              </div>
+            </CardContent>
+          </Card>
+        );
+
+      case 4:
+        return (
+          <Card className="border shadow-sm bg-white">
+            <CardHeader className="pb-2">
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <Award className="h-5 w-5 text-orange-600" />
+                Keahlian yang Dibutuhkan
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {getSelectedSkillsData().length > 0 && (
+                <div>
+                  <Label className="text-sm font-medium text-gray-700">Keahlian Terpilih</Label>
+                  <div className="flex flex-wrap gap-2 mt-3">
+                    {getSelectedSkillsData().map((skill) => (
                       <Badge
                         key={skill.id}
                         variant="secondary"
-                        className="flex items-center gap-1"
+                        className="flex items-center gap-2 px-2.5 py-1.5 bg-gray-50 text-gray-800 border border-gray-200"
                       >
                         {skill.name}
-                        <button
-                          type="button"
-                          onClick={() => removeSkill(skill.id)}
-                          className="ml-1 hover:text-red-600"
-                        >
-                          <X className="h-3 w-3" />
+                        <button type="button" aria-label={`Hapus ${skill.name}`} onClick={() => removeSkill(skill.id)}>
+                          <X className="h-4 w-4 cursor-pointer hover:text-red-600 transition-colors" />
                         </button>
                       </Badge>
                     ))}
                   </div>
-                </CardContent>
-              </Card>
-            </div>
+                </div>
+              )}
 
-            {/* Action Sidebar */}
-            <div className="space-y-4">
-              <Card className="sticky top-6">
-                <CardHeader>
-                  <CardTitle>Publikasi</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="space-y-3">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      className="w-full"
-                      onClick={(e) => handleSubmit(e, 'draft')}
-                      disabled={processing}
-                    >
-                      <Save className="h-4 w-4 mr-2" />
-                      Simpan Draft
-                    </Button>
+              <div className="relative skill-dropdown-container" ref={skillContainerRef}>
+                <Label htmlFor="skill_search" className="text-sm font-medium text-gray-700">Tambah Keahlian</Label>
+                <Input
+                  id="skill_search"
+                  value={skillSearch}
+                  onChange={(e) => {
+                    setSkillSearch(e.target.value);
+                    setShowSkillDropdown(true);
+                  }}
+                  onFocus={() => setShowSkillDropdown(true)}
+                  placeholder="Cari keahlian..."
+                  className="mt-2 h-11 border border-gray-200"
+                />
 
-                    <Button
-                      type="button"
-                      className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
-                      onClick={(e) => handleSubmit(e, 'published')}
-                      disabled={processing}
-                    >
-                      <Eye className="h-4 w-4 mr-2" />
-                      {company.job_posting_points >= jobPostingCost ? 'Publikasikan' : 'Simpan sebagai Draft'}
-                    </Button>
-                  </div>
-
-                  {company.job_posting_points < jobPostingCost && (
-                    <div className="p-3 bg-blue-50 border border-blue-200 rounded-md">
-                      <p className="text-sm text-blue-800 mb-2">
-                        💡 Beli paket poin untuk publikasikan lowongan langsung
-                      </p>
-                      <Button 
-                        size="sm" 
-                        variant="outline"
-                        className="w-full text-xs"
-                        onClick={() => router.get('/company/points/packages')}
+                {showSkillDropdown && filteredSkills.length > 0 && (
+                  <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-md max-h-56 overflow-y-auto">
+                    {filteredSkills.slice(0, 10).map((skill) => (
+                      <button
+                        key={skill.id}
+                        type="button"
+                        className="w-full text-left px-3 py-2 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0"
+                        onClick={() => addSkill(skill.id)}
                       >
-                        <ShoppingCart className="h-3 w-3 mr-1" />
-                        Lihat Paket Poin
-                      </Button>
+                        <span className="text-gray-700 text-sm">{skill.name}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+              {errors.skills && <p className="text-red-600 text-xs mt-2">{errors.skills}</p>}
+            </CardContent>
+          </Card>
+        );
+
+      case 5:
+        return (
+          <Card className="border shadow-sm bg-white">
+            <CardHeader className="pb-2">
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <Zap className="h-5 w-5 text-indigo-600" />
+                Review & Publish
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="bg-white p-5 rounded-md border border-gray-200 space-y-4">
+                <h3 className="font-semibold text-lg text-gray-900">{data.title || 'Judul belum diisi'}</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium text-gray-600">Kategori:</span>
+                    <span className="text-gray-800">{categories.find(c => c.id.toString() === data.job_category_id)?.name || '-'}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium text-gray-600">Tipe:</span>
+                    <span className="text-gray-800">{data.employment_type || '-'}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium text-gray-600">Pengaturan:</span>
+                    <span className="text-gray-800">{data.work_arrangement || '-'}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium text-gray-600">Level:</span>
+                    <span className="text-gray-800">{data.experience_level || '-'}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium text-gray-600">Lokasi:</span>
+                    <span className="text-gray-800">{data.location || '-'}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium text-gray-600">Posisi:</span>
+                    <span className="text-gray-800">{data.positions_available || 1}</span>
+                  </div>
+                </div>
+                {getSelectedSkillsData().length > 0 && (
+                  <div>
+                    <span className="font-medium text-gray-600">Keahlian:</span>
+                    <div className="flex flex-wrap gap-2 mt-2">
+                      {getSelectedSkillsData().map((skill) => (
+                        <Badge key={skill.id} variant="outline" className="text-xs bg-gray-50">
+                          {skill.name}
+                        </Badge>
+                      ))}
                     </div>
-                  )}
-                </CardContent>
-              </Card>
+                  </div>
+                )}
+              </div>
 
-              {/* Recent Transactions History */}
-              {recentTransactions && recentTransactions.length > 0 && (
-                <Card className="sticky top-6 mt-4">
-                  <CardHeader>
-                    <CardTitle className="text-sm flex items-center gap-2">
-                      <Clock className="h-4 w-4" />
-                      Riwayat Poin Terkini
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-2">
-                    {recentTransactions.slice(0, 3).map((transaction) => (
-                      <div key={transaction.id} className="bg-gray-50 p-2 rounded border">
-                        <div className="flex items-center justify-between mb-1">
-                          <span className={`text-xs font-medium ${
-                            transaction.points > 0 ? 'text-green-600' : 'text-red-600'
-                          }`}>
-                            {transaction.points > 0 ? '+' : ''}{transaction.points} poin
-                          </span>
-                          <span className="text-xs text-gray-500">{transaction.created_at}</span>
-                        </div>
-                        <div className="text-xs text-gray-600 truncate">
-                          {transaction.description}
-                        </div>
-                        {transaction.package_name && (
-                          <div className="text-xs text-blue-600 mt-1">
-                            {transaction.package_name}
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                    <Button 
-                      size="sm" 
-                      variant="link"
-                      className="w-full text-xs mt-2 text-blue-600"
-                      onClick={() => router.get('/company/points')}
-                    >
-                      Lihat Semua Riwayat
-                    </Button>
-                  </CardContent>
-                </Card>
-              )}
+              <div className="p-5 rounded-md border border-blue-200 bg-blue-50">
+                <div className="flex items-center gap-3 mb-2">
+                  <Coins className="h-5 w-5 text-blue-600" />
+                  <span className="font-semibold text-sm text-blue-900">Poin Tersisa: {company.job_posting_points}</span>
+                </div>
+                <p className="text-xs text-blue-800">
+                  Mempublikasikan lowongan akan mengurangi 1 poin dari saldo Anda.
+                </p>
+              </div>
 
-              {/* Quick Point Packages - Only show if has points */}
-              {company.job_posting_points >= jobPostingCost && pointPackages.length > 0 && (
-                <Card className="sticky top-6 mt-4">
-                  <CardHeader>
-                    <CardTitle className="text-sm flex items-center gap-2">
-                      <Coins className="h-4 w-4" />
-                      Paket Poin
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-2">
-                    <p className="text-xs text-gray-600 mb-3">
-                      Stok habis? Beli paket poin untuk posting lebih banyak.
-                    </p>
-                    {pointPackages.slice(0, 2).map((pkg) => (
-                      <div key={pkg.id} className="bg-gray-50 p-2 rounded border">
-                        <div className="flex items-center justify-between mb-1">
-                          <span className="text-xs font-medium">{pkg.name}</span>
-                          {pkg.is_featured && (
-                            <Badge className="bg-blue-500 text-white text-xs px-1 py-0">
-                              <Star className="h-2 w-2" />
-                            </Badge>
-                          )}
-                        </div>
-                        <div className="flex items-center justify-between text-xs text-gray-600">
-                          <span className="font-bold text-blue-600">{pkg.formatted_price}</span>
-                        </div>
-                      </div>
-                    ))}
-                    <Button 
-                      size="sm" 
-                      variant="outline"
-                      className="w-full text-xs mt-2"
-                      onClick={() => router.get('/company/points/packages')}
-                    >
-                      <CreditCard className="h-3 w-3 mr-1" />
-                      Beli Paket Poin
-                    </Button>
-                  </CardContent>
-                </Card>
-              )}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <Button
+                  onClick={() => handleSubmit('draft')}
+                  disabled={processing}
+                  variant="outline"
+                  className="h-11 text-sm font-medium"
+                >
+                  <Save className="h-4 w-4 mr-2" />
+                  Simpan sebagai Draft
+                </Button>
+                <Button
+                  onClick={() => handleSubmit('published')}
+                  disabled={processing || company.job_posting_points < 1}
+                  className="h-11 text-sm font-medium"
+                >
+                  <Zap className="h-4 w-4 mr-2" />
+                  Publikasikan Lowongan
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        );
+
+      default:
+        return null;
+    }
+  };
+
+  return (
+    <AppLayout>
+      <Head title="Buat Lowongan Baru" />
+
+      <div className="min-h-screen bg-gray-50">
+        <div className="space-y-6 p-6">
+          {/* Header */}
+          <div className="flex flex-col gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => router.get('/company/jobs')}
+              className="flex items-center gap-2 w-max"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Kembali
+            </Button>
+            <div className="flex flex-col">
+              <h1 className="text-2xl sm:text-3xl font-semibold text-gray-900">Buat Lowongan Baru</h1>
+              <p className="text-gray-600 text-sm sm:text-base">
+                Langkah {currentStep} dari {STEPS.length} - {STEPS[currentStep - 1]?.title}
+              </p>
             </div>
           </div>
-        </form>
+
+          {/* Flash Messages */}
+          {flash?.error && (
+            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md flex items-center gap-2">
+              <AlertCircle className="h-4 w-4" />
+              <span className="text-sm font-medium">{flash.error}</span>
+            </div>
+          )}
+
+          {/* Step Indicator */}
+          <StepIndicator />
+
+          {/* Step Content */}
+          <div className="transition-all duration-300 ease-out">
+            {renderStepContent()}
+          </div>
+
+          {/* Navigation */}
+          {currentStep < 5 && (
+            <div className="flex items-center justify-between pt-4 pb-20 sm:pb-0">
+              <Button
+                variant="outline"
+                onClick={prevStep}
+                disabled={currentStep === 1}
+                className="flex items-center gap-2 h-11"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                Sebelumnya
+              </Button>
+              <Button onClick={nextStep} className="flex items-center gap-2 h-11">
+                Selanjutnya
+                <ArrowRight className="h-4 w-4" />
+              </Button>
+            </div>
+          )}
+
+          {/* Sticky mobile nav */}
+          {currentStep < 5 && (
+            <div className="fixed inset-x-0 bottom-0 sm:hidden bg-white/90 backdrop-blur supports-[backdrop-filter]:bg-white/60 border-t border-gray-200 p-3 flex items-center justify-between">
+              <Button
+                variant="outline"
+                onClick={prevStep}
+                disabled={currentStep === 1}
+                className="h-10"
+              >
+                Sebelumnya
+              </Button>
+              <Button onClick={nextStep} className="h-10">
+                Selanjutnya
+              </Button>
+            </div>
+          )}
+        </div>
       </div>
     </AppLayout>
   );

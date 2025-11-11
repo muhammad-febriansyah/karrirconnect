@@ -14,6 +14,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import AppLayout from '@/layouts/app-layout';
 import SettingsLayout from '@/layouts/settings/layout';
+import { route } from 'ziggy-js';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -49,7 +50,7 @@ export default function Profile({ mustVerifyEmail, status, user }: { mustVerifyE
     // State for preview image
     const [previewImage, setPreviewImage] = useState<string | null>(null);
 
-    const { data, setData, post, errors, processing, recentlySuccessful } = useForm<ProfileForm>({
+    const { data, setData, post, patch, errors, processing, recentlySuccessful } = useForm<ProfileForm>({
         name: auth.user.name,
         email: auth.user.email,
         first_name: profile.first_name || '',
@@ -96,7 +97,9 @@ export default function Profile({ mustVerifyEmail, status, user }: { mustVerifyE
     const submit: FormEventHandler = (e) => {
         e.preventDefault();
 
+
         post(route('profile.update'), {
+            _method: 'PATCH',
             forceFormData: true,
             preserveScroll: true,
             onSuccess: () => {
@@ -107,21 +110,23 @@ export default function Profile({ mustVerifyEmail, status, user }: { mustVerifyE
                 // Clear preview after successful upload
                 setPreviewImage(null);
             },
-            onError: () => {
+            onError: (errors) => {
+                console.error('Profile update errors:', errors);
+                const errorMessage = errors.general
+                    ? errors.general
+                    : 'Terjadi kesalahan saat menyimpan profil. Silakan coba lagi.';
+
                 toast.error('Gagal Memperbarui Profil', {
-                    description: 'Terjadi kesalahan saat menyimpan profil. Silakan coba lagi.',
-                    duration: 4000,
+                    description: errorMessage,
+                    duration: 6000,
                 });
             },
         });
     };
 
-    // Get current avatar URL or fallback to initials
+    // Get current avatar URL using User model's avatar_url accessor
     const getCurrentAvatarUrl = () => {
-        if (profile.avatar_url) {
-            return profile.avatar_url;
-        }
-        return null;
+        return auth.user.avatar_url || null;
     };
 
     const getInitials = () => {

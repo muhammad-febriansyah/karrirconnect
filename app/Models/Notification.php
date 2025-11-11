@@ -16,6 +16,7 @@ class Notification extends Model
         'title',
         'message',
         'target_roles',
+        'target_user_id',
         'data',
         'action_url',
         'priority',
@@ -33,6 +34,7 @@ class Notification extends Model
             'read_at' => 'datetime',
             'is_global' => 'boolean',
             'is_active' => 'boolean',
+            'target_user_id' => 'integer',
         ];
     }
 
@@ -51,6 +53,19 @@ class Notification extends Model
     public function scopeForRole($query, string $role)
     {
         return $query->whereJsonContains('target_roles', $role);
+    }
+
+    public function scopeVisibleTo($query, User $user)
+    {
+        return $query->where(function ($visibilityQuery) use ($user) {
+            $visibilityQuery
+                ->where(function ($roleQuery) use ($user) {
+                    $roleQuery
+                        ->whereNull('target_user_id')
+                        ->whereJsonContains('target_roles', $user->role);
+                })
+                ->orWhere('target_user_id', $user->id);
+        });
     }
 
     public function scopeUnread($query)
@@ -87,7 +102,20 @@ class Notification extends Model
 
     public function isForRole(string $role): bool
     {
+        if ($this->target_user_id !== null) {
+            return false;
+        }
+
         return in_array($role, $this->target_roles ?? []);
+    }
+
+    public function isAccessibleBy(User $user): bool
+    {
+        if ($this->target_user_id !== null) {
+            return $this->target_user_id === $user->id;
+        }
+
+        return in_array($user->role, $this->target_roles ?? []);
     }
 
     // Static methods for creating different types of notifications

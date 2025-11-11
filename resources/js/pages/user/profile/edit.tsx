@@ -10,12 +10,13 @@ import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { User, Lock, Save, ArrowLeft, Plus, Trash2, Upload, FileText, Image, Briefcase, GraduationCap, Award, LoaderCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
-import ModernNavbar from '@/components/modern-navbar';
-import ModernFooter from '@/components/modern-footer';
+// import ModernNavbar from '@/components/modern-navbar';
+// import ModernFooter from '@/components/modern-footer';
 import { Link } from '@inertiajs/react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertTriangle, CheckCircle, Info } from 'lucide-react';
 import { toast } from 'sonner';
+import MainLayout from '@/layouts/main-layout';
 
 interface User {
     id: number;
@@ -62,6 +63,8 @@ interface ProfileEditProps {
     userSkills: Skill[];
     allSkills: Skill[];
 }
+
+type ProfileTab = 'profile' | 'experience' | 'education' | 'skills' | 'files' | 'password';
 
 // Helper function to check profile completeness
 const checkProfileCompleteness = (profile: UserProfile | undefined, userSkills: Skill[]) => {
@@ -111,7 +114,10 @@ const checkProfileCompleteness = (profile: UserProfile | undefined, userSkills: 
 };
 
 export default function ProfileEdit({ user, profile, userSkills, allSkills }: ProfileEditProps) {
-    const [activeTab, setActiveTab] = useState<'profile' | 'experience' | 'education' | 'skills' | 'files' | 'password'>('profile');
+    const [activeTab, setActiveTab] = useState<ProfileTab>('profile');
+    const handleTabChange = (value: ProfileTab) => {
+        setActiveTab(value);
+    };
     
     // Check profile completeness
     const profileCompleteness = checkProfileCompleteness(profile, userSkills);
@@ -159,13 +165,11 @@ export default function ProfileEdit({ user, profile, userSkills, allSkills }: Pr
         postProfile('/user/profile', {
             forceFormData: true,
             onError: (errors) => {
-                console.error('Profile update errors:', errors);
                 toast.error('Gagal memperbarui profil', {
                     description: 'Terjadi kesalahan saat menyimpan profil. Silakan periksa kembali data Anda.',
                 });
             },
             onSuccess: () => {
-                console.log('Profile updated successfully');
                 toast.success('Profil berhasil diperbarui!', {
                     description: 'Data profil Anda telah berhasil disimpan.',
                 });
@@ -291,11 +295,8 @@ export default function ProfileEdit({ user, profile, userSkills, allSkills }: Pr
     ];
 
     return (
-        <>
+        <MainLayout currentPage="profile">
             <Head title="Edit Profil" />
-            
-            <div className="min-h-screen bg-gray-50">
-                <ModernNavbar />
                 
                 <main className="pt-20 pb-12">
                     <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -313,26 +314,50 @@ export default function ProfileEdit({ user, profile, userSkills, allSkills }: Pr
                         </div>
 
                         {/* Tab Navigation */}
-                        <div className="border-b border-gray-200 mb-8">
-                            <nav className="-mb-px flex space-x-8 overflow-x-auto">
-                                {tabs.map((tab) => {
-                                    const IconComponent = tab.icon;
-                                    return (
-                                        <button
-                                            key={tab.id}
-                                            onClick={() => setActiveTab(tab.id as any)}
-                                            className={`whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm flex items-center gap-2 ${
-                                                activeTab === tab.id
-                                                    ? 'border-blue-500 text-blue-600'
-                                                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                                            }`}
-                                        >
-                                            <IconComponent className="h-4 w-4" />
-                                            {tab.label}
-                                        </button>
-                                    );
-                                })}
-                            </nav>
+                        <div className="mb-8 space-y-4">
+                            <div className="md:hidden">
+                                <Select value={activeTab} onValueChange={(value) => handleTabChange(value as ProfileTab)}>
+                                    <SelectTrigger className="w-full" aria-label="Pilih bagian profil">
+                                        <SelectValue placeholder="Pilih bagian profil" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {tabs.map((tab) => (
+                                            <SelectItem key={tab.id} value={tab.id}>
+                                                {tab.label}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+
+                            <div className="hidden md:block">
+                                <div className="border-b border-gray-200">
+                                    <nav className="-mb-px flex flex-wrap gap-4 overflow-x-auto pb-1">
+                                        {tabs.map((tab) => {
+                                            const IconComponent = tab.icon;
+                                            const isActive = activeTab === tab.id;
+                                            return (
+                                                <button
+                                                    type="button"
+                                                    key={tab.id}
+                                                    onClick={() => handleTabChange(tab.id)}
+                                                    className={`group inline-flex min-w-max items-center gap-2 rounded-full border-2 px-4 py-2 text-sm font-medium transition ${
+                                                        isActive
+                                                            ? 'border-blue-500 bg-blue-50 text-blue-600 shadow-sm'
+                                                            : 'border-transparent text-gray-500 hover:border-gray-200 hover:text-gray-700'
+                                                    }`}
+                                                    aria-pressed={isActive}
+                                                    aria-current={isActive ? 'page' : undefined}
+                                                    aria-label={tab.label}
+                                                >
+                                                    <IconComponent className="h-4 w-4" />
+                                                    {tab.label}
+                                                </button>
+                                            );
+                                        })}
+                                    </nav>
+                                </div>
+                            </div>
                         </div>
 
                         {/* Profile Completion Alert */}
@@ -346,7 +371,7 @@ export default function ProfileEdit({ user, profile, userSkills, allSkills }: Pr
                                     <AlertTriangle className="h-4 w-4 text-amber-600" />
                                     <AlertDescription className="text-amber-800">
                                         <div className="font-medium mb-2">
-                                            ⚠️ Profil Belum Lengkap - Diperlukan untuk Melamar Pekerjaan
+                                            Profil Belum Lengkap - Diperlukan untuk Melamar Pekerjaan
                                         </div>
                                         <p className="mb-3 text-sm">
                                             Untuk dapat melamar pekerjaan, Anda perlu melengkapi informasi berikut:
@@ -357,7 +382,7 @@ export default function ProfileEdit({ user, profile, userSkills, allSkills }: Pr
                                             ))}
                                         </ul>
                                         <p className="text-xs text-amber-700">
-                                            💡 <strong>Tips:</strong> Profil yang lengkap meningkatkan peluang Anda dilihat oleh recruiter dan mendapatkan pekerjaan yang sesuai.
+                                            <strong>Tips:</strong> Profil yang lengkap meningkatkan peluang Anda dilihat oleh recruiter dan mendapatkan pekerjaan yang sesuai.
                                         </p>
                                     </AlertDescription>
                                 </Alert>
@@ -375,7 +400,7 @@ export default function ProfileEdit({ user, profile, userSkills, allSkills }: Pr
                                     <CheckCircle className="h-4 w-4 text-green-600" />
                                     <AlertDescription className="text-green-800">
                                         <div className="font-medium mb-1">
-                                            ✅ Profil Lengkap - Siap untuk Melamar Pekerjaan
+                                            Profil Lengkap - Siap untuk Melamar Pekerjaan
                                         </div>
                                         <p className="text-sm">
                                             Selamat! Profil Anda sudah lengkap dan siap untuk melamar berbagai pekerjaan. 
@@ -594,7 +619,7 @@ export default function ProfileEdit({ user, profile, userSkills, allSkills }: Pr
                                             </div>
                                             
                                             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                                                <h4 className="font-medium text-blue-900 mb-2">💡 Tips Menentukan Gaji</h4>
+                                                <h4 className="font-medium text-blue-900 mb-2">Tips Menentukan Gaji</h4>
                                                 <ul className="text-sm text-blue-800 space-y-1">
                                                     <li>• Riset gaji standar untuk posisi serupa di industri Anda</li>
                                                     <li>• Pertimbangkan pengalaman, skill, dan lokasi kerja</li>
@@ -628,14 +653,14 @@ export default function ProfileEdit({ user, profile, userSkills, allSkills }: Pr
                                 >
                                     <Card>
                                         <CardHeader>
-                                            <div className="flex items-center justify-between">
+                                            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                                                 <div>
                                                     <CardTitle>Pengalaman Kerja</CardTitle>
                                                     <CardDescription>
                                                         Tambahkan pengalaman kerja Anda
                                                     </CardDescription>
                                                 </div>
-                                                <Button type="button" onClick={addExperience} size="sm">
+                                                <Button type="button" onClick={addExperience} size="sm" className="w-full sm:w-auto">
                                                     <Plus className="h-4 w-4 mr-2" />
                                                     Tambah Pengalaman
                                                 </Button>
@@ -644,13 +669,14 @@ export default function ProfileEdit({ user, profile, userSkills, allSkills }: Pr
                                         <CardContent className="space-y-6">
                                             {profileData.experience.map((exp: any, index: number) => (
                                                 <div key={index} className="p-4 border rounded-lg space-y-4">
-                                                    <div className="flex items-center justify-between">
+                                                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                                                         <h4 className="font-medium">Pengalaman {index + 1}</h4>
                                                         <Button
                                                             type="button"
                                                             variant="destructive"
                                                             size="sm"
                                                             onClick={() => removeExperience(index)}
+                                                            className="w-full sm:w-auto"
                                                         >
                                                             <Trash2 className="h-4 w-4" />
                                                         </Button>
@@ -728,14 +754,14 @@ export default function ProfileEdit({ user, profile, userSkills, allSkills }: Pr
                                 >
                                     <Card>
                                         <CardHeader>
-                                            <div className="flex items-center justify-between">
+                                            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                                                 <div>
                                                     <CardTitle>Riwayat Pendidikan</CardTitle>
                                                     <CardDescription>
                                                         Tambahkan riwayat pendidikan Anda
                                                     </CardDescription>
                                                 </div>
-                                                <Button type="button" onClick={addEducation} size="sm">
+                                                <Button type="button" onClick={addEducation} size="sm" className="w-full sm:w-auto">
                                                     <Plus className="h-4 w-4 mr-2" />
                                                     Tambah Pendidikan
                                                 </Button>
@@ -744,13 +770,14 @@ export default function ProfileEdit({ user, profile, userSkills, allSkills }: Pr
                                         <CardContent className="space-y-6">
                                             {profileData.education.map((edu: any, index: number) => (
                                                 <div key={index} className="p-4 border rounded-lg space-y-4">
-                                                    <div className="flex items-center justify-between">
+                                                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                                                         <h4 className="font-medium">Pendidikan {index + 1}</h4>
                                                         <Button
                                                             type="button"
                                                             variant="destructive"
                                                             size="sm"
                                                             onClick={() => removeEducation(index)}
+                                                            className="w-full sm:w-auto"
                                                         >
                                                             <Trash2 className="h-4 w-4" />
                                                         </Button>
@@ -836,14 +863,14 @@ export default function ProfileEdit({ user, profile, userSkills, allSkills }: Pr
                                 >
                                     <Card>
                                         <CardHeader>
-                                            <div className="flex items-center justify-between">
+                                            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                                                 <div>
                                                     <CardTitle>Keahlian & Skills</CardTitle>
                                                     <CardDescription>
                                                         Tambahkan keahlian dan tingkat kemampuan Anda
                                                     </CardDescription>
                                                 </div>
-                                                <Button type="button" onClick={addSkill} size="sm">
+                                                <Button type="button" onClick={addSkill} size="sm" className="w-full sm:w-auto">
                                                     <Plus className="h-4 w-4 mr-2" />
                                                     Tambah Keahlian
                                                 </Button>
@@ -852,13 +879,14 @@ export default function ProfileEdit({ user, profile, userSkills, allSkills }: Pr
                                         <CardContent className="space-y-4">
                                             {profileData.skills.map((skill: any, index: number) => (
                                                 <div key={index} className="p-4 border rounded-lg">
-                                                    <div className="flex items-center justify-between mb-4">
+                                                    <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                                                         <h4 className="font-medium">Keahlian {index + 1}</h4>
                                                         <Button
                                                             type="button"
                                                             variant="destructive"
                                                             size="sm"
                                                             onClick={() => removeSkill(index)}
+                                                            className="w-full sm:w-auto"
                                                         >
                                                             <Trash2 className="h-4 w-4" />
                                                         </Button>
@@ -969,12 +997,12 @@ export default function ProfileEdit({ user, profile, userSkills, allSkills }: Pr
                                                             Format: JPG, PNG, GIF. Maksimal 2MB.
                                                         </p>
                                                     </div>
-                                                    {profile?.avatar && (
+                                                    {profile?.avatar_url && (
                                                         <div className="mt-4">
                                                             <p className="text-sm font-medium text-gray-700">Foto saat ini:</p>
-                                                            <img 
-                                                                src={`/storage/${profile.avatar}`} 
-                                                                alt="Current avatar" 
+                                                            <img
+                                                                src={profile.avatar_url}
+                                                                alt="Current avatar"
                                                                 className="mt-2 h-20 w-20 rounded-full object-cover border-2 border-gray-200"
                                                                 onError={(e) => {
                                                                     e.currentTarget.src = '/favicon.svg';
@@ -1154,8 +1182,6 @@ export default function ProfileEdit({ user, profile, userSkills, allSkills }: Pr
                     </div>
                 </main>
                 
-                <ModernFooter />
-            </div>
-        </>
+            </MainLayout>
     );
 }

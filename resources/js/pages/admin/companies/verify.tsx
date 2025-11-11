@@ -8,9 +8,11 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import AppLayout from '@/layouts/app-layout';
 import { Head, useForm } from '@inertiajs/react';
-import { Building2, Upload, FileCheck, Shield, AlertCircle, CheckCircle2, Briefcase } from 'lucide-react';
-import { useState } from 'react';
+import { Building2, Upload, FileCheck, Shield, AlertCircle, CheckCircle2, Briefcase, Clock } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { toast } from 'sonner';
+import { route } from 'ziggy-js';
 
 interface Company {
     id: number;
@@ -26,6 +28,8 @@ interface Props {
 export default function CompanyVerification({ company }: Props) {
     const [verificationType, setVerificationType] = useState<'legal' | 'individual'>('legal');
     const [businessType, setBusinessType] = useState<'online' | 'offline'>('online');
+    const [showSuccessAlert, setShowSuccessAlert] = useState(false);
+    const [companyLogoPreview, setCompanyLogoPreview] = useState<string | null>(null);
     
     const { data, setData, post, processing, errors, progress } = useForm({
         // Common fields
@@ -89,60 +93,93 @@ export default function CompanyVerification({ company }: Props) {
 
         // Client-side validation
         if (!data.data_accuracy_agreement || !data.terms_agreement) {
-            alert('Mohon centang semua persetujuan yang diperlukan');
+            toast.error('Persetujuan diperlukan', {
+                description: 'Mohon centang semua persetujuan yang diperlukan',
+                icon: <AlertCircle className="h-4 w-4" />,
+            });
             return;
         }
 
         // Validate required fields based on verification type
         if (!data.legal_company_name.trim()) {
-            alert('Nama perusahaan/usaha wajib diisi');
+            toast.error('Data tidak lengkap', {
+                description: 'Nama perusahaan/usaha wajib diisi',
+                icon: <AlertCircle className="h-4 w-4" />,
+            });
             return;
         }
 
         if (!data.office_address.trim()) {
-            alert('Alamat kantor/usaha wajib diisi');
+            toast.error('Data tidak lengkap', {
+                description: 'Alamat kantor/usaha wajib diisi',
+                icon: <AlertCircle className="h-4 w-4" />,
+            });
             return;
         }
 
         if (!data.work_email.trim()) {
-            alert('Email perusahaan/usaha wajib diisi');
+            toast.error('Data tidak lengkap', {
+                description: 'Email perusahaan/usaha wajib diisi',
+                icon: <AlertCircle className="h-4 w-4" />,
+            });
             return;
         }
 
         // Validation for legal entity
         if (verificationType === 'legal') {
             if (!data.business_entity_type) {
-                alert('Tipe badan usaha wajib dipilih');
+                toast.error('Data tidak lengkap', {
+                    description: 'Tipe badan usaha wajib dipilih',
+                    icon: <AlertCircle className="h-4 w-4" />,
+                });
                 return;
             }
 
             if (!data.pic_name.trim()) {
-                alert('Nama PIC wajib diisi');
+                toast.error('Data PIC tidak lengkap', {
+                    description: 'Nama PIC wajib diisi',
+                    icon: <AlertCircle className="h-4 w-4" />,
+                });
                 return;
             }
 
             if (!data.pic_position.trim()) {
-                alert('Jabatan PIC wajib diisi');
+                toast.error('Data PIC tidak lengkap', {
+                    description: 'Jabatan PIC wajib diisi',
+                    icon: <AlertCircle className="h-4 w-4" />,
+                });
                 return;
             }
 
             if (!data.pic_email.trim()) {
-                alert('Email PIC wajib diisi');
+                toast.error('Data PIC tidak lengkap', {
+                    description: 'Email PIC wajib diisi',
+                    icon: <AlertCircle className="h-4 w-4" />,
+                });
                 return;
             }
 
             if (!data.pic_phone.trim()) {
-                alert('Telepon PIC wajib diisi');
+                toast.error('Data PIC tidak lengkap', {
+                    description: 'Telepon PIC wajib diisi',
+                    icon: <AlertCircle className="h-4 w-4" />,
+                });
                 return;
             }
 
             if (!data.npwp_number.trim()) {
-                alert('Nomor NPWP perusahaan wajib diisi');
+                toast.error('Dokumen legal tidak lengkap', {
+                    description: 'Nomor NPWP perusahaan wajib diisi',
+                    icon: <AlertCircle className="h-4 w-4" />,
+                });
                 return;
             }
 
             if (!data.npwp_document) {
-                alert('Dokumen NPWP perusahaan wajib diupload');
+                toast.error('Dokumen legal tidak lengkap', {
+                    description: 'Dokumen NPWP perusahaan wajib diupload',
+                    icon: <AlertCircle className="h-4 w-4" />,
+                });
                 return;
             }
         }
@@ -150,81 +187,119 @@ export default function CompanyVerification({ company }: Props) {
         // Validation for individual business
         if (verificationType === 'individual') {
             if (!data.identity_document_type) {
-                alert('Jenis dokumen identitas wajib dipilih');
+                toast.error('Dokumen identitas diperlukan', {
+                    description: 'Jenis dokumen identitas wajib dipilih',
+                    icon: <AlertCircle className="h-4 w-4" />,
+                });
                 return;
             }
 
             if (data.identity_document_type === 'npwp') {
                 if (!data.npwp_pribadi_number.trim()) {
-                    alert('Nomor NPWP pribadi wajib diisi');
+                    toast.error('Data NPWP tidak lengkap', {
+                        description: 'Nomor NPWP pribadi wajib diisi',
+                        icon: <AlertCircle className="h-4 w-4" />,
+                    });
                     return;
                 }
                 if (!data.npwp_pribadi_document) {
-                    alert('Dokumen NPWP pribadi wajib diupload');
+                    toast.error('Dokumen NPWP tidak lengkap', {
+                        description: 'Dokumen NPWP pribadi wajib diupload',
+                        icon: <AlertCircle className="h-4 w-4" />,
+                    });
                     return;
                 }
             } else {
                 if (!data.ktp_pribadi_document) {
-                    alert('Dokumen KTP pribadi wajib diupload');
+                    toast.error('Dokumen KTP diperlukan', {
+                        description: 'Dokumen KTP pribadi wajib diupload',
+                        icon: <AlertCircle className="h-4 w-4" />,
+                    });
                     return;
                 }
             }
 
             if (!data.business_activity_type) {
-                alert('Jenis aktivitas bisnis wajib dipilih');
+                toast.error('Jenis bisnis diperlukan', {
+                    description: 'Jenis aktivitas bisnis wajib dipilih',
+                    icon: <AlertCircle className="h-4 w-4" />,
+                });
                 return;
             }
 
             // Check business photos
             const photosField = data.business_activity_type === 'online' ? data.online_business_photos : data.offline_business_photos;
             if (!photosField || photosField.length < 2) {
-                alert('Minimal 2 foto aktivitas bisnis wajib diupload');
+                toast.error('Foto bisnis tidak lengkap', {
+                    description: 'Minimal 2 foto aktivitas bisnis wajib diupload',
+                    icon: <AlertCircle className="h-4 w-4" />,
+                });
                 return;
             }
         }
 
-        console.log('Submitting form with data:', {
-            verification_type: data.verification_type,
-            legal_company_name: data.legal_company_name,
-            office_address: data.office_address,
-            work_email: data.work_email
-        });
 
         post(route('admin.company.verify.submit'), {
             forceFormData: true,
             onStart: () => {
-                console.log('Form submission started...');
             },
             onProgress: (progress) => {
-                console.log('Upload progress:', progress);
             },
             onSuccess: (page) => {
-                console.log('Form submitted successfully:', page);
-                alert('Verifikasi berhasil dikirim! Anda akan diarahkan ke dashboard.');
+                setShowSuccessAlert(true);
+
+                // Show success toast
+                toast.success('Verifikasi berhasil dikirim!', {
+                    description: 'Tim kami akan meninjau dokumen dalam 1-3 hari kerja.',
+                    icon: <Clock className="h-4 w-4" />,
+                    duration: 5000,
+                });
+
+                // Auto-redirect to dashboard after 3 seconds
+                setTimeout(() => {
+                    window.location.href = route('admin.dashboard');
+                }, 3000);
             },
             onError: (errors) => {
                 console.error('Form submission errors:', errors);
 
-                // Show detailed error information
-                let errorMessage = 'Terjadi kesalahan:\n';
-                Object.entries(errors).forEach(([field, message]) => {
-                    if (Array.isArray(message)) {
-                        errorMessage += `- ${field}: ${message.join(', ')}\n`;
-                    } else {
-                        errorMessage += `- ${field}: ${message}\n`;
-                    }
+                // Show error toast with first error message
+                const firstError = Object.values(errors)[0];
+                const errorMessage = Array.isArray(firstError) ? firstError[0] : firstError;
+
+                toast.error('Gagal mengirim verifikasi', {
+                    description: errorMessage || 'Terjadi kesalahan saat mengirim dokumen verifikasi.',
+                    icon: <AlertCircle className="h-4 w-4" />,
+                    duration: 6000,
                 });
 
-                alert(errorMessage);
+                // Also show detailed error information in console
+                let detailedErrorMessage = 'Detail kesalahan:\n';
+                Object.entries(errors).forEach(([field, message]) => {
+                    if (Array.isArray(message)) {
+                        detailedErrorMessage += `- ${field}: ${message.join(', ')}\n`;
+                    } else {
+                        detailedErrorMessage += `- ${field}: ${message}\n`;
+                    }
+                });
             },
             onFinish: () => {
-                console.log('Form submission finished');
             }
         });
     };
 
+    useEffect(() => {
+        return () => {
+            if (companyLogoPreview) URL.revokeObjectURL(companyLogoPreview);
+        };
+    }, [companyLogoPreview]);
+
     const handleFileChange = (field: string, file: File | null) => {
         setData(field as any, file);
+        if (field === 'company_logo') {
+            if (companyLogoPreview) URL.revokeObjectURL(companyLogoPreview);
+            setCompanyLogoPreview(file ? URL.createObjectURL(file) : null);
+        }
     };
 
     const handleMultipleFileChange = (field: string, files: FileList | null) => {
@@ -259,8 +334,15 @@ export default function CompanyVerification({ company }: Props) {
                             Ditolak
                         </Badge>
                     ) : company.verification_status === 'pending' ? (
-                        // Menunggu Review badge hidden for better upload experience
-                        null
+                        <Badge variant="outline" className="text-orange-600 border-orange-600 bg-orange-50">
+                            <Clock className="mr-1 h-4 w-4" />
+                            Menunggu Review
+                        </Badge>
+                    ) : company.verification_status === 'unverified' ? (
+                        <Badge variant="outline" className="text-gray-600 border-gray-600">
+                            <Shield className="mr-1 h-4 w-4" />
+                            Belum Terverifikasi
+                        </Badge>
                     ) : (
                         <Badge variant="outline" className="text-gray-600 border-gray-600">
                             <Shield className="mr-1 h-4 w-4" />
@@ -279,7 +361,36 @@ export default function CompanyVerification({ company }: Props) {
                     </Alert>
                 )}
 
-                {/* Pending notification and alert hidden for better upload experience */}
+                {/* Success Alert - Menunggu Review */}
+                {showSuccessAlert && (
+                    <Alert className="border-blue-200 bg-blue-50">
+                        <Clock className="h-4 w-4 text-blue-600" />
+                        <AlertDescription className="text-blue-800">
+                            <strong>Verifikasi berhasil dikirim!</strong> Status perusahaan Anda sekarang sedang menunggu review.
+                            Tim kami akan meninjau dokumen dalam 1-3 hari kerja. Anda akan diarahkan ke dashboard dalam beberapa detik.
+                        </AlertDescription>
+                    </Alert>
+                )}
+
+                {/* Pending Status Alert */}
+                {company.verification_status === 'pending' && !showSuccessAlert && (
+                    <Alert className="border-orange-200 bg-orange-50">
+                        <Clock className="h-4 w-4" style={{ color: '#9a3412' }} />
+                        <AlertDescription className="text-orange-800">
+                            Dokumen verifikasi Anda sedang ditinjau oleh tim kami. Proses review membutuhkan waktu 1-3 hari kerja.
+                        </AlertDescription>
+                    </Alert>
+                )}
+
+                {/* Unverified Status Info */}
+                {company.verification_status === 'unverified' && !showSuccessAlert && (
+                    <Alert className="border-blue-200 bg-blue-50">
+                        <Shield className="h-4 w-4 text-blue-600" />
+                        <AlertDescription className="text-blue-800">
+                            Lengkapi dokumen verifikasi untuk mendapatkan akses penuh ke fitur KarirConnect.
+                        </AlertDescription>
+                    </Alert>
+                )}
 
                 {company.verification_status === 'rejected' && (
                     <Alert className="border-red-200 bg-red-50">
@@ -542,6 +653,17 @@ export default function CompanyVerification({ company }: Props) {
                                     onChange={(e) => handleFileChange('company_logo', e.target.files?.[0] || null)}
                                 />
                                 <p className="text-sm text-gray-500 mt-1">JPG, PNG - Maksimal 2MB, rasio 1:1 disarankan</p>
+                                {companyLogoPreview && (
+                                    <div className="mt-3">
+                                        <div className="w-28 h-28 rounded-lg overflow-hidden border border-gray-200 bg-gray-50">
+                                            <img
+                                                src={companyLogoPreview}
+                                                alt="Preview logo perusahaan"
+                                                className="w-full h-full object-contain p-1"
+                                            />
+                                        </div>
+                                    </div>
+                                )}
                             </div>
 
                             {/* Company Description */}

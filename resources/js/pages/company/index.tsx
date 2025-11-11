@@ -1,8 +1,8 @@
 import React from 'react';
 import { Head, Link } from '@inertiajs/react';
 import { motion } from 'framer-motion';
-import ModernNavbar from '@/components/modern-navbar';
-import ModernFooter from '@/components/modern-footer';
+// import ModernNavbar from '@/components/modern-navbar';
+// import ModernFooter from '@/components/modern-footer';
 import { FlickeringGrid } from '@/components/magicui/flickering-grid';
 import { NumberTicker } from '@/components/magicui/number-ticker';
 import { 
@@ -24,6 +24,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import MainLayout from '@/layouts/main-layout';
 
 export default function CompanyIndex() {
     const features = [
@@ -125,11 +126,8 @@ export default function CompanyIndex() {
     ];
 
     return (
-        <>
+        <MainLayout currentPage="companies">
             <Head title="Untuk Perusahaan - Temukan Talenta Terbaik" />
-            
-            <div className="min-h-screen bg-gray-50">
-                <ModernNavbar currentPage="companies" />
 
                 {/* Hero Section */}
                 <section className="relative bg-gradient-to-br from-indigo-50 via-white to-blue-50 pt-24 pb-16 lg:pt-32 lg:pb-20 overflow-hidden">
@@ -365,8 +363,6 @@ export default function CompanyIndex() {
                     </div>
                 </section>
 
-                <ModernFooter />
-            </div>
-        </>
+            </MainLayout>
     );
 }

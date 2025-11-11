@@ -9,7 +9,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
+import { resolveAssetUrl } from '@/lib/utils';
 import { type SharedData } from '@/types';
+import { route } from 'ziggy-js';
 
 type LoginForm = {
     email: string;
@@ -20,6 +22,9 @@ type LoginForm = {
 
 export default function UserLogin() {
     const { settings } = usePage<SharedData>().props;
+    const authIllustrationFallback = 'https://placehold.co/1920x1080/0f172a/FFFFFF?text=KarirConnect';
+    const logoSrc = resolveAssetUrl(settings.logo);
+    const thumbnailSrc = resolveAssetUrl(settings.thumbnail, authIllustrationFallback);
     const { data, setData, post, processing, errors, reset } = useForm<Required<LoginForm>>({
         email: '',
         password: '',
@@ -40,7 +45,7 @@ export default function UserLogin() {
         (window as any).onRecaptchaLoad = () => {
             if ((window as any).grecaptcha && (window as any).grecaptcha.render && recaptchaRef.current) {
                 (window as any).grecaptcha.render(recaptchaRef.current, {
-                    sitekey: '6LfIWR8rAAAAAP58_cs_prL0XLvoMjN_72liKq2-',
+                    sitekey: import.meta.env.VITE_RECAPTCHA_SITE_KEY || '6LekAgQsAAAAACd1Pjpmr4gsjaH9lYKNgMOQhmxF',
                     callback: (response: string) => {
                         setData('g-recaptcha-response', response);
                     },
@@ -84,7 +89,6 @@ export default function UserLogin() {
     const handleGoogleLogin = (e: React.MouseEvent) => {
         e.preventDefault();
         e.stopPropagation();
-        console.log('Google login clicked, redirecting to:', '/auth/google');
         window.location.href = '/auth/google';
     };
 
@@ -97,8 +101,8 @@ export default function UserLogin() {
                     <div className="flex justify-start">
                         <a href={route('home')} className="flex items-center">
                             <div className="flex items-center justify-center overflow-hidden">
-                                {settings.logo ? (
-                                    <img src={`/storage/${settings.logo}`} alt={settings.site_name || 'Logo'} className="h-10 w-auto max-w-[160px] object-contain" />
+                                {logoSrc ? (
+                                    <img src={logoSrc} alt={settings.site_name || 'Logo'} className="h-10 w-auto max-w-[160px] object-contain" />
                                 ) : (
                                     <div className="flex h-8 w-8 items-center justify-center rounded-md bg-primary text-primary-foreground">
                                         <GalleryVerticalEnd className="h-4 w-4" />
@@ -188,7 +192,7 @@ export default function UserLogin() {
                                     </div>
 
                                     <div className="grid gap-2">
-                                        <div ref={recaptchaRef} />
+                                        <div className="recaptcha-container"><div ref={recaptchaRef} /></div>
                                         <InputError message={errors['g-recaptcha-response']} />
                                     </div>
 
@@ -292,11 +296,7 @@ export default function UserLogin() {
                 </div>
 
                 <div className="relative hidden bg-muted lg:block">
-                    <img
-                        src={`/storage/${settings.thumbnail || 'default-thumbnail.jpg'}`}
-                        alt="Ilustrasi masuk"
-                        className="absolute inset-0 h-full w-full object-cover"
-                    />
+                    <img src={thumbnailSrc} alt="Ilustrasi masuk" className="absolute inset-0 h-full w-full object-cover" />
                 </div>
             </div>
         </>

@@ -231,7 +231,7 @@ export default function PaymentResult({ transaction, resultType, paymentStatus }
           {resultType === 'pending' && (
             <Card className="mt-6">
               <CardHeader>
-                <CardTitle>ℹ️ Informasi Pembayaran Pending</CardTitle>
+                <CardTitle>Informasi Pembayaran Pending</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3 text-sm">
                 <div>
@@ -254,7 +254,7 @@ export default function PaymentResult({ transaction, resultType, paymentStatus }
           {resultType === 'success' && (
             <Card className="mt-6">
               <CardHeader>
-                <CardTitle>🎉 Langkah Selanjutnya</CardTitle>
+                <CardTitle>Langkah Selanjutnya</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3 text-sm">
                 <div className="flex items-center gap-2">

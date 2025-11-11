@@ -102,12 +102,76 @@
 }
 
 @layer base {
+    /* Responsive Google reCAPTCHA v2 widget scaling */
+    .recaptcha-container {
+        width: 100%;
+        overflow: hidden;
+    }
+    .recaptcha-container > div {
+        transform-origin: 0 0;
+    }
+    @media (max-width: 400px) {
+        .recaptcha-container > div { transform: scale(0.92); }
+    }
+    @media (max-width: 360px) {
+        .recaptcha-container > div { transform: scale(0.86); }
+    }
+    html, body {
+        overflow-x: hidden;
+    }
     * {
         @apply border-border;
     }
 
     body {
         @apply bg-background text-foreground;
+    }
+
+    /* Make rich text content responsive on small screens */
+    .prose,
+    .blog-content {
+        word-break: break-word;
+        overflow-wrap: anywhere;
+    }
+
+    /* Responsive media inside content */
+    .prose img,
+    .blog-content img,
+    .prose video,
+    .blog-content video,
+    .prose canvas,
+    .blog-content canvas,
+    .prose audio,
+    .blog-content audio {
+        max-width: 100%;
+        height: auto;
+    }
+
+    /* Responsive iframes (YouTube, maps, etc.) */
+    .prose iframe,
+    .blog-content iframe {
+        width: 100%;
+        aspect-ratio: 16 / 9;
+        height: auto;
+    }
+
+    /* Prevent table overflow on mobile */
+    .prose table,
+    .blog-content table {
+        display: block;
+        width: 100%;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    /* Ensure code/pre blocks don’t overflow */
+    .prose pre {
+        overflow-x: auto;
+        white-space: pre-wrap;
+        word-break: break-word;
+    }
+    .prose code {
+        word-break: break-word;
     }
 }
 
@@ -428,6 +492,31 @@ html {
     background: linear-gradient(135deg, #94a3b8, #64748b);
 }
 
+/* Filter Sidebar Scrollbar - Glints Style */
+.filter-sidebar-scroll {
+    scrollbar-width: thin;
+    scrollbar-color: #CBD5E1 #F1F5F9;
+}
+
+.filter-sidebar-scroll::-webkit-scrollbar {
+    width: 6px;
+}
+
+.filter-sidebar-scroll::-webkit-scrollbar-track {
+    background: #F1F5F9;
+    border-radius: 3px;
+}
+
+.filter-sidebar-scroll::-webkit-scrollbar-thumb {
+    background: #CBD5E1;
+    border-radius: 3px;
+    transition: background 0.3s ease;
+}
+
+.filter-sidebar-scroll::-webkit-scrollbar-thumb:hover {
+    background: #94A3B8;
+}
+
 /* Mobile Menu Fade Effect */
 .mobile-menu-fade::before {
     content: '';
@@ -499,6 +588,18 @@ html {
   50% {
     box-shadow:
         0 0 0 8px var(--pulse-color);
+        }
+    }
+  --animate-blink-cursor:
+        blink-cursor 1.2s step-end infinite;
+  @keyframes blink-cursor {
+  0%, 49% {
+    opacity:
+        1;
+        }
+  50%, 100% {
+    opacity:
+        0;
         }
     }}
 

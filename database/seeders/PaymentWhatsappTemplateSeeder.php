@@ -16,21 +16,21 @@ class PaymentWhatsappTemplateSeeder extends Seeder
                 'name' => 'Pembayaran Berhasil',
                 'title' => 'PEMBAYARAN BERHASIL',
                 'type' => 'notification',
-                'message' => '🏢 *{company_name}*
+                'message' => '*{company_name}*
 
-📦 *Detail Pembelian:*
+*Detail Pembelian:*
 • Paket: {package_name}
 • Poin: {package_points} poin
 • Harga: Rp {amount}
 • Order ID: {order_id}
 
-💰 *Poin telah ditambahkan ke akun Anda!*
-📊 Total poin sekarang: {total_points} poin
+*Poin telah ditambahkan ke akun Anda!*
+Total poin sekarang: {total_points} poin
 
-🔗 Silakan login ke dashboard untuk menggunakan poin Anda:
+Silakan login ke dashboard untuk menggunakan poin Anda:
 {dashboard_url}
 
-Terima kasih telah menggunakan KarirConnect! 🙏',
+Terima kasih telah menggunakan KarirConnect!',
                 'variables' => [
                     'company_name',
                     'package_name', 
@@ -42,7 +42,7 @@ Terima kasih telah menggunakan KarirConnect! 🙏',
                 ],
                 'description' => 'Template notifikasi WhatsApp untuk pembayaran paket poin yang berhasil',
                 'is_active' => true,
-                'use_emoji' => true,
+                'use_emoji' => false,
                 'include_timestamp' => true,
                 'include_signature' => true,
                 'signature_text' => '_Pesan otomatis dari KarirConnect_'
@@ -56,22 +56,22 @@ Terima kasih telah menggunakan KarirConnect! 🙏',
                 'name' => 'Pembayaran Gagal',
                 'title' => 'PEMBAYARAN GAGAL',
                 'type' => 'alert',
-                'message' => '🏢 *{company_name}*
+                'message' => '*{company_name}*
 
-📦 *Detail Pembelian:*
+*Detail Pembelian:*
 • Paket: {package_name}
 • Poin: {package_points} poin  
 • Harga: Rp {amount}
 • Order ID: {order_id}
 
-⚠️ *Pembayaran tidak berhasil atau dibatalkan*
+*Pembayaran tidak berhasil atau dibatalkan*
 
-🔄 Anda dapat mencoba lagi dengan:
+Anda dapat mencoba lagi dengan:
 1. Pastikan saldo mencukupi
 2. Periksa koneksi internet
 3. Gunakan metode pembayaran lain
 
-🔗 Coba lagi di:
+Coba lagi di:
 {retry_url}
 
 Jika masalah berlanjut, hubungi customer service kami.',
@@ -85,7 +85,7 @@ Jika masalah berlanjut, hubungi customer service kami.',
                 ],
                 'description' => 'Template notifikasi WhatsApp untuk pembayaran paket poin yang gagal',
                 'is_active' => true,
-                'use_emoji' => true,
+                'use_emoji' => false,
                 'include_timestamp' => true,
                 'include_signature' => true,
                 'signature_text' => '_Pesan otomatis dari KarirConnect_'

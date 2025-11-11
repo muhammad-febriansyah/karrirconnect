@@ -20,7 +20,7 @@ class NotificationController extends Controller
         
         // Get notifications for the user role
         $notifications = Notification::active()
-            ->whereJsonContains('target_roles', $user->role)
+            ->visibleTo($user)
             ->orderBy('created_at', 'desc')
             ->paginate(20);
 
@@ -37,7 +37,7 @@ class NotificationController extends Controller
         $user = Auth::user();
         
         // Check if user has permission to access this notification
-        if (in_array($user->role, $notification->target_roles ?? [])) {
+        if ($notification->isAccessibleBy($user)) {
             $notification->update([
                 'read_at' => now()
             ]);
@@ -56,7 +56,7 @@ class NotificationController extends Controller
         $user = Auth::user();
         
         Notification::active()
-            ->whereJsonContains('target_roles', $user->role)
+            ->visibleTo($user)
             ->whereNull('read_at')
             ->update([
                 'read_at' => now()
@@ -73,7 +73,7 @@ class NotificationController extends Controller
         $user = Auth::user();
         
         $count = Notification::active()
-            ->whereJsonContains('target_roles', $user->role)
+            ->visibleTo($user)
             ->whereNull('read_at')
             ->count();
 

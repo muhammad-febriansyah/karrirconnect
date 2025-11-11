@@ -34,13 +34,18 @@ class SettingsController extends Controller
             'address' => 'nullable|string|max:500',
             'phone' => 'nullable|string|max:20',
             'description' => 'nullable|string',
-            'yt' => 'nullable|string|max:255',
+            'x' => 'nullable|string|max:255',
+            'linkedin' => 'nullable|string|max:255',
             'ig' => 'nullable|string|max:255',
             'fb' => 'nullable|string|max:255',
             'tiktok' => 'nullable|string|max:255',
             'fee' => 'nullable|integer|min:0',
-            'logo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-            'thumbnail' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'logo' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
+            'thumbnail' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
+            'favicon' => 'nullable|image|mimes:ico,png,jpg,jpeg|max:1024',
+            'hero_image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
+            'hero_title' => 'nullable|string|max:255',
+            'hero_subtitle' => 'nullable|string|max:500',
             'use_custom_stats' => 'boolean',
             'custom_total_jobs' => 'nullable|integer|min:0',
             'custom_total_companies' => 'nullable|integer|min:0',
@@ -55,6 +60,8 @@ class SettingsController extends Controller
             // Remove file fields from validated data to prevent overwriting existing files
             unset($validated['logo']);
             unset($validated['thumbnail']);
+            unset($validated['favicon']);
+            unset($validated['hero_image']);
 
             // Handle logo upload if present
             if ($request->hasFile('logo')) {
@@ -78,6 +85,30 @@ class SettingsController extends Controller
                 // Store new thumbnail
                 $thumbnailPath = $request->file('thumbnail')->store('settings', 'public');
                 $validated['thumbnail'] = $thumbnailPath;
+            }
+
+            // Handle favicon upload if present
+            if ($request->hasFile('favicon')) {
+                // Delete old favicon if exists
+                if ($setting->favicon && Storage::disk('public')->exists($setting->favicon)) {
+                    Storage::disk('public')->delete($setting->favicon);
+                }
+
+                // Store new favicon
+                $faviconPath = $request->file('favicon')->store('settings', 'public');
+                $validated['favicon'] = $faviconPath;
+            }
+
+            // Handle hero_image upload if present
+            if ($request->hasFile('hero_image')) {
+                // Delete old hero_image if exists
+                if ($setting->hero_image && Storage::disk('public')->exists($setting->hero_image)) {
+                    Storage::disk('public')->delete($setting->hero_image);
+                }
+
+                // Store new hero_image
+                $heroImagePath = $request->file('hero_image')->store('settings/hero', 'public');
+                $validated['hero_image'] = $heroImagePath;
             }
 
             $setting->update($validated);

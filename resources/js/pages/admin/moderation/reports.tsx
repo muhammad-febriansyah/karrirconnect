@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
 import { AlertTriangle, Eye, Flag, Filter, CheckCircle, XCircle, Clock } from 'lucide-react';
+import { route } from 'ziggy-js';
 
 interface JobReport {
   id: number;

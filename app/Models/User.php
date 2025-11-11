@@ -47,6 +47,33 @@ class User extends Authenticatable
         'remember_token',
     ];
 
+    protected $appends = [
+        'avatar_url',
+    ];
+
+    /**
+     * Get the avatar URL - handles both profile uploads and direct user avatar
+     */
+    public function getAvatarUrlAttribute()
+    {
+        // Priority 1: Check if user has uploaded avatar in profile
+        if ($this->profile && $this->profile->avatar) {
+            return asset('storage/' . $this->profile->avatar);
+        }
+
+        // Priority 2: Check users.avatar field
+        if ($this->avatar) {
+            // If it's a URL (Google OAuth), return as-is
+            if (filter_var($this->avatar, FILTER_VALIDATE_URL)) {
+                return $this->avatar;
+            }
+            // If it's a file path, prepend storage URL
+            return asset('storage/' . $this->avatar);
+        }
+
+        return null;
+    }
+
     /**
      * Get the attributes that should be cast.
      *
@@ -90,6 +117,16 @@ class User extends Authenticatable
     public function applications()
     {
         return $this->jobApplications();
+    }
+
+    public function jobInvitations()
+    {
+        return $this->hasMany(JobInvitation::class, 'candidate_id');
+    }
+
+    public function sentJobInvitations()
+    {
+        return $this->hasMany(JobInvitation::class, 'sent_by');
     }
 
     public function savedJobs()
@@ -159,6 +196,11 @@ class User extends Authenticatable
         return static::where('google_id', $googleId)->first();
     }
 
+    /**
+     * Create a new user from Google OAuth
+     * Note: Google login is only available for regular users (role='user')
+     * Admin and company accounts cannot be created or linked via Google OAuth
+     */
     public static function createFromGoogle($googleUser): self
     {
         return static::create([
@@ -170,7 +212,7 @@ class User extends Authenticatable
             'auth_provider' => 'google',
             'google_created_at' => now(),
             'email_verified_at' => now(), // Google accounts are pre-verified
-            'role' => 'user', // Default role for Google registrations
+            'role' => 'user', // Google login only for regular users
             'is_active' => true,
         ]);
     }
@@ -178,6 +220,11 @@ class User extends Authenticatable
     public function isCompanyAdmin()
     {
         return $this->role === 'company_admin';
+    }
+
+    public function hasRole($role)
+    {
+        return $this->role === $role;
     }
 
     /**

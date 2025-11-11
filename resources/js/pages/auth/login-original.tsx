@@ -1,3 +1,4 @@
+import { resolveAssetUrl } from '@/lib/utils';
 import { type SharedData } from '@/types';
 import { Head, Link, useForm, usePage } from '@inertiajs/react';
 import { GalleryVerticalEnd, LoaderCircle, Eye, EyeOff } from 'lucide-react';
@@ -9,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { route } from 'ziggy-js';
 
 type LoginForm = {
     email: string;
@@ -24,6 +26,9 @@ interface LoginProps {
 
 export default function Login({ status, canResetPassword }: LoginProps) {
     const { settings } = usePage<SharedData>().props;
+    const authIllustrationFallback = 'https://placehold.co/1920x1080/0f172a/FFFFFF?text=KarirConnect';
+    const logoSrc = resolveAssetUrl(settings.logo);
+    const thumbnailSrc = resolveAssetUrl(settings.thumbnail, authIllustrationFallback);
     const { data, setData, post, processing, errors, reset } = useForm<Required<LoginForm>>({
         email: '',
         password: '',
@@ -43,7 +48,7 @@ export default function Login({ status, canResetPassword }: LoginProps) {
         (window as any).onRecaptchaLoad = () => {
             if ((window as any).grecaptcha && (window as any).grecaptcha.render && recaptchaRef.current) {
                 (window as any).grecaptcha.render(recaptchaRef.current, {
-                    sitekey: '6LfIWR8rAAAAAP58_cs_prL0XLvoMjN_72liKq2-',
+                    sitekey: import.meta.env.VITE_RECAPTCHA_SITE_KEY || '6LekAgQsAAAAACd1Pjpmr4gsjaH9lYKNgMOQhmxF',
                     callback: (response: string) => {
                         setData('g-recaptcha-response', response);
                     },
@@ -93,8 +98,8 @@ export default function Login({ status, canResetPassword }: LoginProps) {
                     <div className="flex justify-start">
                         <a href={route('home')} className="flex items-center">
                             <div className="flex items-center justify-center overflow-hidden">
-                                {settings.logo ? (
-                                    <img src={`/storage/${settings.logo}`} alt={settings.site_name || 'Logo'} className="h-10 w-auto max-w-[160px] object-contain" />
+                                {logoSrc ? (
+                                    <img src={logoSrc} alt={settings.site_name || 'Logo'} className="h-10 w-auto max-w-[160px] object-contain" />
                                 ) : (
                                     <div className="flex h-8 w-8 items-center justify-center rounded-md bg-primary text-primary-foreground">
                                         <GalleryVerticalEnd className="h-4 w-4" />
@@ -173,19 +178,20 @@ export default function Login({ status, canResetPassword }: LoginProps) {
                                         <InputError message={errors.password} />
                                     </div>
 
-                                    <div className="flex items-center space-x-3">
+                                    <div className="flex items-center space-x-2">
                                         <Checkbox
                                             id="remember"
                                             name="remember"
                                             checked={data.remember}
                                             onClick={() => setData('remember', !data.remember)}
                                             tabIndex={3}
+                                            className="h-3 w-3"
                                         />
                                         <Label htmlFor="remember">Ingat saya</Label>
                                     </div>
 
                                     <div className="grid gap-2">
-                                        <div ref={recaptchaRef} />
+                                        <div className="recaptcha-container"><div ref={recaptchaRef} /></div>
                                         <InputError message={errors['g-recaptcha-response']} />
                                     </div>
 
@@ -241,7 +247,7 @@ export default function Login({ status, canResetPassword }: LoginProps) {
                                                 variant="outline" 
                                                 className="w-full border-blue-200 text-blue-700 hover:bg-blue-50 hover:border-blue-300"
                                             >
-                                                👤 Daftar sebagai Pencari Kerja
+                                                Daftar sebagai Pencari Kerja
                                             </Button>
                                         </Link>
                                         <Link href="/register-company">
@@ -249,7 +255,7 @@ export default function Login({ status, canResetPassword }: LoginProps) {
                                                 variant="outline"
                                                 className="w-full border-green-200 text-green-700 hover:bg-green-50 hover:border-green-300"
                                             >
-                                                🏢 Daftar sebagai Perusahaan
+                                                Daftar sebagai Perusahaan
                                             </Button>
                                         </Link>
                                     </div>
@@ -260,11 +266,7 @@ export default function Login({ status, canResetPassword }: LoginProps) {
                 </div>
 
                 <div className="relative hidden bg-muted lg:block">
-                    <img
-                        src={`/storage/${settings.thumbnail || 'default-thumbnail.jpg'}`}
-                        alt="Ilustrasi masuk"
-                        className="absolute inset-0 h-full w-full object-cover"
-                    />
+                    <img src={thumbnailSrc} alt="Ilustrasi masuk" className="absolute inset-0 h-full w-full object-cover" />
                 </div>
             </div>
         </>

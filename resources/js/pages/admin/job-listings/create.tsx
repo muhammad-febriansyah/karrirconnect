@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Head, Link, router } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
 import { Button } from '@/components/ui/button';
@@ -9,8 +9,10 @@ import { CurrencyInput } from '@/components/ui/currency-input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
-import { ArrowLeft, Save, Coins, AlertTriangle, CreditCard } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import { Badge } from '@/components/ui/badge';
+import { ArrowLeft, Save, Coins, AlertTriangle, CreditCard, Plus, X } from 'lucide-react';
+import { toast } from 'sonner';
+import { route } from 'ziggy-js';
 
 interface Category {
   id: number;
@@ -22,9 +24,15 @@ interface Company {
   name: string;
 }
 
+interface Skill {
+  id: number;
+  name: string;
+}
+
 interface Props {
   categories: Category[];
   companies: Company[];
+  skills: Skill[];
   userCompany?: {
     id: number;
     name: string;
@@ -33,12 +41,13 @@ interface Props {
   };
 }
 
-export default function CreateJobListing({ categories, companies, userCompany }: Props) {
+export default function CreateJobListing({ categories, companies, skills, userCompany }: Props) {
   const [form, setForm] = useState({
     title: '',
     description: '',
     requirements: '',
-    benefits: [],
+    benefits: '',
+    banner_image: null as File | null,
     employment_type: 'full_time',
     work_arrangement: 'onsite',
     experience_level: 'mid',
@@ -54,7 +63,54 @@ export default function CreateJobListing({ categories, companies, userCompany }:
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
   const [showPreview, setShowPreview] = useState(false);
-  const { toast } = useToast();
+  const [bannerPreview, setBannerPreview] = useState<string | null>(null);
+  const [selectedSkills, setSelectedSkills] = useState<number[]>([]);
+  const [skillSearch, setSkillSearch] = useState('');
+  const [showSkillDropdown, setShowSkillDropdown] = useState(false);
+
+  useEffect(() => {
+    return () => {
+      if (bannerPreview) URL.revokeObjectURL(bannerPreview);
+    };
+  }, [bannerPreview]);
+
+  // Handle click outside to close skill dropdown
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Element;
+      if (!target.closest('.skill-dropdown-container')) {
+        setShowSkillDropdown(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  // Skills helper functions
+  const addSkill = (skillId: number) => {
+    if (!selectedSkills.includes(skillId)) {
+      setSelectedSkills([...selectedSkills, skillId]);
+      updateForm('skills', [...selectedSkills, skillId]);
+    }
+    setSkillSearch('');
+    setShowSkillDropdown(false);
+  };
+
+  const removeSkill = (skillId: number) => {
+    const newSkills = selectedSkills.filter(id => id !== skillId);
+    setSelectedSkills(newSkills);
+    updateForm('skills', newSkills);
+  };
+
+  const filteredSkills = skills.filter(skill =>
+    skill.name.toLowerCase().includes(skillSearch.toLowerCase()) &&
+    !selectedSkills.includes(skill.id)
+  );
+
+  const getSelectedSkillNames = () => {
+    return skills.filter(skill => selectedSkills.includes(skill.id));
+  };
 
   const steps = [
     { id: 1, title: 'Informasi Dasar', description: 'Judul, kategori, dan tipe pekerjaan' },
@@ -146,26 +202,136 @@ export default function CreateJobListing({ categories, companies, userCompany }:
 <li>CRM software proficiency</li>
 <li>Industry-specific knowledge</li>
 </ul>`
+    },
+    benefits: {
+      'Software Developer': `<p><strong>Tunjangan & Fasilitas:</strong></p>
+<ul>
+<li>BPJS Kesehatan & Ketenagakerjaan</li>
+<li>Laptop/PC dan peralatan kerja yang memadai</li>
+<li>Akses ke platform learning & development</li>
+<li>Flexible working hours</li>
+<li>Annual leave 12 hari + cuti bersama</li>
+<li>THR sesuai peraturan</li>
+</ul>
+
+<p><strong>Bonus Benefits:</strong></p>
+<ul>
+<li>Work from home allowance</li>
+<li>Health insurance untuk keluarga</li>
+<li>Annual company retreat</li>
+</ul>`,
+
+      'Marketing Manager': `<p><strong>Tunjangan & Fasilitas:</strong></p>
+<ul>
+<li>BPJS Kesehatan & Ketenagakerjaan</li>
+<li>Tunjangan transportasi</li>
+<li>Tunjangan komunikasi</li>
+<li>Performance bonus</li>
+<li>Training & development budget</li>
+<li>Annual leave 15 hari + cuti bersama</li>
+<li>THR sesuai peraturan</li>
+</ul>
+
+<p><strong>Bonus Benefits:</strong></p>
+<ul>
+<li>Gym membership subsidy</li>
+<li>Team outing quarterly</li>
+<li>Conference attendance support</li>
+</ul>`,
+
+      'Sales Representative': `<p><strong>Tunjangan & Fasilitas:</strong></p>
+<ul>
+<li>BPJS Kesehatan & Ketenagakerjaan</li>
+<li>Tunjangan transportasi</li>
+<li>Tunjangan komunikasi</li>
+<li>Komisi penjualan yang menarik</li>
+<li>Bonus achievement target</li>
+<li>Annual leave 12 hari + cuti bersama</li>
+<li>THR sesuai peraturan</li>
+</ul>
+
+<p><strong>Bonus Benefits:</strong></p>
+<ul>
+<li>Sales contest rewards</li>
+<li>Best performer recognition</li>
+<li>Career advancement opportunities</li>
+</ul>`
     }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     const errors = validateStep(4); // Validate all required fields
-    
+
     if (errors.length > 0) {
-      toast({
-        title: 'Data belum lengkap',
-        description: errors.join(', '),
-        variant: 'destructive'
+      toast.error(`Data belum lengkap: ${errors.join(', ')}`, {
+        duration: 5000,
       });
       return;
     }
-    
-    setIsSubmitting(true);
 
-    router.post(route('admin.job-listings.store'), form, {
+    setIsSubmitting(true);
+    const loadingToast = toast.loading('Membuat lowongan pekerjaan...');
+
+    // Prepare form data for file upload
+    const formData = new FormData();
+
+    // Add all form fields
+    Object.entries(form).forEach(([key, value]) => {
+      if (key === 'banner_image' && value instanceof File) {
+        formData.append(key, value);
+      } else if (key === 'salary_min' || key === 'salary_max') {
+        const numericValue = value && value.toString().trim() !== '' ? parseInt(value.toString(), 10) : null;
+        if (numericValue !== null) {
+          formData.append(key, numericValue.toString());
+        }
+      } else if (key === 'positions_available') {
+        formData.append(key, parseInt(value.toString(), 10).toString());
+      } else if (key === 'skills' && Array.isArray(value)) {
+        // Handle skills array properly
+        value.forEach((skill, index) => {
+          formData.append(`skills[${index}]`, skill.toString());
+        });
+      } else if (value !== null && value !== undefined) {
+        if (Array.isArray(value)) {
+          formData.append(key, JSON.stringify(value));
+        } else {
+          formData.append(key, value.toString());
+        }
+      }
+    });
+
+    router.post(route('admin.job-listings.store'), formData, {
+      forceFormData: true,
+      onSuccess: () => {
+        toast.dismiss(loadingToast);
+        toast.success('Lowongan pekerjaan berhasil dibuat!', {
+          duration: 4000,
+        });
+        // Redirect handled by controller
+      },
+      onError: (errors) => {
+        toast.dismiss(loadingToast);
+
+        // Show specific error messages if available
+        if (typeof errors === 'object' && errors !== null) {
+          const errorMessages = Object.values(errors).flat();
+          if (errorMessages.length > 0) {
+            toast.error(`Gagal membuat lowongan: ${errorMessages[0]}`, {
+              duration: 5000,
+            });
+          } else {
+            toast.error('Gagal membuat lowongan pekerjaan. Periksa kembali data yang diinput.', {
+              duration: 4000,
+            });
+          }
+        } else {
+          toast.error('Gagal membuat lowongan pekerjaan. Silakan coba lagi.', {
+            duration: 4000,
+          });
+        }
+      },
       onFinish: () => setIsSubmitting(false),
     });
   };
@@ -204,16 +370,14 @@ export default function CreateJobListing({ categories, companies, userCompany }:
 
   const handleStepNavigation = (targetStep: number) => {
     const errors = validateStep(currentStep);
-    
+
     if (errors.length > 0) {
-      toast({
-        title: 'Data belum lengkap',
-        description: errors.join(', '),
-        variant: 'destructive'
+      toast.error(`Data belum lengkap: ${errors.join(', ')}`, {
+        duration: 4000,
       });
       return;
     }
-    
+
     setCurrentStep(targetStep);
   };
 
@@ -223,6 +387,9 @@ export default function CreateJobListing({ categories, companies, userCompany }:
     }
     if (jobTemplates.requirements[templateKey]) {
       updateForm('requirements', jobTemplates.requirements[templateKey]);
+    }
+    if (jobTemplates.benefits[templateKey]) {
+      updateForm('benefits', jobTemplates.benefits[templateKey]);
     }
   };
 
@@ -342,7 +509,7 @@ export default function CreateJobListing({ categories, companies, userCompany }:
               <div>
                 <label className="text-sm font-medium">Deskripsi Pekerjaan</label>
                 <RichTextEditor
-                  value={form.description}
+                  content={form.description}
                   onChange={(value) => updateForm('description', value)}
                   placeholder="Jelaskan tanggung jawab, kegiatan sehari-hari, dan yang menarik dari posisi ini..."
                   className="mt-1"
@@ -352,11 +519,172 @@ export default function CreateJobListing({ categories, companies, userCompany }:
               <div>
                 <label className="text-sm font-medium">Persyaratan</label>
                 <RichTextEditor
-                  value={form.requirements}
+                  content={form.requirements}
                   onChange={(value) => updateForm('requirements', value)}
                   placeholder="Sebutkan skill, pengalaman, dan kualifikasi yang dibutuhkan..."
                   className="mt-1"
                 />
+              </div>
+
+              <div>
+                <label className="text-sm font-medium">Tunjangan & Fasilitas</label>
+                <RichTextEditor
+                  content={form.benefits}
+                  onChange={(value) => updateForm('benefits', value)}
+                  placeholder="Sebutkan tunjangan, fasilitas, dan benefit yang diberikan seperti BPJS, tunjangan makan, laptop, dll..."
+                  className="mt-1"
+                />
+                <p className="mt-2 text-xs text-gray-500">
+                  Contoh: BPJS Kesehatan & Ketenagakerjaan, Tunjangan Transport, Laptop/PC, Cuti Tahunan, dll.
+                </p>
+              </div>
+
+              <div>
+                <label className="text-sm font-medium text-gray-700 mb-2 block">
+                  Skills yang Dibutuhkan
+                </label>
+
+                {/* Skills Input Area - Glints Style */}
+                <div className="border border-gray-200 rounded-lg p-4 bg-gray-50/50 focus-within:bg-white focus-within:border-blue-300 transition-all duration-200">
+                  {/* Selected Skills Display */}
+                  {selectedSkills.length > 0 && (
+                    <div className="flex flex-wrap gap-2 mb-3">
+                      {getSelectedSkillNames().map((skill) => (
+                        <div
+                          key={skill.id}
+                          className="inline-flex items-center px-3 py-1.5 bg-blue-100 text-blue-800 rounded-full text-sm font-medium group hover:bg-blue-200 transition-colors"
+                        >
+                          <span>{skill.name}</span>
+                          <button
+                            type="button"
+                            onClick={() => removeSkill(skill.id)}
+                            className="ml-2 text-blue-600 hover:text-blue-900 transition-colors"
+                          >
+                            <X className="h-3.5 w-3.5" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Skills Input */}
+                  <div className="relative skill-dropdown-container">
+                    <div className="flex items-center">
+                      <input
+                        type="text"
+                        value={skillSearch}
+                        onChange={(e) => setSkillSearch(e.target.value)}
+                        onFocus={() => setShowSkillDropdown(true)}
+                        placeholder={selectedSkills.length === 0 ? "Ketik untuk mencari skills seperti 'JavaScript', 'React', 'PHP'..." : "Tambah skill lainnya..."}
+                        className="flex-1 border-0 bg-transparent focus:outline-none text-gray-700 placeholder-gray-400 text-sm"
+                      />
+                      {skillSearch && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSkillSearch('');
+                            setShowSkillDropdown(false);
+                          }}
+                          className="text-gray-400 hover:text-gray-600 transition-colors"
+                        >
+                          <X className="h-4 w-4" />
+                        </button>
+                      )}
+                    </div>
+
+                    {/* Dropdown */}
+                    {showSkillDropdown && (filteredSkills.length > 0 || skillSearch) && (
+                      <div className="absolute z-20 w-full mt-2 bg-white border border-gray-200 rounded-lg shadow-lg max-h-64 overflow-y-auto">
+                        {filteredSkills.length > 0 ? (
+                          <>
+                            <div className="px-3 py-2 text-xs font-medium text-gray-500 bg-gray-50 border-b border-gray-100">
+                              Skills yang tersedia ({filteredSkills.length})
+                            </div>
+                            {filteredSkills.slice(0, 12).map((skill) => (
+                              <button
+                                key={skill.id}
+                                type="button"
+                                onClick={() => addSkill(skill.id)}
+                                className="w-full px-3 py-2.5 text-left hover:bg-blue-50 flex items-center justify-between group transition-colors border-b border-gray-50 last:border-b-0"
+                              >
+                                <span className="text-gray-700 text-sm font-medium">{skill.name}</span>
+                                <Plus className="h-4 w-4 text-gray-400 group-hover:text-blue-500 transition-colors" />
+                              </button>
+                            ))}
+                            {filteredSkills.length > 12 && (
+                              <div className="px-3 py-2 text-xs text-gray-500 bg-gray-50 border-t border-gray-100">
+                                +{filteredSkills.length - 12} skills lainnya. Ketik lebih spesifik untuk melihat lebih sedikit.
+                              </div>
+                            )}
+                          </>
+                        ) : skillSearch ? (
+                          <div className="px-3 py-4 text-center text-gray-500">
+                            <div className="text-sm">Skill "{skillSearch}" tidak ditemukan</div>
+                            <div className="text-xs mt-1">Coba kata kunci lain atau hubungi admin untuk menambah skill baru</div>
+                          </div>
+                        ) : null}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Help Text */}
+                <div className="mt-2 text-xs text-gray-500">
+                  <div className="flex items-start space-x-1">
+                    <div>
+                      <div className="font-medium">Tips:</div>
+                      <ul className="mt-1 space-y-0.5 list-disc list-inside ml-2">
+                        <li>Tambahkan 3-8 skills utama yang benar-benar dibutuhkan</li>
+                        <li>Mulai dengan skills teknis yang spesifik (misal: React, Python)</li>
+                        <li>Lalu tambah soft skills jika diperlukan (misal: Communication)</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <label className="text-sm font-medium">Banner Gambar (Opsional)</label>
+                <div className="mt-1">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0] || null;
+                      updateForm('banner_image', file);
+                      if (bannerPreview) URL.revokeObjectURL(bannerPreview);
+                      setBannerPreview(file ? URL.createObjectURL(file) : null);
+                    }}
+                    className="block w-full text-sm text-gray-500
+                      file:mr-4 file:py-2 file:px-4
+                      file:rounded-lg file:border-0
+                      file:text-sm file:font-medium
+                      file:bg-blue-50 file:text-blue-700
+                      hover:file:bg-blue-100
+                      file:cursor-pointer cursor-pointer"
+                  />
+                  <p className="mt-2 text-xs text-gray-500">
+                    Upload gambar banner untuk lowongan (JPG, PNG, max 2MB)
+                  </p>
+                  {form.banner_image && (
+                    <div className="mt-3 space-y-3">
+                      <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
+                        <p className="text-sm text-green-700 font-medium">
+                          File terpilih: {form.banner_image.name}
+                        </p>
+                      </div>
+                      {bannerPreview && (
+                        <div className="h-40 sm:h-56 md:h-72 rounded-lg overflow-hidden border border-gray-200 bg-gray-50">
+                          <img
+                            src={bannerPreview}
+                            alt="Preview Banner Lowongan"
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -414,23 +742,9 @@ export default function CreateJobListing({ categories, companies, userCompany }:
                   required
                   className="mt-1"
                 />
-                {(() => {
-                  const positions = parseInt(form.positions_available) || 1;
-                  const pointsNeeded = positions > 1 ? positions - 1 : 0;
-                  return (
-                    <p className="text-xs text-gray-500 mt-1">
-                      {pointsNeeded > 0 ? (
-                        <span className="text-orange-600 font-medium">
-                          Membutuhkan {pointsNeeded} poin (1 posisi gratis, +{pointsNeeded} berbayar)
-                        </span>
-                      ) : (
-                        <span className="text-green-600 font-medium">
-                          Gratis - 1 posisi tidak memerlukan poin
-                        </span>
-                      )}
-                    </p>
-                  );
-                })()}
+                <p className="text-xs text-gray-500 mt-1">
+                  Kuota pelamar tidak mempengaruhi penggunaan poin. Setiap lowongan yang dipublikasikan membutuhkan 1 poin.
+                </p>
               </div>
             </CardContent>
           </Card>
@@ -444,7 +758,7 @@ export default function CreateJobListing({ categories, companies, userCompany }:
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                <h3 className="font-medium text-green-800 mb-2">🎉 Hampir Selesai!</h3>
+                <h3 className="font-medium text-green-800 mb-2">Hampir Selesai!</h3>
                 <p className="text-sm text-green-700">
                   Tinjau lowongan Anda dan klik "Preview" untuk melihat tampilan untuk pelamar.
                   Jika sudah puas, klik "Selesai & Posting Lowongan" untuk menerbitkannya.
@@ -518,7 +832,7 @@ export default function CreateJobListing({ categories, companies, userCompany }:
                   step.id < currentStep ? 'bg-green-500 text-white' :
                   'bg-gray-200 text-gray-500'
                 }`}>
-                  {step.id < currentStep ? '✓' : step.id}
+                  {step.id < currentStep ? '*' : step.id}
                 </div>
                 {index < steps.length - 1 && (
                   <div className={`w-16 h-1 mx-2 ${
@@ -559,41 +873,45 @@ export default function CreateJobListing({ categories, companies, userCompany }:
                         <span className="text-gray-600">Lowongan Aktif:</span>
                         <span className="font-semibold">{userCompany.active_job_posts}</span>
                       </div>
-                      
+
                       <div className="flex justify-between items-center py-2 border-b border-gray-100">
-                        <span className="text-gray-600">Poin Tersedia:</span>
+                        <span className="text-gray-600">Saldo Poin:</span>
                         <div className="text-right">
-                          <div className="font-semibold text-green-600">{userCompany.job_posting_points} Poin</div>
+                          <div className="font-semibold text-blue-600">{userCompany.job_posting_points} Poin</div>
                         </div>
                       </div>
-                      
-                      <div className="bg-green-50 border border-green-200 rounded-lg p-3">
-                        <div className="text-sm font-medium text-green-800">Posting Dasar: GRATIS</div>
-                        <div className="text-xs text-green-600 mt-1">1 posisi sudah termasuk</div>
-                      </div>
-                      
+
                       <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                        <div className="text-sm font-medium text-blue-800">Posisi Tambahan: 1 poin per posisi</div>
-                        <div className="text-xs text-blue-600 mt-1">Cocok untuk rekrutmen massal</div>
+                        <div className="text-sm font-medium text-blue-800">Posting Lowongan</div>
+                        <div className="text-xs text-blue-600 mt-1">
+                          Setiap publikasi lowongan akan mengurangi <strong>1 poin</strong>.
+                        </div>
+                      </div>
+
+                      <div className="bg-purple-50 border border-purple-200 rounded-lg p-3">
+                        <div className="text-sm font-medium text-purple-800">Job Invitation</div>
+                        <div className="text-xs text-purple-600 mt-1">
+                          Setiap undangan ke kandidat juga membutuhkan <strong>1 poin</strong>.
+                        </div>
                       </div>
                     </div>
                   </CardContent>
                 </Card>
               )}
               
-              {/* Preview Button */}
-              <Card>
+              {/* Preview Button - Hidden */}
+              {/* <Card>
                 <CardContent className="pt-6">
-                  <Button 
+                  <Button
                     type="button"
-                    variant="outline" 
+                    variant="outline"
                     className="w-full"
                     onClick={() => setShowPreview(true)}
                   >
                     Preview Lowongan
                   </Button>
                 </CardContent>
-              </Card>
+              </Card> */}
               
               {/* Navigation Buttons */}
               <Card>
@@ -605,7 +923,7 @@ export default function CreateJobListing({ categories, companies, userCompany }:
                       className="w-full"
                       onClick={() => setCurrentStep(currentStep - 1)}
                     >
-                      ← Langkah Sebelumnya
+                       Langkah Sebelumnya
                     </Button>
                   )}
                   
@@ -623,7 +941,7 @@ export default function CreateJobListing({ categories, companies, userCompany }:
                       className="w-full bg-green-600 hover:bg-green-700"
                       disabled={isSubmitting}
                     >
-                      {isSubmitting ? 'Menerbitkan...' : '🚀 Selesai & Posting Lowongan'}
+                      {isSubmitting ? 'Menerbitkan...' : 'Selesai & Posting Lowongan'}
                     </Button>
                   )}
                 </CardContent>
@@ -639,13 +957,13 @@ export default function CreateJobListing({ categories, companies, userCompany }:
             <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
               <div className="p-6">
                 <div className="flex justify-between items-center mb-4">
-                  <h2 className="text-xl font-bold">👀 Preview Lowongan</h2>
-                  <Button 
-                    variant="outline" 
+                  <h2 className="text-xl font-bold">Preview Lowongan</h2>
+                  <Button
+                    variant="outline"
                     size="sm"
                     onClick={() => setShowPreview(false)}
                   >
-                    ✕ Tutup
+                    Tutup
                   </Button>
                 </div>
                 
@@ -671,21 +989,21 @@ export default function CreateJobListing({ categories, companies, userCompany }:
                   </div>
                   
                   <div>
-                    <h4 className="font-medium mb-2">📍 Lokasi</h4>
+                    <h4 className="font-medium mb-2">Lokasi</h4>
                     <p>{form.location || 'Belum diisi'}</p>
                   </div>
-                  
+
                   <div>
-                    <h4 className="font-medium mb-2">💰 Gaji</h4>
+                    <h4 className="font-medium mb-2">Gaji</h4>
                     <p>
-                      {form.salary_min && form.salary_max 
-                        ? `Rp ${parseInt(form.salary_min).toLocaleString()} - Rp ${parseInt(form.salary_max).toLocaleString()}` 
+                      {form.salary_min && form.salary_max
+                        ? `Rp ${parseInt(form.salary_min).toLocaleString()} - Rp ${parseInt(form.salary_max).toLocaleString()}`
                         : 'Gaji dapat dinegosiasi'}
                     </p>
                   </div>
-                  
+
                   <div>
-                    <h4 className="font-medium mb-2">📝 Deskripsi Pekerjaan</h4>
+                    <h4 className="font-medium mb-2">Deskripsi Pekerjaan</h4>
                     <div className="bg-gray-50 p-3 rounded border">
                       {form.description ? (
                         <div dangerouslySetInnerHTML={{ __html: form.description }} />
@@ -694,9 +1012,9 @@ export default function CreateJobListing({ categories, companies, userCompany }:
                       )}
                     </div>
                   </div>
-                  
+
                   <div>
-                    <h4 className="font-medium mb-2">✅ Persyaratan</h4>
+                    <h4 className="font-medium mb-2">Persyaratan</h4>
                     <div className="bg-gray-50 p-3 rounded border">
                       {form.requirements ? (
                         <div dangerouslySetInnerHTML={{ __html: form.requirements }} />
@@ -707,13 +1025,11 @@ export default function CreateJobListing({ categories, companies, userCompany }:
                   </div>
                   
                   <div>
-                    <h4 className="font-medium mb-2">👥 Kuota Pelamar</h4>
+                    <h4 className="font-medium mb-2">Kuota Pelamar</h4>
                     <p>{form.positions_available} posisi</p>
-                    {parseInt(form.positions_available) > 1 && (
-                      <p className="text-sm text-orange-600">
-                        Akan membutuhkan {parseInt(form.positions_available) - 1} poin (1 gratis + {parseInt(form.positions_available) - 1} berbayar)
-                      </p>
-                    )}
+                    <p className="text-sm text-slate-600">
+                      Publikasi lowongan akan mengurangi 1 poin dari saldo perusahaan.
+                    </p>
                   </div>
                 </div>
                 

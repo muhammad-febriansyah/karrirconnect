@@ -7,6 +7,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Eye, Search, Filter, Plus, Edit, Trash2, ToggleLeft, ToggleRight, Briefcase, MapPin, Clock, Building2 } from 'lucide-react';
+import { toast } from 'sonner';
+import { route } from 'ziggy-js';
 
 interface JobListing {
   id: number;
@@ -125,16 +127,43 @@ export default function JobListingsIndex({ jobListings, filters, categories, use
   };
 
   const toggleStatus = (jobListing: JobListing) => {
+    const newStatus = jobListing.status === 'published' ? 'draft' : 'published';
+    const loadingToast = toast.loading(`Mengubah status lowongan "${jobListing.title}"...`);
+
     router.post(route('admin.job-listings.toggle-status', jobListing.slug), {}, {
       onSuccess: () => {
-        // Handle success
+        toast.dismiss(loadingToast);
+        toast.success(`Status lowongan "${jobListing.title}" berhasil diubah menjadi ${newStatus === 'published' ? 'aktif' : 'draft'}!`, {
+          duration: 4000,
+        });
+      },
+      onError: () => {
+        toast.dismiss(loadingToast);
+        toast.error(`Gagal mengubah status lowongan "${jobListing.title}". Silakan coba lagi.`, {
+          duration: 4000,
+        });
       },
     });
   };
 
   const deleteJobListing = (jobListing: JobListing) => {
     if (confirm(`Apakah Anda yakin ingin menghapus lowongan "${jobListing.title}"?`)) {
-      router.delete(route('admin.job-listings.destroy', jobListing.slug));
+      const loadingToast = toast.loading(`Menghapus lowongan "${jobListing.title}"...`);
+
+      router.delete(route('admin.job-listings.destroy', jobListing.slug), {
+        onSuccess: () => {
+          toast.dismiss(loadingToast);
+          toast.success(`Lowongan "${jobListing.title}" berhasil dihapus!`, {
+            duration: 4000,
+          });
+        },
+        onError: () => {
+          toast.dismiss(loadingToast);
+          toast.error(`Gagal menghapus lowongan "${jobListing.title}". Silakan coba lagi.`, {
+            duration: 4000,
+          });
+        },
+      });
     }
   };
 
@@ -401,7 +430,7 @@ export default function JobListingsIndex({ jobListings, filters, categories, use
               <Briefcase className="mx-auto h-12 w-12 text-gray-400 mb-4" />
               <h3 className="text-lg font-medium mb-2">Belum ada lowongan pekerjaan</h3>
               <p className="text-gray-600 mb-4">
-                {userRole === 'super_admin' 
+                {userRole === 'super_admin'
                   ? 'Belum ada lowongan yang dibuat oleh perusahaan.'
                   : 'Mulai dengan membuat lowongan pekerjaan pertama Anda.'
                 }
@@ -423,6 +452,45 @@ export default function JobListingsIndex({ jobListings, filters, categories, use
                   </Link>
                 )
               )}
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Pagination */}
+        {jobListings.data.length > 0 && jobListings.last_page > 1 && (
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div className="text-sm text-gray-600">
+                  Halaman {jobListings.current_page} dari {jobListings.last_page} ({jobListings.total} total)
+                </div>
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={jobListings.current_page <= 1}
+                    onClick={() => {
+                      const url = new URL(window.location.href);
+                      url.searchParams.set('page', (jobListings.current_page - 1).toString());
+                      router.get(url.toString());
+                    }}
+                  >
+                    Previous
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={jobListings.current_page >= jobListings.last_page}
+                    onClick={() => {
+                      const url = new URL(window.location.href);
+                      url.searchParams.set('page', (jobListings.current_page + 1).toString());
+                      router.get(url.toString());
+                    }}
+                  >
+                    Next
+                  </Button>
+                </div>
+              </div>
             </CardContent>
           </Card>
         )}

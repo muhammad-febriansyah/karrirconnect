@@ -45,7 +45,19 @@
       "Bash(node:*)",
       "Bash(chmod:*)",
       "Bash(mysql:*)",
-      "WebFetch(domain:ui.shadcn.com)"
+      "WebFetch(domain:ui.shadcn.com)",
+      "Bash(xargs sed:*)",
+      "Bash(xargs kill -9)",
+      "Bash(while read file)",
+      "Bash(do echo \"=== $file ===\")",
+      "Bash(head:*)",
+      "Bash(done)",
+      "Bash(for file in \"./ssr.tsx\" \"./components/news-form.tsx\" \"./components/delete-user.tsx\" \"./components/user-menu-content.tsx\" \"./layouts/auth/auth-card-layout.tsx\")",
+      "Bash(./fix_route_imports.sh:*)",
+      "Bash(timeout 10 telnet:*)",
+      "Bash(python3:*)",
+      "Bash(cat:*)",
+      "Bash(xargs cat:*)"
     ],
     "deny": [],
     "defaultMode": "acceptEdits"

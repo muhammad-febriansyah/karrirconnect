@@ -1,7 +1,7 @@
 import { Head, Link } from '@inertiajs/react';
 import { motion } from 'framer-motion';
-import ModernNavbar from '@/components/modern-navbar';
-import ModernFooter from '@/components/modern-footer';
+// import ModernNavbar from '@/components/modern-navbar';
+// import ModernFooter from '@/components/modern-footer';
 import { FlickeringGrid } from '@/components/magicui/flickering-grid';
 import { 
     Scale, 
@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import MainLayout from '@/layouts/main-layout';
 
 interface TermsOfServiceProps {
     title: string;
@@ -28,12 +29,8 @@ interface TermsOfServiceProps {
 
 export default function TermsOfService({ title, termsOfService }: TermsOfServiceProps) {
     return (
-        <>
+        <MainLayout currentPage="terms-of-service">
             <Head title={title} />
-            
-            <div className="min-h-screen bg-white">
-                {/* Modern Navbar */}
-                <ModernNavbar currentPage="terms-of-service" />
 
                 {/* Hero Section */}
                 <section className="relative bg-white pt-32 pb-16 lg:pt-40 lg:pb-20 overflow-hidden">
@@ -264,10 +261,6 @@ export default function TermsOfService({ title, termsOfService }: TermsOfService
                         </motion.div>
                     </div>
                 </section>
-
-                {/* Modern Footer */}
-                <ModernFooter />
-            </div>
-        </>
+        </MainLayout>
     );
 }

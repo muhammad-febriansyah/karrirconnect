@@ -44,6 +44,28 @@ class JobApplication extends Model
         return $this->belongsTo(User::class, 'reviewed_by');
     }
 
+    /**
+     * Boot method to handle model events
+     */
+    protected static function boot()
+    {
+        parent::boot();
+
+        // When an application is created, increment the job's applications count
+        static::created(function ($application) {
+            if ($application->jobListing) {
+                $application->jobListing->increment('applications_count');
+            }
+        });
+
+        // When an application is deleted, decrement the job's applications count
+        static::deleted(function ($application) {
+            if ($application->jobListing) {
+                $application->jobListing->decrement('applications_count');
+            }
+        });
+    }
+
     public function isPending()
     {
         return $this->status === 'pending';

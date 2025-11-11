@@ -8,6 +8,7 @@ import { Switch } from '@/components/ui/switch';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Bell, Plus, Edit, Mail, MessageSquare, Smartphone, Users, Settings } from 'lucide-react';
+import { route } from 'ziggy-js';
 
 interface NotificationSetting {
   id: number;

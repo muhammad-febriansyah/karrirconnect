@@ -11,6 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ArrowLeft, Save, Award, Users, Calendar, AlertTriangle } from 'lucide-react';
 import { toast } from 'sonner';
+import { route } from 'ziggy-js';
 
 interface Skill {
     id: number;
@@ -58,10 +59,10 @@ export default function EditSkill({ skill }: Props) {
             
             <div className="space-y-6 p-6">
                 {/* Header */}
-                <div className="flex items-center gap-4">
-                    <Link 
-                        href={route('admin.skills.index')} 
-                        className="flex items-center text-gray-600 hover:text-gray-900"
+                <div className="flex flex-col gap-4">
+                    <Link
+                        href={route('admin.skills.index')}
+                        className="flex items-center text-gray-600 hover:text-gray-900 w-fit"
                     >
                         <ArrowLeft className="h-5 w-5 mr-1" />
                         Kembali
@@ -166,8 +167,8 @@ export default function EditSkill({ skill }: Props) {
 
                         {/* Sidebar */}
                         <div className="space-y-6">
-                            {/* Skill Stats */}
-                            <Card>
+                            {/* Skill Stats - Hidden */}
+                            {/* <Card>
                                 <CardHeader>
                                     <CardTitle className="text-lg">Statistik Skill</CardTitle>
                                 </CardHeader>
@@ -194,7 +195,7 @@ export default function EditSkill({ skill }: Props) {
                                     </div>
                                     <div className="pt-2">
                                         <p className="text-sm text-gray-500">Status saat ini:</p>
-                                        <Badge 
+                                        <Badge
                                             variant={skill.is_active ? "default" : "secondary"}
                                             className={skill.is_active ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}
                                         >
@@ -202,7 +203,7 @@ export default function EditSkill({ skill }: Props) {
                                         </Badge>
                                     </div>
                                 </CardContent>
-                            </Card>
+                            </Card> */}
 
                             {/* Guidelines Card */}
                             <Card>
@@ -212,7 +213,7 @@ export default function EditSkill({ skill }: Props) {
                                 <CardContent className="space-y-4">
                                     <div className="space-y-3">
                                         <div>
-                                            <h4 className="font-medium text-sm text-green-700">✅ Tips Edit:</h4>
+                                            <h4 className="font-medium text-sm text-green-700">Tips Edit:</h4>
                                             <ul className="text-sm text-gray-600 mt-1 space-y-1">
                                                 <li>• Pastikan nama tetap jelas dan spesifik</li>
                                                 <li>• Gunakan kategori yang konsisten</li>
@@ -220,7 +221,7 @@ export default function EditSkill({ skill }: Props) {
                                             </ul>
                                         </div>
                                         <div>
-                                            <h4 className="font-medium text-sm text-amber-700">⚠️ Hati-hati:</h4>
+                                            <h4 className="font-medium text-sm text-amber-700">Hati-hati:</h4>
                                             <ul className="text-sm text-gray-600 mt-1 space-y-1">
                                                 <li>• Mengubah nama akan mempengaruhi pencarian</li>
                                                 <li>• Mengubah kategori dapat mempengaruhi filter</li>

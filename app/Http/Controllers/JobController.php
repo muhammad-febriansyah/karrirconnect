@@ -51,7 +51,7 @@ class JobController extends Controller
 
         $jobs = $query->orderBy('featured', 'desc')
                      ->orderBy('created_at', 'desc')
-                     ->paginate(15)
+                     ->paginate(8) // 8 items per page for optimal layout (2x4 or 4x2 grid)
                      ->withQueryString();
 
         // Add saved status for authenticated users

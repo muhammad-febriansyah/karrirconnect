@@ -91,7 +91,6 @@ export default function RegisterModal({ children }: RegisterModalProps) {
         e.preventDefault();
         e.stopPropagation();
         setLoading(true);
-        console.log('Google login clicked, redirecting to:', '/auth/google');
         window.location.href = '/auth/google';
     };
 

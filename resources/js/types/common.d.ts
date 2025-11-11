@@ -81,6 +81,8 @@ export interface Setting {
     address?: string;
     phone?: string;
     description?: string;
+    x?: string;
+    linkedin?: string;
     yt?: string;
     ig?: string;
     fb?: string;

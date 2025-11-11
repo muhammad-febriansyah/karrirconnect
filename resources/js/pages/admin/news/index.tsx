@@ -9,6 +9,7 @@ import { Head, Link, router } from '@inertiajs/react';
 import { Calendar, Eye, Image as ImageIcon, MoreHorizontal, Pencil, Plus, Search, Trash2, User } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
+import { route } from 'ziggy-js';
 
 interface Author {
     id: number;
@@ -180,7 +181,7 @@ export default function NewsIndex({ news, filters }: NewsIndexProps) {
                                                         variant={item.status === 'published' ? 'default' : 'secondary'}
                                                         className="border-0 px-3 py-1 font-medium shadow-lg backdrop-blur-sm"
                                                     >
-                                                        {item.status === 'published' ? '🟢 Dipublikasi' : '🟡 Draft'}
+                                                        {item.status === 'published' ? 'Dipublikasi' : 'Draft'}
                                                     </Badge>
                                                 </div>
                                             </div>
@@ -197,7 +198,7 @@ export default function NewsIndex({ news, filters }: NewsIndexProps) {
                                                         variant={item.status === 'published' ? 'default' : 'secondary'}
                                                         className="border-0 px-3 py-1 font-medium shadow-lg backdrop-blur-sm"
                                                     >
-                                                        {item.status === 'published' ? '🟢 Dipublikasi' : '🟡 Draft'}
+                                                        {item.status === 'published' ? 'Dipublikasi' : 'Draft'}
                                                     </Badge>
                                                 </div>
                                             </div>

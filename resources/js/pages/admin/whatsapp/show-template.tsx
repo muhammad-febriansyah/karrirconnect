@@ -47,10 +47,10 @@ export default function ShowWhatsAppTemplate({ template }: Props) {
     };
 
     const typeEmojis = {
-        notification: '🔔',
-        marketing: '📢',
-        system: '🔧',
-        alert: '⚠️',
+        notification: '',
+        marketing: '',
+        system: '',
+        alert: '',
     };
 
     const generatePreview = () => {
@@ -85,7 +85,7 @@ export default function ShowWhatsAppTemplate({ template }: Props) {
         });
 
         // Add action URL sample
-        message += '\n\n🔗 Link: https://karirconnect.com/sample-action';
+        message += '\n\nLink: https://karirconnect.com/sample-action';
 
         // Add signature if enabled
         if (template.include_signature) {
@@ -243,15 +243,15 @@ export default function ShowWhatsAppTemplate({ template }: Props) {
                                         <Label className="text-sm font-medium text-muted-foreground">Pengaturan</Label>
                                         <div className="text-sm mt-2 space-y-1">
                                             <div className="flex items-center gap-2">
-                                                <span>{template.use_emoji ? '✅' : '❌'}</span>
+                                                <span>{template.use_emoji ? 'Ya' : 'Tidak'}</span>
                                                 <span>Gunakan Emoji</span>
                                             </div>
                                             <div className="flex items-center gap-2">
-                                                <span>{template.include_timestamp ? '✅' : '❌'}</span>
+                                                <span>{template.include_timestamp ? 'Ya' : 'Tidak'}</span>
                                                 <span>Sertakan Timestamp</span>
                                             </div>
                                             <div className="flex items-center gap-2">
-                                                <span>{template.include_signature ? '✅' : '❌'}</span>
+                                                <span>{template.include_signature ? 'Ya' : 'Tidak'}</span>
                                                 <span>Sertakan Signature</span>
                                             </div>
                                         </div>

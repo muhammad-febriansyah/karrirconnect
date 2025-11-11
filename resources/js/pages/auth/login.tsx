@@ -2,13 +2,14 @@ import { Head, useForm, usePage } from '@inertiajs/react';
 import { Eye, EyeOff, GalleryVerticalEnd, LoaderCircle } from 'lucide-react';
 import { FormEventHandler, useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
+import { route } from 'ziggy-js';
 
 import InputError from '@/components/input-error';
 import TextLink from '@/components/text-link';
 import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { resolveAssetUrl } from '@/lib/utils';
 import { type SharedData } from '@/types';
 
 type LoginForm = {
@@ -25,6 +26,9 @@ interface LoginProps {
 
 export default function Login({ canResetPassword }: LoginProps) {
     const { settings } = usePage<SharedData>().props;
+    const authIllustrationFallback = 'https://placehold.co/1920x1080/0f172a/FFFFFF?text=KarirConnect';
+    const logoSrc = resolveAssetUrl(settings.logo);
+    const thumbnailSrc = resolveAssetUrl(settings.thumbnail, authIllustrationFallback);
     const { data, setData, post, processing, errors, reset } = useForm<Required<LoginForm>>({
         email: '',
         password: '',
@@ -52,7 +56,7 @@ export default function Login({ canResetPassword }: LoginProps) {
         w.onRecaptchaLoad = () => {
             if (w.grecaptcha && w.grecaptcha.render && recaptchaRef.current) {
                 w.grecaptcha.render(recaptchaRef.current, {
-                    sitekey: '6LfIWR8rAAAAAP58_cs_prL0XLvoMjN_72liKq2-',
+                    sitekey: import.meta.env.VITE_RECAPTCHA_SITE_KEY || '6LekAgQsAAAAACd1Pjpmr4gsjaH9lYKNgMOQhmxF',
                     callback: (response: string) => {
                         setData('g-recaptcha-response', response);
                     },
@@ -79,12 +83,6 @@ export default function Login({ canResetPassword }: LoginProps) {
                     setData('g-recaptcha-response', '');
                 }
             },
-            onSuccess: () => {
-                toast.success('Login Berhasil!', {
-                    description: 'Selamat datang kembali! Anda berhasil masuk ke akun Anda.',
-                    duration: 4000,
-                });
-            },
             onError: () => {
                 toast.error('Login Gagal', {
                     description: 'Email atau password salah. Silakan periksa data Anda dan coba lagi.',
@@ -107,9 +105,9 @@ export default function Login({ canResetPassword }: LoginProps) {
                     <div className="flex justify-start">
                         <a href={route('home')} className="flex items-center">
                             <div className="flex items-center justify-center overflow-hidden">
-                                {settings.logo ? (
+                                {logoSrc ? (
                                     <img
-                                        src={`/storage/${settings.logo}`}
+                                        src={logoSrc}
                                         alt={settings.site_name || 'Logo'}
                                         className="h-10 w-auto max-w-[160px] object-contain"
                                     />
@@ -187,19 +185,23 @@ export default function Login({ canResetPassword }: LoginProps) {
                                         )}
                                     </div>
 
-                                    <div className="flex items-center space-x-3">
-                                        <Checkbox
+                                    <div className="flex items-center gap-2">
+                                        <input
+                                            type="checkbox"
                                             id="remember"
                                             name="remember"
                                             checked={data.remember}
-                                            onClick={() => setData('remember', !data.remember)}
+                                            onChange={(e) => setData('remember', e.target.checked)}
                                             tabIndex={3}
+                                            className="h-4 w-4 rounded border-gray-300 text-[#2347FA] transition-colors focus:ring-2 focus:ring-[#2347FA]/20 focus:ring-offset-0"
                                         />
-                                        <Label htmlFor="remember">Ingat saya</Label>
+                                        <label htmlFor="remember" className="cursor-pointer text-sm font-normal text-gray-700">
+                                            Ingat saya
+                                        </label>
                                     </div>
 
                                     <div className="grid gap-2">
-                                        <div ref={recaptchaRef} />
+                                        <div className="recaptcha-container"><div ref={recaptchaRef} /></div>
                                         <InputError message={errors['g-recaptcha-response']} />
                                     </div>
 
@@ -314,11 +316,7 @@ export default function Login({ canResetPassword }: LoginProps) {
                 </div>
 
                 <div className="relative hidden bg-muted lg:block">
-                    <img
-                        src={`/storage/${settings.thumbnail || 'default-thumbnail.jpg'}`}
-                        alt="Ilustrasi masuk"
-                        className="absolute inset-0 h-full w-full object-cover"
-                    />
+                    <img src={thumbnailSrc} alt="Ilustrasi masuk" className="absolute inset-0 h-full w-full object-cover" />
                 </div>
             </div>
         </>

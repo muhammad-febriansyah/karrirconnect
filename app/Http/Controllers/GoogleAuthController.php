@@ -37,6 +37,13 @@ class GoogleAuthController extends Controller
             $user = User::findByGoogleId($googleUser->getId());
             
             if ($user) {
+                // Check if user role is allowed to use Google login (only regular users)
+                if ($user->role !== 'user') {
+                    Log::warning('Non-user role attempted Google login: ' . $user->email . ' (role: ' . $user->role . ')');
+
+                    return redirect()->route('login')->with('error', 'Login dengan Google hanya tersedia untuk pengguna reguler. Admin dan perusahaan silakan gunakan login email.');
+                }
+
                 // User exists, update their info and login
                 $user->update([
                     'name' => $googleUser->getName(),
@@ -44,18 +51,25 @@ class GoogleAuthController extends Controller
                     'avatar' => $googleUser->getAvatar(),
                     'last_login_at' => now(),
                 ]);
-                
+
                 Auth::login($user, true);
-                
+
                 Log::info('Google user logged in: ' . $user->email);
-                
+
                 return $this->redirectAfterLogin($user);
-                
+
             } else {
                 // Check if user exists with same email but different provider
                 $existingUser = User::where('email', $googleUser->getEmail())->first();
-                
+
                 if ($existingUser) {
+                    // Check if existing user role is allowed to use Google login (only regular users)
+                    if ($existingUser->role !== 'user') {
+                        Log::warning('Non-user role attempted Google login: ' . $existingUser->email . ' (role: ' . $existingUser->role . ')');
+
+                        return redirect()->route('login')->with('error', 'Login dengan Google hanya tersedia untuk pengguna reguler. Admin dan perusahaan silakan gunakan login email.');
+                    }
+
                     // Link Google account to existing user
                     $existingUser->update([
                         'google_id' => $googleUser->getId(),
@@ -64,28 +78,28 @@ class GoogleAuthController extends Controller
                         'google_created_at' => now(),
                         'last_login_at' => now(),
                     ]);
-                    
+
                     Auth::login($existingUser, true);
-                    
+
                     Log::info('Existing user linked with Google: ' . $existingUser->email);
-                    
+
                     return $this->redirectAfterLogin($existingUser);
-                    
+
                 } else {
-                    // Create new user from Google
+                    // Create new user from Google (always as regular user)
                     $user = User::createFromGoogle($googleUser);
-                    
+
                     // Create notification for admins about new user
                     try {
                         Notification::createUserRegistration($user);
                     } catch (Exception $e) {
                         Log::warning('Failed to create user registration notification: ' . $e->getMessage());
                     }
-                    
+
                     Auth::login($user, true);
-                    
+
                     Log::info('New Google user created: ' . $user->email);
-                    
+
                     return $this->redirectAfterLogin($user, true);
                 }
             }
@@ -99,20 +113,13 @@ class GoogleAuthController extends Controller
 
     /**
      * Redirect user after successful login based on their role
+     * Note: Google login is only for regular users, so this will always redirect to user dashboard
      */
     private function redirectAfterLogin(User $user, bool $isNewUser = false): \Illuminate\Http\RedirectResponse
     {
-        $message = $isNewUser 
-            ? 'Welcome to ' . config('app.name') . '! Your Google account has been successfully registered.'
-            : 'Welcome back! You have been successfully logged in with Google.';
-            
-        if ($user->isSuperAdmin()) {
-            return redirect()->intended('/admin/dashboard')->with('success', $message);
-        } elseif ($user->isCompanyAdmin()) {
-            return redirect()->intended('/admin/dashboard')->with('success', $message);
-        } else {
-            return redirect()->intended('/user/dashboard')->with('success', $message);
-        }
+        // Since Google login is only for regular users, always redirect to user dashboard
+        // Remove flash message to avoid repeated toast notifications
+        return redirect()->intended('/user/dashboard');
     }
 
     /**
