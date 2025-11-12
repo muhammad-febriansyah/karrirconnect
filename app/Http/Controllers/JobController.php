@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Models\JobListing;
 use App\Models\JobCategory;
 use App\Models\JobApplication;
-use App\Models\Company;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
@@ -87,30 +86,12 @@ class JobController extends Controller
         // Total jobs count
         $totalJobs = JobListing::active()->count();
 
-        // Top Companies - for Mitra Pilihan section
-        $topCompanies = Company::query()
-            ->withCount(['jobListings as active_jobs_count' => function($query) {
-                $query->where('job_listings.status', 'published')
-                    ->where(function($q) {
-                        $q->whereNull('job_listings.application_deadline')
-                          ->orWhere('job_listings.application_deadline', '>=', now());
-                    });
-            }])
-            ->withCount('jobListings as total_job_posts')
-            ->where('companies.is_active', true)
-            ->having('active_jobs_count', '>', 0)
-            ->orderBy('companies.is_verified', 'desc')
-            ->orderBy('active_jobs_count', 'desc')
-            ->limit(12)
-            ->get();
-
         return Inertia::render('jobs/index', [
             'jobs' => $jobs,
             'categories' => $categories,
             'filters' => $request->only(['search', 'location', 'category', 'employment_type', 'work_arrangement']),
             'totalJobs' => $totalJobs,
             'featuredJobs' => $featuredJobs,
-            'topCompanies' => $topCompanies
         ]);
     }
 

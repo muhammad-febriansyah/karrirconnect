@@ -8,7 +8,6 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { TypingAnimation } from '@/components/ui/typing-animation';
 import MainLayout from '@/layouts/main-layout';
-import TrustedCompaniesSection from '@/pages/welcome/sections/TrustedCompaniesSection';
 import { Link, router } from '@inertiajs/react';
 import axios from 'axios';
 import { motion } from 'framer-motion';
@@ -142,7 +141,6 @@ interface JobsIndexProps {
     };
     totalJobs: number;
     featuredJobs: JobListing[];
-    topCompanies: Company[];
 }
 
 // Looping typing animation component
@@ -169,7 +167,7 @@ function LoopingTyping() {
     );
 }
 
-export default function JobsIndex({ jobs, categories, filters, totalJobs, featuredJobs, topCompanies }: JobsIndexProps) {
+export default function JobsIndex({ jobs, categories, filters, totalJobs, featuredJobs }: JobsIndexProps) {
     const [searchQuery, setSearchQuery] = useState(filters.search || '');
     const [locationQuery, setLocationQuery] = useState(filters.location || '');
     const [selectedCategory, setSelectedCategory] = useState(filters.category || '');
@@ -517,16 +515,6 @@ export default function JobsIndex({ jobs, categories, filters, totalJobs, featur
                         </motion.div>
                     </div>
                 </section>
-
-                {/* Sticky Mitra Pilihan Section */}
-                {topCompanies && topCompanies.length > 0 && (
-                    <div className="sticky top-16 z-30 bg-white shadow-md">
-                        <TrustedCompaniesSection
-                            statistics={{ total_companies: topCompanies.length } as Statistics}
-                            topCompanies={topCompanies}
-                        />
-                    </div>
-                )}
 
                 {/* Enhanced Featured Jobs */}
                 {featuredJobs.length > 0 && (
