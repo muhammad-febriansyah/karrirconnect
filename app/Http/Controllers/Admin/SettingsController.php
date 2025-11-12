@@ -43,7 +43,7 @@ class SettingsController extends Controller
             'logo' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
             'thumbnail' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
             'favicon' => 'nullable|image|mimes:ico,png,jpg,jpeg|max:1024',
-            'hero_image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
+            'hero_image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:6144',
             'hero_title' => 'nullable|string|max:255',
             'hero_subtitle' => 'nullable|string|max:500',
             'use_custom_stats' => 'boolean',

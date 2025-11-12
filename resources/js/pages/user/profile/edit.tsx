@@ -162,12 +162,52 @@ export default function ProfileEdit({ user, profile, userSkills, allSkills }: Pr
 
     const handleProfileSubmit = (e: React.FormEvent) => {
         e.preventDefault();
+
+        // Check total form data size before submitting
+        const formData = new FormData();
+        Object.keys(profileData).forEach(key => {
+            const value = profileData[key as keyof typeof profileData];
+            if (value instanceof File) {
+                formData.append(key, value);
+            } else if (value !== null && value !== undefined) {
+                formData.append(key, typeof value === 'object' ? JSON.stringify(value) : String(value));
+            }
+        });
+
+        // Calculate approximate form size (rough estimate)
+        let totalSize = 0;
+        for (const [key, value] of formData.entries()) {
+            if (value instanceof File) {
+                totalSize += value.size;
+            } else {
+                totalSize += new Blob([String(value)]).size;
+            }
+        }
+
+        // Warn if size is approaching limit (450MB to be safe with 512MB limit)
+        if (totalSize > 450 * 1024 * 1024) {
+            toast.warning('Data terlalu besar', {
+                description: 'Total ukuran data mendekati batas maksimal. Pertimbangkan untuk mengurangi ukuran file atau jumlah data.',
+                duration: 5000,
+            });
+        }
+
         postProfile('/user/profile', {
             forceFormData: true,
-            onError: (errors) => {
-                toast.error('Gagal memperbarui profil', {
-                    description: 'Terjadi kesalahan saat menyimpan profil. Silakan periksa kembali data Anda.',
-                });
+            onError: (errors: any) => {
+                // Check for PostTooLargeException specifically
+                if (errors?.message?.includes('PostTooLargeException') ||
+                    errors?.message?.includes('Content Too Large') ||
+                    errors?.message?.includes('POST data is too large')) {
+                    toast.error('Data terlalu besar untuk dikirim', {
+                        description: 'Ukuran total data (termasuk file) melebihi batas maksimal. Silakan kurangi ukuran file atau jumlah data yang Anda input.',
+                        duration: 7000,
+                    });
+                } else {
+                    toast.error('Gagal memperbarui profil', {
+                        description: 'Terjadi kesalahan saat menyimpan profil. Silakan periksa kembali data Anda.',
+                    });
+                }
             },
             onSuccess: () => {
                 toast.success('Profil berhasil diperbarui!', {
@@ -928,7 +968,18 @@ export default function ProfileEdit({ user, profile, userSkills, allSkills }: Pr
                                                                 min="0"
                                                                 max="50"
                                                                 value={skill.years_of_experience}
-                                                                onChange={(e) => updateSkill(index, 'years_of_experience', parseInt(e.target.value) || 0)}
+                                                                onChange={(e) => {
+                                                                    const value = e.target.value;
+                                                                    // Remove leading zeros and parse
+                                                                    const numValue = value === '' ? 0 : parseInt(value.replace(/^0+/, '') || '0');
+                                                                    updateSkill(index, 'years_of_experience', numValue);
+                                                                }}
+                                                                onBlur={(e) => {
+                                                                    // Remove leading zeros on blur
+                                                                    const value = e.target.value;
+                                                                    const numValue = value === '' ? 0 : parseInt(value.replace(/^0+/, '') || '0');
+                                                                    updateSkill(index, 'years_of_experience', numValue);
+                                                                }}
                                                             />
                                                         </div>
                                                     </div>

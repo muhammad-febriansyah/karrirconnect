@@ -167,17 +167,17 @@ const HeroSection = ({ settings, statistics, siteName }: HeroSectionProps) => {
                             className="mb-8 flex flex-col items-center gap-3 sm:flex-row"
                         >
                             <Link
-                                href="/register"
+                                href="/login"
                                 className="group relative inline-flex w-full items-center justify-center overflow-hidden rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 px-8 py-3.5 font-semibold text-white shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl sm:w-auto"
                             >
                                 <span className="relative z-10 flex items-center">
-                                    Daftar Gratis
+                                    Login
                                     <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
                                 </span>
                                 <div className="absolute inset-0 bg-gradient-to-r from-indigo-600 to-purple-600 opacity-0 transition-opacity duration-300 group-hover:opacity-100"></div>
                             </Link>
                             <Link
-                                href="/lowongan"
+                                href="/jobs"
                                 className="inline-flex w-full items-center justify-center rounded-xl border-2 border-gray-300 bg-white px-8 py-3.5 font-semibold text-gray-700 transition-all duration-300 hover:border-blue-600 hover:bg-blue-50 hover:text-blue-600 sm:w-auto"
                             >
                                 Lihat Semua Lowongan
@@ -188,7 +188,7 @@ const HeroSection = ({ settings, statistics, siteName }: HeroSectionProps) => {
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ duration: 0.6, delay: 0.75 }}
-                            className="mb-8"
+                            className="mb-8 hidden md:block"
                         >
                             <div className="flex flex-wrap items-center gap-2 text-sm text-gray-600">
                                 <Shield className="h-4 w-4 text-blue-600" />
@@ -204,40 +204,52 @@ const HeroSection = ({ settings, statistics, siteName }: HeroSectionProps) => {
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ duration: 0.6, delay: 0.8 }}
-                            className="grid grid-cols-1 gap-4 sm:grid-cols-3 sm:gap-6"
+                            className="hidden gap-6 md:flex md:items-center lg:gap-8"
                         >
-                            <div className="text-center lg:text-left">
-                                <div className="mb-1 text-2xl font-bold text-blue-600 sm:text-3xl lg:text-4xl">
-                                    <NumberTicker
-                                        value={statistics.total_jobs}
-                                        className="text-2xl font-bold text-blue-600 sm:text-3xl lg:text-4xl"
-                                        delay={0.2}
-                                    />
-                                    +
+                            <div className="flex items-center gap-3 lg:text-left">
+                                <div className="flex flex-col">
+                                    <div className="flex items-baseline gap-1">
+                                        <NumberTicker
+                                            value={statistics.total_jobs}
+                                            className="text-2xl font-bold text-blue-600 lg:text-3xl"
+                                            delay={0.2}
+                                        />
+                                        <span className="text-2xl font-bold text-blue-600 lg:text-3xl">+</span>
+                                    </div>
+                                    <div className="text-xs text-gray-600 sm:text-sm">Lowongan Kerja</div>
                                 </div>
-                                <div className="text-xs text-gray-600 sm:text-sm">Lowongan Kerja</div>
                             </div>
-                            <div className="text-center lg:text-left">
-                                <div className="mb-1 text-2xl font-bold text-blue-600 sm:text-3xl lg:text-4xl">
-                                    <NumberTicker
-                                        value={statistics.total_companies}
-                                        className="text-2xl font-bold text-blue-600 sm:text-3xl lg:text-4xl"
-                                        delay={0.4}
-                                    />
-                                    +
+
+                            <div className="h-10 w-px bg-gray-200"></div>
+
+                            <div className="flex items-center gap-3 lg:text-left">
+                                <div className="flex flex-col">
+                                    <div className="flex items-baseline gap-1">
+                                        <NumberTicker
+                                            value={statistics.total_companies}
+                                            className="text-2xl font-bold text-blue-600 lg:text-3xl"
+                                            delay={0.4}
+                                        />
+                                        <span className="text-2xl font-bold text-blue-600 lg:text-3xl">+</span>
+                                    </div>
+                                    <div className="text-xs text-gray-600 sm:text-sm">Perusahaan</div>
                                 </div>
-                                <div className="text-xs text-gray-600 sm:text-sm">Perusahaan</div>
                             </div>
-                            <div className="text-center lg:text-left">
-                                <div className="mb-1 text-2xl font-bold text-blue-600 sm:text-3xl lg:text-4xl">
-                                    <NumberTicker
-                                        value={statistics.total_candidates}
-                                        className="text-2xl font-bold text-blue-600 sm:text-3xl lg:text-4xl"
-                                        delay={0.6}
-                                    />
-                                    +
+
+                            <div className="h-10 w-px bg-gray-200"></div>
+
+                            <div className="flex items-center gap-3 lg:text-left">
+                                <div className="flex flex-col">
+                                    <div className="flex items-baseline gap-1">
+                                        <NumberTicker
+                                            value={statistics.total_candidates}
+                                            className="text-2xl font-bold text-blue-600 lg:text-3xl"
+                                            delay={0.6}
+                                        />
+                                        <span className="text-2xl font-bold text-blue-600 lg:text-3xl">+</span>
+                                    </div>
+                                    <div className="text-xs text-gray-600 sm:text-sm">Pengguna</div>
                                 </div>
-                                <div className="text-xs text-gray-600 sm:text-sm">Pengguna</div>
                             </div>
                         </motion.div>
                     </div>

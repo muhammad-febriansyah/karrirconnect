@@ -3,11 +3,11 @@ import { Head, router } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
+import { RichTextEditor } from '@/components/ui/rich-text-editor';
 import { ArrowLeft, Save, Eye, Plus, X } from 'lucide-react';
 import { route } from 'ziggy-js';
 
@@ -37,6 +37,7 @@ export default function EditEmailTemplate({ template }: Props) {
   const [variables, setVariables] = useState<string[]>(template.variables || []);
   const [newVariable, setNewVariable] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -66,9 +67,9 @@ export default function EditEmailTemplate({ template }: Props) {
   };
 
   const insertVariable = (variable: string) => {
-    const cursorPos = (document.activeElement as HTMLTextAreaElement)?.selectionStart || body.length;
-    const newBody = body.slice(0, cursorPos) + `{${variable}}` + body.slice(cursorPos);
-    setBody(newBody);
+    // Insert variable at the end of current content
+    const variableTag = `{${variable}}`;
+    setBody(body + variableTag);
   };
 
   const previewTemplate = () => {
@@ -181,23 +182,49 @@ export default function EditEmailTemplate({ template }: Props) {
               </Card>
 
               <Card>
-                <CardHeader>
+                <CardHeader className="flex flex-row items-center justify-between">
                   <CardTitle>Email Content</CardTitle>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowPreview(!showPreview)}
+                  >
+                    <Eye className="h-4 w-4 mr-2" />
+                    {showPreview ? 'Hide Preview' : 'Show Preview'}
+                  </Button>
                 </CardHeader>
                 <CardContent>
-                  <div>
-                    <label className="text-sm font-medium">Email Body</label>
-                    <Textarea
-                      value={body}
-                      onChange={(e) => setBody(e.target.value)}
-                      placeholder="Write your email content here... Use {variable_name} for dynamic content."
-                      rows={12}
-                      required
-                      className="mt-1 font-mono text-sm"
-                    />
-                    <p className="text-xs text-gray-500 mt-1">
-                      You can use HTML tags and variables like {'{user_name}'} in your content.
-                    </p>
+                  <div className={showPreview ? 'grid grid-cols-2 gap-4' : ''}>
+                    <div>
+                      <label className="text-sm font-medium mb-2 block">Email Body</label>
+                      <RichTextEditor
+                        content={body}
+                        onChange={setBody}
+                        placeholder="Tulis konten email Anda di sini... Gunakan variable seperti {user_name} untuk konten dinamis."
+                      />
+                      <p className="text-xs text-gray-500 mt-2">
+                        Gunakan toolbar di atas untuk format teks. Klik variabel di sidebar untuk insert otomatis.
+                      </p>
+                    </div>
+
+                    {showPreview && (
+                      <div>
+                        <label className="text-sm font-medium mb-2 block">Live Preview</label>
+                        <div className="rounded-lg border border-gray-200 p-4 bg-gray-50 min-h-[400px] overflow-auto">
+                          <div className="bg-white p-6 shadow-sm rounded-lg">
+                            <div className="border-b pb-4 mb-4">
+                              <h3 className="text-lg font-semibold text-gray-900">Subject: {subject || 'No subject'}</h3>
+                              <p className="text-sm text-gray-500 mt-1">Type: {type}</p>
+                            </div>
+                            <div
+                              className="prose prose-sm max-w-none"
+                              dangerouslySetInnerHTML={{ __html: body || '<p class="text-gray-400 italic">Content will appear here...</p>' }}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </CardContent>
               </Card>

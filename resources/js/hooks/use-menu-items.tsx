@@ -155,18 +155,33 @@ export function useMenuItems() {
     // Company admin menu items (limited to recruitment operations)
     const companyAdminMenuGroups = [
         {
-            label: 'Dashboard',
+            label: 'AKUN SAYA',
+            items: [
+                {
+                    title: 'Profil Perusahaan',
+                    href: '/company/profile/edit',
+                    icon: Building,
+                },
+                {
+                    title: 'Profil Admin',
+                    href: '/admin/profile',
+                    icon: User,
+                },
+                {
+                    title: 'Verifikasi Perusahaan',
+                    href: '/admin/company/verify',
+                    icon: ShieldCheck,
+                }
+            ]
+        },
+        {
+            label: 'MENU UTAMA',
             items: [
                 {
                     title: 'Dashboard',
                     href: '/admin/dashboard',
                     icon: BarChart3,
-                }
-            ]
-        },
-        {
-            label: 'Recruitment',
-            items: [
+                },
                 {
                     title: 'Lowongan',
                     href: '/company/jobs',
@@ -190,7 +205,7 @@ export function useMenuItems() {
             ]
         },
         {
-            label: 'Billing & Poin',
+            label: 'INFORMASI',
             items: [
                 {
                     title: 'Poin Saya',
@@ -206,26 +221,6 @@ export function useMenuItems() {
                     title: 'History Transaksi',
                     href: '/admin/transactions',
                     icon: History,
-                }
-            ]
-        },
-        {
-            label: 'Pengaturan',
-            items: [
-                {
-                    title: 'Profil Perusahaan',
-                    href: '/company/profile/edit',
-                    icon: Building,
-                },
-                {
-                    title: 'Profil Admin',
-                    href: '/admin/profile',
-                    icon: User,
-                },
-                {
-                    title: 'Verifikasi Perusahaan',
-                    href: '/admin/company/verify',
-                    icon: ShieldCheck,
                 }
             ]
         }

@@ -598,6 +598,76 @@ class EmailTemplateSeeder extends Seeder
                 'is_active' => true,
                 'type' => 'transactional',
             ],
+
+            [
+                'name' => 'Employee - Undangan Interview',
+                'slug' => 'employee-interview-invitation',
+                'subject' => 'Undangan Interview dari {{company_name}}',
+                'body' => '
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background: linear-gradient(135deg, #2E4DF7 0%, #203BE5 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
+        .content { background: #ffffff; padding: 30px; border: 1px solid #e0e0e0; }
+        .highlight-box { background: #e8f4fd; border-left: 4px solid #2E4DF7; padding: 20px; margin: 20px 0; border-radius: 5px; }
+        .job-details { background: #f8f9fa; padding: 20px; border-radius: 5px; margin: 20px 0; }
+        .job-details h3 { margin-top: 0; color: #2E4DF7; }
+        .info-box { background: #fff9e6; border: 1px solid #ffd54f; padding: 15px; margin: 20px 0; border-radius: 5px; }
+        .button { display: inline-block; padding: 15px 40px; background: #2E4DF7; color: white; text-decoration: none; border-radius: 8px; margin: 20px 0; font-weight: bold; }
+        .button:hover { background: #203BE5; }
+        .footer { background: #f5f5f5; padding: 20px; text-align: center; font-size: 12px; color: #666; border-radius: 0 0 10px 10px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Undangan Interview</h1>
+        </div>
+        <div class="content">
+            <p>Halo, <strong>{{user_name}}</strong></p>
+
+            <div class="highlight-box">
+                <h2 style="margin-top: 0; color: #2E4DF7;">UNDANGAN INTERVIEW</h2>
+            </div>
+
+            <div class="job-details">
+                <h3>{{job_title}}</h3>
+                <p><strong>Perusahaan:</strong> {{company_name}}</p>
+                <p><strong>Lokasi:</strong> {{job_location}}</p>
+                <p><strong>Tanggal Melamar:</strong> {{application_date}}</p>
+            </div>
+
+            <div class="info-box">
+                <p style="margin: 0;"><strong>Anda dipanggil untuk interview:</strong></p>
+                <p style="margin: 5px 0 0 0;">Selamat! Anda telah terpilih untuk posisi <strong>{{job_title}}</strong> di kami. Kami ke tahap interview.</p>
+                <p style="margin: 10px 0 0 0;">Tim HRD kami akan menghubungi Anda segera untuk mengatur jadwal interview. Pastikan Anda memberikan email dan nomor telepon yang aktif sehingga kami dapat berkomunikasi dengan baik.</p>
+                <p style="margin: 10px 0 0 0;"><strong>Tips:</strong> Siapkan diri Anda dengan baik, pelajari tentang perusahaan, dan berlatih menjawab pertanyaan interview umum.</p>
+            </div>
+
+            <center>
+                <a href="{{invitation_url}}" class="button">Lihat Detail</a>
+            </center>
+
+            <p>Jika Anda memiliki pertanyaan, silakan hubungi kami melalui platform KarirConnect atau balas email ini.</p>
+
+            <p>Salam,<br><strong>Tim KarirConnect</strong></p>
+        </div>
+        <div class="footer">
+            <p>Email ini dikirim secara otomatis dari platform KarirConnect.</p>
+            <p>Jangan balas email ini, untuk pertanyaan, silakan hubungi kami melalui halaman <a href="{{contact_url}}" style="color: #2E4DF7;">bantuan</a>.</p>
+            <p>&copy; 2025 KarirConnect. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html>',
+                'variables' => ['user_name', 'job_title', 'company_name', 'job_location', 'application_date', 'invitation_url', 'contact_url'],
+                'is_active' => true,
+                'type' => 'transactional',
+            ],
         ];
 
         foreach ($templates as $template) {

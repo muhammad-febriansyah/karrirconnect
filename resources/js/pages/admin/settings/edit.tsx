@@ -120,6 +120,21 @@ export default function EditSettings({ setting, flash }: Props) {
         return null;
     };
 
+    const validateHeroImageFile = (file: File): string | null => {
+        const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+        const maxSize = 6 * 1024 * 1024; // 6MB
+
+        if (!allowedTypes.includes(file.type)) {
+            return 'File harus berformat JPEG, PNG, JPG, GIF, atau WebP.';
+        }
+
+        if (file.size > maxSize) {
+            return 'Ukuran file tidak boleh lebih dari 6MB.';
+        }
+
+        return null;
+    };
+
     const processFile = (file: File) => {
         const error = validateFile(file);
         setFileError(error);
@@ -359,7 +374,7 @@ export default function EditSettings({ setting, flash }: Props) {
     };
 
     const processHeroImageFile = (file: File) => {
-        const error = validateFile(file);
+        const error = validateHeroImageFile(file);
         setHeroImageError(error);
 
         if (error) {
@@ -1279,7 +1294,7 @@ export default function EditSettings({ setting, flash }: Props) {
                                                     <p className="text-sm font-medium text-gray-700">
                                                         {isHeroImageDragOver ? 'Lepaskan file di sini' : 'Drag & drop hero image atau klik untuk pilih file'}
                                                     </p>
-                                                    <p className="mt-1 text-xs text-gray-500">Format: JPEG, PNG, JPG, GIF, WebP • Maksimal 2MB</p>
+                                                    <p className="mt-1 text-xs text-gray-500">Format: JPEG, PNG, JPG, GIF, WebP • Maksimal 6MB</p>
                                                 </div>
                                                 <Button
                                                     type="button"

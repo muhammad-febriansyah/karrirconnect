@@ -6,7 +6,9 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { TypingAnimation } from '@/components/ui/typing-animation';
 import MainLayout from '@/layouts/main-layout';
+import TrustedCompaniesSection from '@/pages/welcome/sections/TrustedCompaniesSection';
 import { Link, router } from '@inertiajs/react';
 import axios from 'axios';
 import { motion } from 'framer-motion';
@@ -34,6 +36,17 @@ interface Company {
     logo: string | null;
     location: string;
     is_verified: boolean;
+    industry?: string;
+    size?: string;
+    active_jobs_count?: number;
+    total_job_posts?: number;
+}
+
+interface Statistics {
+    total_jobs: number;
+    total_companies: number;
+    total_applications: number;
+    success_stories: number;
 }
 
 interface JobCategory {
@@ -129,9 +142,34 @@ interface JobsIndexProps {
     };
     totalJobs: number;
     featuredJobs: JobListing[];
+    topCompanies: Company[];
 }
 
-export default function JobsIndex({ jobs, categories, filters, totalJobs, featuredJobs }: JobsIndexProps) {
+// Looping typing animation component
+function LoopingTyping() {
+    const texts = ['Cari posisi impian', 'Cari kata kunci', 'Cari perusahaan'];
+    const [currentIndex, setCurrentIndex] = useState(0);
+
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setCurrentIndex((prev) => (prev + 1) % texts.length);
+        }, 3000);
+
+        return () => clearInterval(interval);
+    }, []);
+
+    return (
+        <TypingAnimation
+            key={currentIndex}
+            className="text-base text-gray-400"
+            duration={100}
+        >
+            {texts[currentIndex]}
+        </TypingAnimation>
+    );
+}
+
+export default function JobsIndex({ jobs, categories, filters, totalJobs, featuredJobs, topCompanies }: JobsIndexProps) {
     const [searchQuery, setSearchQuery] = useState(filters.search || '');
     const [locationQuery, setLocationQuery] = useState(filters.location || '');
     const [selectedCategory, setSelectedCategory] = useState(filters.category || '');
@@ -394,11 +432,16 @@ export default function JobsIndex({ jobs, categories, filters, totalJobs, featur
                                 <div className="relative lg:col-span-2">
                                     <Search className="absolute top-1/2 left-4 h-5 w-5 -translate-y-1/2 transform text-gray-400" />
                                     <Input
-                                        placeholder="Posisi, kata kunci, atau perusahaan"
+                                        placeholder=""
                                         value={searchQuery}
                                         onChange={(e) => setSearchQuery(e.target.value)}
                                         className="h-12 border-gray-200 pl-12 text-lg text-gray-900 placeholder-gray-400 focus:border-[#2347FA] focus:ring-[#2347FA]"
                                     />
+                                    {!searchQuery && (
+                                        <div className="pointer-events-none absolute top-1/2 left-12 -translate-y-1/2">
+                                            <LoopingTyping />
+                                        </div>
+                                    )}
                                 </div>
                                 <div className="relative">
                                     <MapPin className="absolute top-1/2 left-4 h-5 w-5 -translate-y-1/2 transform text-gray-400" />
@@ -474,6 +517,16 @@ export default function JobsIndex({ jobs, categories, filters, totalJobs, featur
                         </motion.div>
                     </div>
                 </section>
+
+                {/* Sticky Mitra Pilihan Section */}
+                {topCompanies && topCompanies.length > 0 && (
+                    <div className="sticky top-16 z-30 bg-white shadow-md">
+                        <TrustedCompaniesSection
+                            statistics={{ total_companies: topCompanies.length } as Statistics}
+                            topCompanies={topCompanies}
+                        />
+                    </div>
+                )}
 
                 {/* Enhanced Featured Jobs */}
                 {featuredJobs.length > 0 && (
