@@ -68,9 +68,27 @@ Route::group(['prefix' => 'v1'], function () {
         
         // Admin routes
         Route::middleware('can:access-admin')->group(function () {
-            Route::apiResource('admin/companies', CompanyController::class);
-            Route::apiResource('admin/job-categories', JobCategoryController::class);
-            Route::apiResource('admin/skills', SkillController::class);
+            Route::apiResource('admin/companies', CompanyController::class)->names([
+                'index' => 'api.admin.companies.index',
+                'store' => 'api.admin.companies.store',
+                'show' => 'api.admin.companies.show',
+                'update' => 'api.admin.companies.update',
+                'destroy' => 'api.admin.companies.destroy',
+            ]);
+            Route::apiResource('admin/job-categories', JobCategoryController::class)->names([
+                'index' => 'api.admin.job-categories.index',
+                'store' => 'api.admin.job-categories.store',
+                'show' => 'api.admin.job-categories.show',
+                'update' => 'api.admin.job-categories.update',
+                'destroy' => 'api.admin.job-categories.destroy',
+            ]);
+            Route::apiResource('admin/skills', SkillController::class)->names([
+                'index' => 'api.admin.skills.index',
+                'store' => 'api.admin.skills.store',
+                'show' => 'api.admin.skills.show',
+                'update' => 'api.admin.skills.update',
+                'destroy' => 'api.admin.skills.destroy',
+            ]);
             Route::patch('admin/companies/{company}/verify', [CompanyController::class, 'toggleVerification']);
             Route::patch('admin/jobs/{jobListing}/feature', [JobListingController::class, 'toggleFeatured']);
         });
