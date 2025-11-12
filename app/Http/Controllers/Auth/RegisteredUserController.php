@@ -57,11 +57,11 @@ class RegisteredUserController extends Controller
 
         Auth::login($user);
 
-        // Redirect based on user role
+        // Redirect based on user role - use direct redirect, not intended
         if ($user->role === 'user') {
-            return redirect()->intended(route('user.dashboard', absolute: false));
+            return redirect()->route('user.dashboard')->with('success', 'Selamat datang! Akun Anda berhasil dibuat.');
         } else {
-            return redirect()->intended(route('admin.dashboard', absolute: false));
+            return redirect()->route('admin.dashboard')->with('success', 'Selamat datang! Akun admin Anda berhasil dibuat.');
         }
     }
 
