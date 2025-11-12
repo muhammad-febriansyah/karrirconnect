@@ -126,15 +126,27 @@ class CompanyRegistrationController extends Controller
             // Send WhatsApp notification to admin KarirConnect
             $this->sendAdminNotification($company, $user, $request);
 
-            return redirect()->route('admin.dashboard')->with('success',
+            // Mark email as verified for company admin (they don't need email verification)
+            $user->markEmailAsVerified();
+
+            return redirect()->route('company.jobs.index')->with('success',
                 'Akun perusahaan berhasil dibuat! Perusahaan Anda sedang menunggu verifikasi admin.'
             );
 
         } catch (\Exception $e) {
             DB::rollBack();
-            
+
+            // Log detailed error for debugging
+            \Log::error('Company Registration Failed', [
+                'error_message' => $e->getMessage(),
+                'error_file' => $e->getFile(),
+                'error_line' => $e->getLine(),
+                'trace' => $e->getTraceAsString(),
+                'request_data' => $request->except(['password', 'password_confirmation', 'g-recaptcha-response'])
+            ]);
+
             return back()->withErrors([
-                'general' => 'Terjadi kesalahan saat membuat akun perusahaan. Silakan coba lagi.'
+                'general' => 'Terjadi kesalahan saat membuat akun perusahaan: ' . $e->getMessage()
             ])->withInput();
         }
     }

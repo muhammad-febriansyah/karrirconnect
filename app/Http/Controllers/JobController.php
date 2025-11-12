@@ -88,17 +88,18 @@ class JobController extends Controller
         $totalJobs = JobListing::active()->count();
 
         // Top Companies - for Mitra Pilihan section
-        $topCompanies = Company::withCount(['jobListings as active_jobs_count' => function($query) {
-                $query->where('status', 'published')
+        $topCompanies = Company::query()
+            ->withCount(['jobListings as active_jobs_count' => function($query) {
+                $query->where('job_listings.status', 'published')
                     ->where(function($q) {
-                        $q->whereNull('application_deadline')
-                          ->orWhere('application_deadline', '>=', now());
+                        $q->whereNull('job_listings.application_deadline')
+                          ->orWhere('job_listings.application_deadline', '>=', now());
                     });
             }])
             ->withCount('jobListings as total_job_posts')
-            ->where('is_active', true)
+            ->where('companies.is_active', true)
             ->having('active_jobs_count', '>', 0)
-            ->orderBy('is_verified', 'desc')
+            ->orderBy('companies.is_verified', 'desc')
             ->orderBy('active_jobs_count', 'desc')
             ->limit(12)
             ->get();

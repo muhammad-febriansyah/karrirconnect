@@ -66,6 +66,10 @@ export default function Register() {
 
     const submit: FormEventHandler = (e) => {
         e.preventDefault();
+
+        console.log('=== USER REGISTRATION DEBUG ===');
+        console.log('Form Data:', data);
+
         post(route('register'), {
             onFinish: () => {
                 reset('password', 'password_confirmation');
@@ -74,16 +78,26 @@ export default function Register() {
                     setData('g-recaptcha-response', '');
                 }
             },
-            onSuccess: () => {
+            onSuccess: (response) => {
+                console.log('✅ SUCCESS:', response);
                 toast.success('Akun Berhasil Dibuat!', {
-                    description: 'Selamat! Akun Anda berhasil dibuat. Silakan login dengan akun baru Anda.',
+                    description: 'Selamat! Akun Anda berhasil dibuat.',
                     duration: 4000,
                 });
             },
-            onError: () => {
+            onError: (errors) => {
+                console.error('❌ ERROR RESPONSE:', errors);
+                console.error('Error keys:', Object.keys(errors));
+                console.error('Error details:', JSON.stringify(errors, null, 2));
+
+                // Show specific errors if available
+                const errorMessages = Object.entries(errors).map(([key, value]) => {
+                    return `${key}: ${value}`;
+                }).join('\n');
+
                 toast.error('Gagal Membuat Akun', {
-                    description: 'Terjadi kesalahan saat membuat akun. Silakan periksa data Anda dan coba lagi.',
-                    duration: 4000,
+                    description: errorMessages || 'Terjadi kesalahan saat membuat akun. Silakan periksa data Anda dan coba lagi.',
+                    duration: 6000,
                 });
             },
         });

@@ -80,6 +80,10 @@ export default function RegisterCompany() {
 
     const submit: FormEventHandler = (e) => {
         e.preventDefault();
+
+        console.log('=== FORM SUBMISSION DEBUG ===');
+        console.log('Form Data:', data);
+
         post('/register-company', {
             onFinish: () => {
                 reset('password', 'password_confirmation');
@@ -88,16 +92,26 @@ export default function RegisterCompany() {
                     setData('g-recaptcha-response', '');
                 }
             },
-            onSuccess: () => {
+            onSuccess: (response) => {
+                console.log('✅ SUCCESS:', response);
                 toast.success('Akun Perusahaan Berhasil Dibuat!', {
                     description: 'Selamat! Akun perusahaan Anda berhasil dibuat dan sedang menunggu verifikasi admin.',
                     duration: 5000,
                 });
             },
-            onError: () => {
+            onError: (errors) => {
+                console.error('❌ ERROR RESPONSE:', errors);
+                console.error('Error keys:', Object.keys(errors));
+                console.error('Error details:', JSON.stringify(errors, null, 2));
+
+                // Show specific errors if available
+                const errorMessages = Object.entries(errors).map(([key, value]) => {
+                    return `${key}: ${value}`;
+                }).join('\n');
+
                 toast.error('Gagal Membuat Akun Perusahaan', {
-                    description: 'Terjadi kesalahan saat membuat akun. Silakan periksa data Anda dan coba lagi.',
-                    duration: 4000,
+                    description: errorMessages || 'Terjadi kesalahan saat membuat akun. Silakan periksa data Anda dan coba lagi.',
+                    duration: 6000,
                 });
             },
         });

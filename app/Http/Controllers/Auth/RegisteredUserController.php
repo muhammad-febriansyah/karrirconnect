@@ -49,6 +49,9 @@ class RegisteredUserController extends Controller
 
         event(new Registered($user));
 
+        // Mark email as verified for regular users (they don't need email verification)
+        $user->markEmailAsVerified();
+
         // Send welcome email to user
         $this->sendWelcomeEmail($user);
 
@@ -71,7 +74,7 @@ class RegisteredUserController extends Controller
             EmailService::send('employee-registration-success', $user->email, [
                 'user_name' => $user->name,
                 'profile_url' => route('user.profile.edit'),
-                'jobs_url' => route('jobs.index'),
+                'jobs_url' => route('jobs'),
             ]);
 
             \Log::info("Welcome email sent to user: {$user->email}");
