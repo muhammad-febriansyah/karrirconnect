@@ -10,6 +10,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rules;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -33,7 +34,7 @@ class RegisteredUserController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255',
-            'email' => 'required|string|lowercase|email|max:255|unique:'.User::class,
+            'email' => 'required|string|lowercase|email|max:255|unique:' . User::class,
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
             'g-recaptcha-response' => 'required|captcha',
         ], [
@@ -47,15 +48,28 @@ class RegisteredUserController extends Controller
             'password' => Hash::make($request->password),
         ]);
 
+        // Mark email as verified for regular users (they don't need email verification)
+        // IMPORTANT: Do this before login to ensure session has correct email_verified_at
+        $user->markEmailAsVerified();
+
+        // Refresh user instance to get updated email_verified_at
+        $user->refresh();
+
         event(new Registered($user));
 
-        // Mark email as verified for regular users (they don't need email verification)
-        $user->markEmailAsVerified();
+        // Login user with fresh data
+        Auth::login($user, true);
 
         // Send welcome email to user
         $this->sendWelcomeEmail($user);
 
-        Auth::login($user);
+        // Log for debugging
+        \Log::info('User registered successfully', [
+            'user_id' => $user->id,
+            'email' => $user->email,
+            'role' => $user->role,
+            'email_verified_at' => $user->email_verified_at,
+        ]);
 
         // Redirect based on user role - use direct redirect, not intended
         if ($user->role === 'user') {
@@ -77,9 +91,9 @@ class RegisteredUserController extends Controller
                 'jobs_url' => route('jobs'),
             ]);
 
-            \Log::info("Welcome email sent to user: {$user->email}");
+            Log::info("Welcome email sent to user: {$user->email}");
         } catch (\Exception $e) {
-            \Log::error("Failed to send welcome email to user: " . $e->getMessage());
+            Log::error("Failed to send welcome email to user: " . $e->getMessage());
         }
     }
 }
